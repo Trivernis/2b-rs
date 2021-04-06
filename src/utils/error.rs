@@ -1,3 +1,4 @@
+use serenity::framework::standard::CommandError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -12,4 +13,7 @@ pub enum BotError {
 
     #[error("Missing Bot Token")]
     MissingToken,
+
+    #[error("Minecraft Data Error: {0}")]
+    MinecraftDataError(#[from] minecraft_data_rs::DataError),
 }

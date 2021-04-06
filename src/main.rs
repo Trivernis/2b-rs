@@ -1,5 +1,5 @@
 use crate::client::get_client;
-use serenity::client::{Context, EventHandler};
+use serenity::client::Context;
 use serenity::framework::standard::{
     macros::{command, group},
     CommandResult,
@@ -7,7 +7,9 @@ use serenity::framework::standard::{
 use serenity::model::channel::Message;
 
 pub(crate) mod client;
+mod commands;
 pub(crate) mod database;
+mod providers;
 pub(crate) mod utils;
 
 #[group]
