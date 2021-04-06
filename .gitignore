@@ -1,0 +1,4 @@
+/target
+bot.db
+.env
+*.env
