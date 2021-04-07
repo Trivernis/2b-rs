@@ -1,14 +1,13 @@
 use std::collections::HashSet;
 
 use serenity::client::Context;
-use serenity::framework::standard::{Args, help_commands};
-use serenity::framework::standard::{CommandGroup, CommandResult, HelpOptions};
 use serenity::framework::standard::macros::help;
+use serenity::framework::standard::{help_commands, Args};
+use serenity::framework::standard::{CommandGroup, CommandResult, HelpOptions};
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
 
 #[help]
-#[description("HEEEELP")]
 pub async fn help(
     ctx: &Context,
     msg: &Message,

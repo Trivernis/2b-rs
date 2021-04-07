@@ -49,7 +49,6 @@ pub fn get_framework() -> StandardFramework {
         .group(&MUSIC_GROUP)
         .after(after_hook)
         .before(before_hook)
-        .unrecognised_command(unknown_command)
         .on_dispatch_error(dispatch_error)
         .help(&HELP)
 }
@@ -68,15 +67,6 @@ async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
     let _ = msg.channel_id.broadcast_typing(ctx).await;
     true
 }
-
-#[hook]
-async fn unknown_command(ctx: &Context, msg: &Message, cmd: &str) {
-    let _ = msg
-        .channel_id
-        .say(ctx, format!("Could not find the command `{}`", cmd))
-        .await;
-}
-
 #[hook]
 async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
     match error {
