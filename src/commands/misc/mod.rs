@@ -1,7 +1,9 @@
-pub(crate) mod ping;
+use serenity::framework::standard::macros::group;
 
 use ping::PING_COMMAND;
-use serenity::framework::standard::macros::group;
+
+pub(crate) mod help;
+pub(crate) mod ping;
 
 #[group]
 #[commands(ping)]

@@ -1,9 +1,10 @@
-mod enchantment;
-mod item;
+use serenity::framework::standard::macros::group;
 
 use enchantment::ENCHANTMENT_COMMAND;
 use item::ITEM_COMMAND;
-use serenity::framework::standard::macros::group;
+
+mod enchantment;
+mod item;
 
 #[group]
 #[commands(item, enchantment)]

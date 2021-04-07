@@ -1,15 +1,16 @@
-use crate::commands::*;
-use crate::database::{get_database, Database};
-use crate::utils::error::{BotError, BotResult};
-use crate::utils::store::{Store, StoreData};
 use serenity::async_trait;
 use serenity::client::{Context, EventHandler};
 use serenity::framework::standard::macros::hook;
-use serenity::framework::standard::CommandResult;
+use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
 use serenity::Client;
 use songbird::SerenityInit;
+
+use crate::commands::*;
+use crate::database::get_database;
+use crate::utils::error::{BotError, BotResult};
+use crate::utils::store::{Store, StoreData};
 
 struct Handler;
 
@@ -48,6 +49,9 @@ pub fn get_framework() -> StandardFramework {
         .group(&MUSIC_GROUP)
         .after(after_hook)
         .before(before_hook)
+        .unrecognised_command(unknown_command)
+        .on_dispatch_error(dispatch_error)
+        .help(&HELP)
 }
 
 #[hook]
@@ -63,4 +67,60 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
 async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
     let _ = msg.channel_id.broadcast_typing(ctx).await;
     true
+}
+
+#[hook]
+async fn unknown_command(ctx: &Context, msg: &Message, cmd: &str) {
+    let _ = msg
+        .channel_id
+        .say(ctx, format!("Could not find the command `{}`", cmd))
+        .await;
+}
+
+#[hook]
+async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
+    match error {
+        DispatchError::Ratelimited(info) => {
+            if info.is_first_try {
+                let _ = msg
+                    .channel_id
+                    .say(
+                        &ctx.http,
+                        &format!("Try this again in {} seconds.", info.as_secs()),
+                    )
+                    .await;
+            }
+        }
+        DispatchError::OnlyForDM => {
+            let _ = msg
+                .channel_id
+                .say(&ctx.http, "This command only works via DM")
+                .await;
+        }
+        DispatchError::OnlyForGuilds => {
+            let _ = msg
+                .channel_id
+                .say(&ctx.http, "This command only works on servers")
+                .await;
+        }
+        DispatchError::NotEnoughArguments { min, given } => {
+            let _ = msg
+                .channel_id
+                .say(
+                    &ctx.http,
+                    format!("Expected {} arguments but only got {}", min, given),
+                )
+                .await;
+        }
+        DispatchError::TooManyArguments { max, given } => {
+            let _ = msg
+                .channel_id
+                .say(
+                    &ctx.http,
+                    format!("Expected {} arguments but actually got {}", max, given),
+                )
+                .await;
+        }
+        _ => {}
+    }
 }

@@ -1,9 +1,10 @@
+use std::collections::VecDeque;
+
 use rand::Rng;
 use serenity::client::Context;
-use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{CommandError, CommandResult};
+use serenity::framework::standard::macros::command;
 use serenity::model::channel::Message;
-use std::collections::VecDeque;
 
 #[command]
 #[only_in(guilds)]

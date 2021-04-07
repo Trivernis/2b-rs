@@ -1,8 +1,9 @@
-use serenity::client::Context;
-use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{CommandError, CommandResult};
-use serenity::model::channel::Message;
 use std::cmp::min;
+
+use serenity::client::Context;
+use serenity::framework::standard::{CommandError, CommandResult};
+use serenity::framework::standard::macros::command;
+use serenity::model::channel::Message;
 
 #[command]
 #[only_in(guilds)]

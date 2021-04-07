@@ -1,6 +1,7 @@
+use rusqlite::{Connection, NO_PARAMS};
+
 use crate::database::scripts::{CREATE_SCRIPT, UPDATE_SCRIPT};
 use crate::utils::error::BotResult;
-use rusqlite::{Connection, NO_PARAMS};
 
 pub mod guild;
 pub mod scripts;

@@ -1,7 +1,8 @@
-use crate::providers::ytdl::playlist_entry::PlaylistEntry;
-use crate::utils::error::{BotError, BotResult};
 use std::io::Read;
 use std::process::{Command, Stdio};
+
+use crate::providers::ytdl::playlist_entry::PlaylistEntry;
+use crate::utils::error::BotResult;
 
 mod playlist_entry;
 

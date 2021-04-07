@@ -1,9 +1,10 @@
-use crate::commands::music::utils::{get_channel_for_author, join_channel};
-use crate::providers::ytdl::get_videos_for_url;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
+
+use crate::commands::music::utils::{get_channel_for_author, join_channel};
+use crate::providers::ytdl::get_videos_for_url;
 
 #[command]
 #[only_in(guilds)]
@@ -12,7 +13,7 @@ use serenity::model::channel::Message;
 #[min_args(1)]
 #[max_args(1)]
 #[aliases("p")]
-async fn play(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = args.message();
 
     if !url.starts_with("http") {

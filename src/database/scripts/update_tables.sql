@@ -1,1 +1,2 @@
-SELECT NULL FROM guilds;
+SELECT NULL
+FROM guilds;

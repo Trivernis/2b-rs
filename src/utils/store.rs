@@ -1,7 +1,9 @@
-use crate::database::Database;
+use std::sync::Arc;
+
 use parking_lot::Mutex;
 use serenity::prelude::TypeMapKey;
-use std::sync::Arc;
+
+use crate::database::Database;
 
 pub struct Store;
 

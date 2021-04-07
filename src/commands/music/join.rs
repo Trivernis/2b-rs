@@ -1,8 +1,9 @@
-use crate::commands::music::utils::{get_channel_for_author, join_channel};
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{CommandError, CommandResult};
+use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+
+use crate::commands::music::utils::{get_channel_for_author, join_channel};
 
 #[command]
 #[only_in(guilds)]

@@ -1,4 +1,3 @@
-use serenity::framework::standard::CommandError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;

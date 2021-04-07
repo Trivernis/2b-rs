@@ -1,10 +1,12 @@
-use crate::utils::error::{BotError, BotResult};
+use std::sync::Arc;
+
 use serenity::client::Context;
 use serenity::model::guild::Guild;
 use serenity::model::id::{ChannelId, GuildId, UserId};
 use songbird::Call;
-use std::sync::Arc;
 use tokio::sync::Mutex;
+
+use crate::utils::error::{BotError, BotResult};
 
 /// Joins a voice channel
 pub(crate) async fn join_channel(

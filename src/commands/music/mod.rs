@@ -1,12 +1,3 @@
-mod current;
-mod join;
-mod leave;
-mod play;
-mod queue;
-mod shuffle;
-mod skip;
-mod utils;
-
 use serenity::framework::standard::macros::group;
 
 use current::CURRENT_COMMAND;
@@ -16,6 +7,15 @@ use play::PLAY_COMMAND;
 use queue::QUEUE_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
+
+mod current;
+mod join;
+mod leave;
+mod play;
+mod queue;
+mod shuffle;
+mod skip;
+mod utils;
 
 #[group]
 #[commands(join, leave, play, queue, skip, shuffle, current)]
