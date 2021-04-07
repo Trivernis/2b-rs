@@ -1,4 +1,4 @@
-use crate::commands::minecraft::Minecraft;
+use crate::commands::*;
 use crate::database::{get_database, Database};
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::{Store, StoreData};
@@ -9,6 +9,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
 use serenity::Client;
+use songbird::SerenityInit;
 
 struct Handler;
 
@@ -19,7 +20,10 @@ pub async fn get_client() -> BotResult<Client> {
     let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
     let database = get_database()?;
 
-    let client = Client::builder(token).framework(get_framework()).await?;
+    let client = Client::builder(token)
+        .framework(get_framework())
+        .register_songbird()
+        .await?;
     {
         let mut data = client.data.write().await;
         data.insert::<Store>(StoreData::new(database))
@@ -39,9 +43,11 @@ pub fn get_framework() -> StandardFramework {
             .allow_dm(true)
             .ignore_bots(true)
         })
-        .group(&crate::commands::minecraft::MINECRAFT_GROUP)
-        .group(&crate::GENERAL_GROUP)
+        .group(&MINECRAFT_GROUP)
+        .group(&MISC_GROUP)
+        .group(&MUSIC_GROUP)
         .after(after_hook)
+        .before(before_hook)
 }
 
 #[hook]
@@ -51,4 +57,10 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
         let _ = msg.channel_id.say(&ctx, format!("{}", why)).await;
         println!("Error in {}: {:?}", cmd_name, why);
     }
+}
+
+#[hook]
+async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
+    let _ = msg.channel_id.broadcast_typing(ctx).await;
+    true
 }

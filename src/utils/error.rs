@@ -16,4 +16,16 @@ pub enum BotError {
 
     #[error("Minecraft Data Error: {0}")]
     MinecraftDataError(#[from] minecraft_data_rs::DataError),
+
+    #[error("IO Error: {0}")]
+    IOError(#[from] std::io::Error),
+
+    #[error("{0}")]
+    Msg(String),
+}
+
+impl From<&str> for BotError {
+    fn from(s: &str) -> Self {
+        Self::Msg(s.to_string())
+    }
 }
