@@ -8,7 +8,7 @@ use crate::commands::music::get_queue_for_guild;
 #[command]
 #[only_in(guilds)]
 #[description("Shuffles the queue")]
-#[usage("shuffle")]
+#[usage("")]
 #[aliases("sh")]
 #[allowed_roles("DJ")]
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {

@@ -6,8 +6,8 @@ use crate::utils::store::Store;
 
 #[command]
 #[description("Provides information for a single enchantment")]
-#[usage("enchantment <enchantment-name>")]
-#[example("item unbreaking")]
+#[usage("<enchantment-name>")]
+#[example("unbreaking")]
 #[min_args(1)]
 #[aliases("ench")]
 pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> CommandResult {

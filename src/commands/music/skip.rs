@@ -8,7 +8,7 @@ use crate::commands::music::get_queue_for_guild;
 #[command]
 #[only_in(guilds)]
 #[description("Skips to the next song")]
-#[usage("skip")]
+#[usage("")]
 #[aliases("next")]
 #[allowed_roles("DJ")]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {

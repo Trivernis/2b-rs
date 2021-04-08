@@ -8,7 +8,7 @@ use crate::commands::music::get_queue_for_guild;
 #[command]
 #[only_in(guilds)]
 #[description("Pauses playback")]
-#[usage("pause")]
+#[usage("")]
 #[allowed_roles("DJ")]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();

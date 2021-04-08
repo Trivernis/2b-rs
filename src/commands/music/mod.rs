@@ -48,7 +48,7 @@ mod skip;
 #[commands(
     join, leave, play, queue, skip, shuffle, current, play_next, clear, pause
 )]
-#[prefix("m")]
+#[prefixes("m", "music")]
 pub struct Music;
 
 struct SongEndNotifier {

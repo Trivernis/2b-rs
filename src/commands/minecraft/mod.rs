@@ -8,5 +8,5 @@ mod item;
 
 #[group]
 #[commands(item, enchantment)]
-#[prefix("mc")]
+#[prefixes("mc", "minecraft")]
 pub(crate) struct Minecraft;

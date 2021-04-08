@@ -6,8 +6,7 @@ use std::process;
 
 #[command]
 #[description("Shutdown")]
-#[usage("shutdown")]
-#[example("shutdown")]
+#[usage("")]
 #[owners_only]
 async fn shutdown(ctx: &Context, msg: &Message) -> CommandResult {
     log::info!("Shutting down...");

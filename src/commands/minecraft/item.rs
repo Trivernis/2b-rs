@@ -6,8 +6,8 @@ use crate::utils::store::Store;
 
 #[command]
 #[description("Provides information for a single minecraft item")]
-#[usage("item <item-name>")]
-#[example("item bread")]
+#[usage("<item-name>")]
+#[example("bread")]
 #[min_args(1)]
 #[aliases("i")]
 pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandResult {

@@ -8,7 +8,7 @@ use crate::commands::music::get_queue_for_guild;
 #[command]
 #[only_in(guilds)]
 #[description("Clears the queue")]
-#[usage("clear")]
+#[usage("")]
 #[aliases("cl")]
 #[allowed_roles("DJ")]
 async fn clear(ctx: &Context, msg: &Message) -> CommandResult {

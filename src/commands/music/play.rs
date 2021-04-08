@@ -13,7 +13,7 @@ use crate::database::guild::SETTING_AUTOSHUFFLE;
 #[command]
 #[only_in(guilds)]
 #[description("Plays a song in a voice channel")]
-#[usage("play <url>")]
+#[usage("(<spotify_url,youtube_url,query>)")]
 #[min_args(1)]
 #[aliases("p")]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {

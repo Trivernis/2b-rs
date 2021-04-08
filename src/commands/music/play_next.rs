@@ -11,7 +11,7 @@ use crate::commands::music::{
 #[command]
 #[only_in(guilds)]
 #[description("Puts a song as the next to play in the queue")]
-#[usage("play_next <song-url>")]
+#[usage("<song-url>")]
 #[min_args(1)]
 #[aliases("pn")]
 #[allowed_roles("DJ")]

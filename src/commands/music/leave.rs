@@ -8,7 +8,7 @@ use crate::commands::music::{get_queue_for_guild, get_voice_manager};
 #[command]
 #[only_in(guilds)]
 #[description("Leaves a voice channel")]
-#[usage("leave")]
+#[usage("")]
 #[aliases("stop")]
 #[allowed_roles("DJ")]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {

@@ -8,7 +8,7 @@ use crate::commands::music::get_queue_for_guild;
 #[command]
 #[only_in(guilds)]
 #[description("Displays the currently playing song")]
-#[usage("current")]
+#[usage("")]
 #[aliases("nowplaying", "np")]
 async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
