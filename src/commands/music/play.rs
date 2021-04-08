@@ -1,10 +1,10 @@
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::framework::standard::macros::command;
+use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::commands::music::{
-    get_channel_for_author, get_queue_for_guild, get_songs_for_url, get_voice_manager,
+    get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue,
 };
 use crate::database::get_database_from_context;
@@ -15,14 +15,9 @@ use crate::database::guild::SETTING_AUTOSHUFFLE;
 #[description("Plays a song in a voice channel")]
 #[usage("play <url>")]
 #[min_args(1)]
-#[max_args(1)]
 #[aliases("p")]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
-    let url = args.message();
-
-    if !url.starts_with("http") {
-        return Err(CommandError::from("The provided url is not valid"));
-    }
+    let query = args.message();
 
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
@@ -37,7 +32,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let handler_lock = handler.ok_or(CommandError::from("Not in a voice channel"))?;
 
-    let songs = get_songs_for_url(&ctx, msg, url).await?;
+    let songs = get_songs_for_query(&ctx, msg, query).await?;
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
 

@@ -36,3 +36,20 @@ pub(crate) fn get_video_information(url: &str) -> BotResult<VideoInformation> {
 
     Ok(information)
 }
+
+/// Searches for a video
+pub(crate) fn search_video_information(query: &str) -> BotResult<Option<VideoInformation>> {
+    let ytdl = Command::new("youtube-dl")
+        .args(&[
+            "--no-warnings",
+            "--dump-json",
+            "-i",
+            format!("ytsearch:\"{}\"", query).as_str(),
+        ])
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    let information = serde_json::from_reader(ytdl.stdout.unwrap())?;
+
+    Ok(information)
+}

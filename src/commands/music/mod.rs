@@ -22,8 +22,10 @@ use queue::QUEUE_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
-use crate::providers::music::{get_video_information, get_videos_for_playlist};
 use crate::providers::music::queue::{MusicQueue, Song};
+use crate::providers::music::{
+    get_video_information, get_videos_for_playlist, search_video_information,
+};
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::Store;
 
@@ -149,13 +151,20 @@ async fn play_next_in_queue(
 }
 
 /// Returns the list of songs for a given url
-async fn get_songs_for_url(ctx: &&Context, msg: &Message, url: &str) -> BotResult<Vec<Song>> {
-    let mut songs: Vec<Song> = get_videos_for_playlist(url)?
+async fn get_songs_for_query(ctx: &&Context, msg: &Message, query: &str) -> BotResult<Vec<Song>> {
+    let mut songs: Vec<Song> = get_videos_for_playlist(query)?
         .into_iter()
         .map(Song::from)
         .collect();
     if songs.len() == 0 {
-        let song: Song = get_video_information(url)?.into();
+        let song: Song = if !query.starts_with("http") {
+            search_video_information(query)?
+                .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
+                .into()
+        } else {
+            get_video_information(query)?.into()
+        };
+
         msg.channel_id
             .send_message(&ctx.http, |m| {
                 m.embed(|mut e| {
