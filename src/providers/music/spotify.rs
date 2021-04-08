@@ -1,5 +1,5 @@
 use crate::utils::error::{BotError, BotResult};
-use aspotify::{Client, ClientCredentials, PlaylistItemType};
+use aspotify::{Client, ClientCredentials, PlaylistItem, PlaylistItemType};
 
 pub struct SpotifyApi {
     client: Client,
@@ -21,10 +21,19 @@ impl SpotifyApi {
     /// Returns the song names for a playlist
     pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<String>> {
         let id = self.get_id_for_url(url)?;
-        let playlist = self.client.playlists().get_playlist(&*id, None).await?.data;
-        let song_names = playlist
-            .tracks
-            .items
+        let mut playlist_tracks = Vec::new();
+        let mut offset = 0;
+
+        loop {
+            let mut tracks = self.get_tracks_in_playlist(&*id, 100, offset).await?;
+            if tracks.len() == 0 {
+                break;
+            }
+            playlist_tracks.append(&mut tracks);
+            offset += 100;
+        }
+
+        let song_names = playlist_tracks
             .into_iter()
             .filter_map(|item| item.item)
             .map(|t| match t {
@@ -34,7 +43,7 @@ impl SpotifyApi {
                         .into_iter()
                         .map(|a| a.name)
                         .collect::<Vec<String>>()
-                        .join(","),
+                        .join(" & "),
                     t.name
                 ),
                 PlaylistItemType::Episode(e) => e.name,
@@ -42,6 +51,23 @@ impl SpotifyApi {
             .collect();
 
         Ok(song_names)
+    }
+
+    /// Returns the tracks of a playlist with pagination
+    async fn get_tracks_in_playlist(
+        &self,
+        id: &str,
+        limit: usize,
+        offset: usize,
+    ) -> BotResult<Vec<PlaylistItem>> {
+        let tracks = self
+            .client
+            .playlists()
+            .get_playlists_items(id, limit, offset, None)
+            .await?
+            .data;
+
+        Ok(tracks.items)
     }
 
     /// Returns all song names for a given album
@@ -59,7 +85,7 @@ impl SpotifyApi {
                         .into_iter()
                         .map(|a| a.name)
                         .collect::<Vec<String>>()
-                        .join(","),
+                        .join(" & "),
                     item.name
                 )
             })
@@ -80,7 +106,7 @@ impl SpotifyApi {
                 .into_iter()
                 .map(|a| a.name)
                 .collect::<Vec<String>>()
-                .join(","),
+                .join(" & "),
             track.name
         ))
     }

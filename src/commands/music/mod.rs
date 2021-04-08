@@ -157,7 +157,8 @@ async fn play_next_in_queue(
 /// Returns the list of songs for a given url
 async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotResult<Vec<Song>> {
     lazy_static::lazy_static! {
-        static ref YOUTUBE_URL_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.)?(youtube\.com/watch\?.*v=.*)|(/youtu.be/.*)$").unwrap();
+        // expressions to determine the type of url
+        static ref YOUTUBE_URL_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.)?(youtube\.com/watch\?.*v=.*)|(/youtu.be/.*)|(youtube\.com/playlist\?.*list=.*)$").unwrap();
         static ref SPOTIFY_PLAYLIST_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/playlist/.*").unwrap();
         static ref SPOTIFY_ALBUM_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/album/.*").unwrap();
         static ref SPOTIFY_SONG_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/track/.*").unwrap();
@@ -167,12 +168,14 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     let store = data.get::<Store>().unwrap();
 
     if YOUTUBE_URL_REGEX.is_match(query) {
+        // try fetching the url as a playlist
         songs = get_videos_for_playlist(query)
             .await?
             .into_iter()
             .map(Song::from)
             .collect();
 
+        // if no songs were found fetch the song as a video
         if songs.len() == 0 {
             let song: Song = get_video_information(query).await?.into();
             added_one_msg(&ctx, msg, &song).await?;
@@ -181,14 +184,17 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
             added_multiple_msg(&ctx, msg, &mut songs).await?;
         }
     } else if SPOTIFY_PLAYLIST_REGEX.is_match(query) {
+        // search for all songs in the playlist and search for them on youtube
         let song_names = store.spotify_api.get_songs_in_playlist(query).await?;
         songs = parallel_search_youtube(song_names).await;
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_ALBUM_REGEX.is_match(query) {
+        // fetch all songs in the album and search for them on youtube
         let song_names = store.spotify_api.get_songs_in_album(query).await?;
         songs = parallel_search_youtube(song_names).await;
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_SONG_REGEX.is_match(query) {
+        // fetch the song name and search it on youtube
         let name = store.spotify_api.get_song_name(query).await?;
         let song: Song = search_video_information(name.clone())
             .await?

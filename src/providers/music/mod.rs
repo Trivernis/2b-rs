@@ -1,12 +1,17 @@
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::utils::error::BotResult;
 use std::process::Stdio;
+use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Arc;
+use std::time::Duration;
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 
 pub(crate) mod queue;
 pub(crate) mod responses;
 pub(crate) mod spotify;
+
+static THREAD_LIMIT: u8 = 64;
 
 /// Returns a list of youtube videos for a given url
 pub(crate) async fn get_videos_for_playlist(url: &str) -> BotResult<Vec<PlaylistEntry>> {
@@ -45,13 +50,34 @@ pub(crate) async fn search_video_information(query: String) -> BotResult<Option<
 }
 
 /// Executes youtube-dl asynchronously
+/// An atomic U8 is used to control the number of parallel processes
+/// to avoid using too much memory
 async fn youtube_dl(args: &[&str]) -> BotResult<String> {
+    lazy_static::lazy_static! { static ref THREAD_LOCK: Arc<AtomicU8> = Arc::new(AtomicU8::new(0)); }
+
+    while THREAD_LOCK.load(Ordering::SeqCst) >= THREAD_LIMIT {
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    THREAD_LOCK.fetch_add(1, Ordering::Relaxed);
+
     let ytdl = Command::new("youtube-dl")
         .args(args)
         .stdout(Stdio::piped())
-        .spawn()?;
+        .spawn()
+        .map_err(|e| {
+            THREAD_LOCK.fetch_sub(1, Ordering::Relaxed);
+            e
+        })?;
     let mut output = String::new();
-    ytdl.stdout.unwrap().read_to_string(&mut output).await?;
+    ytdl.stdout
+        .unwrap()
+        .read_to_string(&mut output)
+        .await
+        .map_err(|e| {
+            THREAD_LOCK.fetch_sub(1, Ordering::Relaxed);
+            e
+        })?;
+    THREAD_LOCK.fetch_sub(1, Ordering::Relaxed);
 
     Ok(output)
 }
