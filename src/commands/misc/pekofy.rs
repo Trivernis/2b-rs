@@ -1,10 +1,18 @@
+use rand::prelude::*;
 use regex::Regex;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 use serenity::{framework::standard::macros::command, prelude::*};
 
-#[allow(dead_code)]
-static MESSAGE_DELIMITERS: &[char] = &['.', '?', '!', '"'];
+// return a normal peko in most cases
+static PEKOS: &[&str] = &[
+    "peko",
+    "p e k o",
+    "peeeeekooooo",
+    "pppeeekkkooo",
+    "🇵 🇪 🇰 🇴",
+    "p3k0",
+];
 
 #[command]
 #[description("Pekofy messages")]
@@ -43,6 +51,8 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let pekofied: String = if alpha_lowercase == "pain" {
         "https://tenor.com/view/pekora-usada-peko-hololive-died-gif-18114577".to_string()
+    } else if PEKOS.contains(&&*alpha_lowercase) {
+        random_peko()
     } else {
         content
             .lines()
@@ -64,7 +74,7 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 /// Pekofies a single line
 fn pekofy_line(mut line: &str) -> String {
-    lazy_static::lazy_static! { static ref FORMATTING_REGEX: Regex = Regex::new(r"^(.*?)((<:\w+:\d+>|\W)+)$").unwrap(); }
+    lazy_static::lazy_static! { static ref FORMATTING_REGEX: Regex = Regex::new(r"^(.*?)((<:\w+:\d+>|\W)*)$").unwrap(); }
     log::debug!("Pekofying line '{}'", line);
     let original = line;
 
@@ -74,12 +84,14 @@ fn pekofy_line(mut line: &str) -> String {
         md = captures.get(2).unwrap().as_str();
     }
 
-    if line.ends_with("peko") {
-        log::debug!("Peko already found in message. Returning original");
-        return original.to_string();
+    for peko in PEKOS {
+        if line.to_lowercase().ends_with(peko) {
+            log::debug!("Peko already found in message. Returning original");
+            return original.to_string();
+        }
     }
 
-    let mut peko = "peko".to_string();
+    let mut peko = random_peko();
 
     if line
         .chars()
@@ -91,4 +103,14 @@ fn pekofy_line(mut line: &str) -> String {
     }
 
     format!("{} {}{}", line, peko, md)
+}
+
+/// Returns a random peko
+fn random_peko() -> String {
+    let mut rng = rand::thread_rng();
+    if rng.gen_range(0..20) == 10 {
+        PEKOS.choose(&mut rng).unwrap().to_string()
+    } else {
+        "peko".to_string()
+    }
 }
