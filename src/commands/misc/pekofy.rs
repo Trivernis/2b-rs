@@ -10,6 +10,7 @@ static MESSAGE_DELIMITERS: &[char] = &['.', '?', '!', '"'];
 #[description("Pekofy messages")]
 #[usage("(<content>)")]
 #[example("Hello")]
+#[aliases("peko")]
 async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let mut reference_message = msg.id;
     let mut content = args.message().to_string();
@@ -37,12 +38,20 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     }
 
     log::debug!("Pekofying message '{}'", content);
-    let pekofied: String = content
-        .lines()
-        .into_iter()
-        .map(pekofy_line)
-        .collect::<Vec<String>>()
-        .join("\n");
+    let mut alpha_lowercase = content.to_lowercase();
+    alpha_lowercase.retain(|c| c.is_alphanumeric());
+
+    let pekofied: String = if alpha_lowercase == "pain" {
+        "https://tenor.com/view/pekora-usada-peko-hololive-died-gif-18114577".to_string()
+    } else {
+        content
+            .lines()
+            .into_iter()
+            .map(pekofy_line)
+            .collect::<Vec<String>>()
+            .join("\n")
+    };
+
     let message = ctx
         .http
         .get_message(msg.channel_id.0, reference_message.0)
