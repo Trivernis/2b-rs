@@ -1,3 +1,4 @@
+use crate::providers::music::queue::Song;
 use crate::utils::error::{BotError, BotResult};
 use aspotify::{Client, ClientCredentials, PlaylistItem, PlaylistItemType};
 
@@ -19,7 +20,7 @@ impl SpotifyApi {
     }
 
     /// Returns the song names for a playlist
-    pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<String>> {
+    pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<Song>> {
         let id = self.get_id_for_url(url)?;
         let mut playlist_tracks = Vec::new();
         let mut offset = 0;
@@ -36,17 +37,9 @@ impl SpotifyApi {
         let song_names = playlist_tracks
             .into_iter()
             .filter_map(|item| item.item)
-            .map(|t| match t {
-                PlaylistItemType::Track(t) => format!(
-                    "{} - {}",
-                    t.artists
-                        .into_iter()
-                        .map(|a| a.name)
-                        .collect::<Vec<String>>()
-                        .join(" & "),
-                    t.name
-                ),
-                PlaylistItemType::Episode(e) => e.name,
+            .filter_map(|t| match t {
+                PlaylistItemType::Track(t) => Some(Song::from(t)),
+                PlaylistItemType::Episode(_) => None,
             })
             .collect();
 
@@ -71,44 +64,20 @@ impl SpotifyApi {
     }
 
     /// Returns all song names for a given album
-    pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<String>> {
+    pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<Song>> {
         let id = self.get_id_for_url(url)?;
         let album = self.client.albums().get_album(&*id, None).await?.data;
-        let song_names = album
-            .tracks
-            .items
-            .into_iter()
-            .map(|item| {
-                format!(
-                    "{} - {}",
-                    item.artists
-                        .into_iter()
-                        .map(|a| a.name)
-                        .collect::<Vec<String>>()
-                        .join(" & "),
-                    item.name
-                )
-            })
-            .collect();
+        let song_names = album.tracks.items.into_iter().map(Song::from).collect();
 
         Ok(song_names)
     }
 
     /// Returns the name for a spotify song url
-    pub async fn get_song_name(&self, url: &str) -> BotResult<String> {
+    pub async fn get_song_name(&self, url: &str) -> BotResult<Song> {
         let id = self.get_id_for_url(url)?;
         let track = self.client.tracks().get_track(&*id, None).await?.data;
 
-        Ok(format!(
-            "{} - {}",
-            track
-                .artists
-                .into_iter()
-                .map(|a| a.name)
-                .collect::<Vec<String>>()
-                .join(" & "),
-            track.name
-        ))
+        Ok(track.into())
     }
 
     /// Returns the id for a given spotify URL

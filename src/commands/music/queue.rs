@@ -1,8 +1,8 @@
 use std::cmp::min;
 
 use serenity::client::Context;
-use serenity::framework::standard::CommandResult;
 use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::music::get_queue_for_guild;
@@ -20,7 +20,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let songs: Vec<(usize, String)> = queue_lock
         .entries()
         .into_iter()
-        .map(|s| s.title.clone())
+        .map(|s| s.title().clone())
         .enumerate()
         .collect();
 

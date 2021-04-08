@@ -1,5 +1,8 @@
+use crate::providers::music::queue::Song;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::utils::error::BotResult;
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use std::process::Stdio;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
@@ -47,6 +50,21 @@ pub(crate) async fn search_video_information(query: String) -> BotResult<Option<
     let information = serde_json::from_str(&*output)?;
 
     Ok(information)
+}
+
+/// Searches songs on youtube in parallel
+#[allow(dead_code)]
+async fn parallel_search_youtube(song_names: Vec<String>) -> Vec<Song> {
+    let search_futures: Vec<BoxFuture<BotResult<Option<VideoInformation>>>> = song_names
+        .into_iter()
+        .map(|s| search_video_information(s).boxed())
+        .collect();
+    let information: Vec<BotResult<Option<VideoInformation>>> =
+        futures::future::join_all(search_futures).await;
+    information
+        .into_iter()
+        .filter_map(|i| i.ok().and_then(|s| s).map(Song::from))
+        .collect()
 }
 
 /// Executes youtube-dl asynchronously

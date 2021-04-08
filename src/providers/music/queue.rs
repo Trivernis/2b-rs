@@ -3,7 +3,9 @@ use std::collections::VecDeque;
 use songbird::tracks::TrackHandle;
 
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
+use crate::providers::music::search_video_information;
 use crate::utils::shuffle_vec_deque;
+use aspotify::{Track, TrackSimplified};
 
 #[derive(Clone, Debug)]
 pub struct MusicQueue {
@@ -67,16 +69,52 @@ impl MusicQueue {
 
 #[derive(Clone, Debug)]
 pub struct Song {
-    pub url: String,
-    pub title: String,
-    pub author: String,
-    pub thumbnail: Option<String>,
+    url: Option<String>,
+    title: String,
+    author: String,
+    thumbnail: Option<String>,
+}
+
+impl Song {
+    /// The url of the song
+    /// fetched when not available
+    pub async fn url(&mut self) -> Option<String> {
+        if let Some(url) = self.url.clone() {
+            Some(url)
+        } else {
+            let information = search_video_information(format!("{} - {}", self.author, self.title))
+                .await
+                .ok()
+                .and_then(|i| i)?;
+            self.url = Some(information.webpage_url.clone());
+            self.thumbnail = information.thumbnail;
+            self.author = information.uploader;
+
+            Some(information.webpage_url)
+        }
+    }
+
+    /// The title of the song
+    pub fn title(&self) -> &String {
+        &self.title
+    }
+
+    #[allow(dead_code)]
+    /// the author of the song
+    pub fn author(&self) -> &String {
+        &self.author
+    }
+
+    /// The thumbnail of the song
+    pub fn thumbnail(&self) -> &Option<String> {
+        &self.thumbnail
+    }
 }
 
 impl From<VideoInformation> for Song {
     fn from(info: VideoInformation) -> Self {
         Self {
-            url: info.webpage_url,
+            url: Some(info.webpage_url),
             title: info.title,
             author: info.uploader,
             thumbnail: info.thumbnail,
@@ -87,9 +125,41 @@ impl From<VideoInformation> for Song {
 impl From<PlaylistEntry> for Song {
     fn from(entry: PlaylistEntry) -> Self {
         Self {
-            url: format!("https://www.youtube.com/watch?v={}", entry.url),
+            url: Some(format!("https://www.youtube.com/watch?v={}", entry.url)),
             title: entry.title,
             author: entry.uploader,
+            thumbnail: None,
+        }
+    }
+}
+
+impl From<Track> for Song {
+    fn from(track: Track) -> Self {
+        Self {
+            title: track.name,
+            author: track
+                .artists
+                .into_iter()
+                .map(|a| a.name)
+                .collect::<Vec<String>>()
+                .join(" & "),
+            url: None,
+            thumbnail: None,
+        }
+    }
+}
+
+impl From<TrackSimplified> for Song {
+    fn from(track: TrackSimplified) -> Self {
+        Self {
+            title: track.name,
+            author: track
+                .artists
+                .into_iter()
+                .map(|a| a.name)
+                .collect::<Vec<String>>()
+                .join(" & "),
+            url: None,
             thumbnail: None,
         }
     }
