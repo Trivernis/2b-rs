@@ -48,7 +48,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     if play_first {
-        play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await;
+        while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await {}
     }
 
     Ok(())

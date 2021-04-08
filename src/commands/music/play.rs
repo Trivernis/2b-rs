@@ -58,7 +58,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     if play_first {
         log::debug!("Playing first song in queue");
-        play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler_lock).await;
+        while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler_lock).await {}
     }
 
     Ok(())

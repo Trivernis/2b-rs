@@ -30,6 +30,7 @@ use crate::providers::music::{
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::Store;
 use regex::Regex;
+use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::time::Duration;
 
 mod clear;
@@ -49,6 +50,68 @@ mod skip;
 )]
 #[prefix("m")]
 pub struct Music;
+
+struct SongEndNotifier {
+    channel_id: ChannelId,
+    http: Arc<Http>,
+    queue: Arc<Mutex<MusicQueue>>,
+    handler: Arc<Mutex<Call>>,
+}
+
+#[async_trait]
+impl VoiceEventHandler for SongEndNotifier {
+    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
+        log::debug!("Song ended in {}. Playing next one", self.channel_id);
+        while !play_next_in_queue(&self.http, &self.channel_id, &self.queue, &self.handler).await {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+
+        None
+    }
+}
+
+struct ChannelDurationNotifier {
+    channel_id: ChannelId,
+    guild_id: GuildId,
+    count: Arc<AtomicUsize>,
+    queue: Arc<Mutex<MusicQueue>>,
+    leave_in: Arc<AtomicIsize>,
+    handler: Arc<Mutex<Call>>,
+    manager: Arc<Songbird>,
+}
+
+#[async_trait]
+impl VoiceEventHandler for ChannelDurationNotifier {
+    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
+        let count_before = self.count.fetch_add(1, Ordering::Relaxed);
+        log::debug!(
+            "Playing in channel {} for {} minutes",
+            self.channel_id,
+            count_before
+        );
+        let queue_lock = self.queue.lock().await;
+        if queue_lock.leave_flag {
+            log::debug!("Waiting to leave");
+            if self.leave_in.fetch_sub(1, Ordering::Relaxed) <= 0 {
+                log::debug!("Leaving voice channel");
+                {
+                    let mut handler_lock = self.handler.lock().await;
+                    handler_lock.remove_all_global_events();
+                }
+                if let Some(current) = queue_lock.current() {
+                    let _ = current.stop();
+                }
+                let _ = self.manager.remove(self.guild_id).await;
+                log::debug!("Left the voice channel");
+            }
+        } else {
+            log::debug!("Resetting leave value");
+            self.leave_in.store(5, Ordering::Relaxed)
+        }
+
+        None
+    }
+}
 
 /// Joins a voice channel
 async fn join_channel(ctx: &Context, channel_id: ChannelId, guild_id: GuildId) -> Arc<Mutex<Call>> {
@@ -76,10 +139,23 @@ async fn join_channel(ctx: &Context, channel_id: ChannelId, guild_id: GuildId) -
         handler_lock.add_global_event(
             Event::Track(TrackEvent::End),
             SongEndNotifier {
-                channel_id,
+                channel_id: channel_id.clone(),
                 http: ctx.http.clone(),
                 queue: Arc::clone(&queue),
                 handler: handler.clone(),
+            },
+        );
+
+        handler_lock.add_global_event(
+            Event::Periodic(Duration::from_secs(60), None),
+            ChannelDurationNotifier {
+                channel_id,
+                guild_id,
+                count: Default::default(),
+                queue: Arc::clone(&queue),
+                handler: handler.clone(),
+                leave_in: Arc::new(AtomicIsize::new(5)),
+                manager: manager.clone(),
             },
         );
     }
@@ -105,7 +181,7 @@ async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
 }
 
 /// Returns a reference to a guilds music queue
-async fn get_queue_for_guild(
+pub(crate) async fn get_queue_for_guild(
     ctx: &Context,
     guild_id: &GuildId,
 ) -> BotResult<Arc<Mutex<MusicQueue>>> {
@@ -118,25 +194,6 @@ async fn get_queue_for_guild(
         .ok_or(BotError::from("No queue for server"))?
         .clone();
     Ok(queue)
-}
-
-struct SongEndNotifier {
-    channel_id: ChannelId,
-    http: Arc<Http>,
-    queue: Arc<Mutex<MusicQueue>>,
-    handler: Arc<Mutex<Call>>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for SongEndNotifier {
-    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        log::debug!("Song ended in {}. Playing next one", self.channel_id);
-        while !play_next_in_queue(&self.http, &self.channel_id, &self.queue, &self.handler).await {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        }
-
-        None
-    }
 }
 
 /// Plays the next song in the queue

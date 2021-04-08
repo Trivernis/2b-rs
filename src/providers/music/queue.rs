@@ -12,6 +12,7 @@ pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<TrackHandle>,
     paused: bool,
+    pub leave_flag: bool,
 }
 
 impl MusicQueue {
@@ -20,6 +21,7 @@ impl MusicQueue {
             inner: VecDeque::new(),
             current: None,
             paused: false,
+            leave_flag: false,
         }
     }
 
