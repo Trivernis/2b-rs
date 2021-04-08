@@ -1,10 +1,10 @@
 use serenity::async_trait;
 use serenity::client::{Context, EventHandler};
-use serenity::Client;
-use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::standard::macros::hook;
+use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
+use serenity::Client;
 use songbird::SerenityInit;
 
 use crate::commands::*;
@@ -41,8 +41,8 @@ pub fn get_framework() -> StandardFramework {
                     .unwrap_or("~!".to_string())
                     .as_str(),
             )
-                .allow_dm(true)
-                .ignore_bots(true)
+            .allow_dm(true)
+            .ignore_bots(true)
         })
         .group(&MINECRAFT_GROUP)
         .group(&MISC_GROUP)
@@ -58,7 +58,15 @@ pub fn get_framework() -> StandardFramework {
 async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResult) {
     //  Print out an error if it happened
     if let Err(why) = error {
-        let _ = msg.channel_id.say(&ctx, format!("{}", why)).await;
+        let _ = msg
+            .channel_id
+            .send_message(ctx, |m| {
+                m.embed(|e| {
+                    e.title("Error occurred")
+                        .description(format!("```\n{}\n```", why))
+                })
+            })
+            .await;
         println!("Error in {}: {:?}", cmd_name, why);
     }
 }
