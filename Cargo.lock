@@ -1666,7 +1666,6 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "minecraft-data-rs",
- "parking_lot",
  "rand 0.8.3",
  "rusqlite",
  "serde",

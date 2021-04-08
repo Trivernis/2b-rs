@@ -1,9 +1,11 @@
 use std::cmp::min;
 
 use serenity::client::Context;
-use serenity::framework::standard::{CommandError, CommandResult};
+use serenity::framework::standard::CommandResult;
 use serenity::framework::standard::macros::command;
 use serenity::model::channel::Message;
+
+use crate::commands::music::get_queue_for_guild;
 
 #[command]
 #[only_in(guilds)]
@@ -13,20 +15,12 @@ use serenity::model::channel::Message;
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
-    let handler_lock = manager
-        .get(guild.id)
-        .ok_or(CommandError::from("Not in a voice channel"))?;
-    let handler = handler_lock.lock().await;
-    let songs: Vec<(usize, String)> = handler
-        .queue()
-        .current_queue()
+    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue_lock = queue.lock().await;
+    let songs: Vec<(usize, String)> = queue_lock
+        .entries()
         .into_iter()
-        .map(|t| t.metadata().title.clone().unwrap())
+        .map(|s| s.title.clone())
         .enumerate()
         .collect();
 

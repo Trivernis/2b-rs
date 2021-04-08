@@ -1,10 +1,10 @@
 use serenity::async_trait;
 use serenity::client::{Context, EventHandler};
-use serenity::framework::standard::macros::hook;
+use serenity::Client;
 use serenity::framework::standard::{CommandResult, DispatchError};
+use serenity::framework::standard::macros::hook;
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
-use serenity::Client;
 use songbird::SerenityInit;
 
 use crate::commands::*;
@@ -41,12 +41,13 @@ pub fn get_framework() -> StandardFramework {
                     .unwrap_or("~!".to_string())
                     .as_str(),
             )
-            .allow_dm(true)
-            .ignore_bots(true)
+                .allow_dm(true)
+                .ignore_bots(true)
         })
         .group(&MINECRAFT_GROUP)
         .group(&MISC_GROUP)
         .group(&MUSIC_GROUP)
+        .group(&SETTINGS_GROUP)
         .after(after_hook)
         .before(before_hook)
         .on_dispatch_error(dispatch_error)
@@ -67,6 +68,7 @@ async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
     let _ = msg.channel_id.broadcast_typing(ctx).await;
     true
 }
+
 #[hook]
 async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
     match error {

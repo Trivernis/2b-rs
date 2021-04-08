@@ -19,6 +19,9 @@ pub enum BotError {
     #[error("IO Error: {0}")]
     IOError(#[from] std::io::Error),
 
+    #[error("JSON Error: {0}")]
+    JsonError(#[from] serde_json::Error),
+
     #[error("{0}")]
     Msg(String),
 }

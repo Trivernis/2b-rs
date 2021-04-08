@@ -3,22 +3,32 @@ use serenity::framework::standard::CommandResult;
 use serenity::framework::standard::macros::command;
 use serenity::model::channel::Message;
 
+use crate::commands::music::{get_queue_for_guild, get_voice_manager};
+
 #[command]
 #[only_in(guilds)]
 #[description("Leaves a voice channel")]
 #[usage("leave")]
 #[aliases("stop")]
+#[allowed_roles("DJ")]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    let guild_id = guild.id;
 
-    let manager = songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
+    let manager = get_voice_manager(ctx).await;
+    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue_lock = queue.lock().await;
+    let handler = manager.get(guild.id);
 
-    if manager.get(guild_id).is_some() {
-        manager.remove(guild_id).await?;
+    if let Some(handler) = handler {
+        let mut handler_lock = handler.lock().await;
+        handler_lock.remove_all_global_events();
+    }
+    if let Some(current) = queue_lock.current() {
+        current.stop()?;
+    }
+
+    if manager.get(guild.id).is_some() {
+        manager.remove(guild.id).await?;
         msg.channel_id.say(ctx, "Left the voice channel").await?;
     } else {
         msg.channel_id.say(ctx, "Not in a voice channel").await?;

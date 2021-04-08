@@ -7,17 +7,16 @@ use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_url, get_voice_manager,
     join_channel, play_next_in_queue,
 };
-use crate::database::get_database_from_context;
-use crate::database::guild::SETTING_AUTOSHUFFLE;
 
 #[command]
 #[only_in(guilds)]
-#[description("Plays a song in a voice channel")]
-#[usage("play <url>")]
+#[description("Puts a song as the next to play in the queue")]
+#[usage("play_next <song-url>")]
 #[min_args(1)]
-#[max_args(1)]
-#[aliases("p")]
-async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
+#[max_args(2)]
+#[aliases("pn")]
+#[allowed_roles("DJ")]
+async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let url = args.message();
 
     if !url.starts_with("http") {
@@ -35,30 +34,23 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         handler = Some(join_channel(ctx, channel_id, guild.id).await);
     }
 
-    let handler_lock = handler.ok_or(CommandError::from("Not in a voice channel"))?;
+    let handler = handler.ok_or(CommandError::from("Not in a voice channel"))?;
 
-    let songs = get_songs_for_url(&ctx, msg, url).await?;
+    let mut songs = get_songs_for_url(&ctx, msg, url).await?;
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
-
     let play_first = {
         let mut queue_lock = queue.lock().await;
+        songs.reverse();
+
         for song in songs {
-            queue_lock.add(song);
-        }
-        let database = get_database_from_context(ctx).await;
-        let database_lock = database.lock().await;
-        let autoshuffle = database_lock
-            .get_guild_setting(&guild.id, SETTING_AUTOSHUFFLE)
-            .unwrap_or(false);
-        if autoshuffle {
-            queue_lock.shuffle();
+            queue_lock.add_next(song);
         }
         queue_lock.current().is_none()
     };
 
     if play_first {
-        play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler_lock).await;
+        play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await;
     }
 
     Ok(())

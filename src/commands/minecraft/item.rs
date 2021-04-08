@@ -9,6 +9,7 @@ use crate::utils::store::Store;
 #[usage("item <item-name>")]
 #[example("item bread")]
 #[min_args(1)]
+#[aliases("i")]
 pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");

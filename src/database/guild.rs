@@ -7,7 +7,10 @@ pub struct Guild {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct GuildSettings {
-    guild_id: i32,
-    key: String,
-    value: String,
+    pub guild_id: String,
+    pub setting_key: String,
+    pub setting_value: String,
 }
+
+pub static SETTING_AUTOSHUFFLE: &str = "music.autoshuffle";
+pub static GUILD_SETTINGS: &[&str] = &[SETTING_AUTOSHUFFLE];

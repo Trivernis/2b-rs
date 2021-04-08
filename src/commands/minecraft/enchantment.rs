@@ -9,6 +9,7 @@ use crate::utils::store::Store;
 #[usage("enchantment <enchantment-name>")]
 #[example("item unbreaking")]
 #[min_args(1)]
+#[aliases("ench")]
 pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");
@@ -31,7 +32,8 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
                 e = e
                     .title(enchantment.display_name)
                     .field("Name", enchantment.name, false)
-                    .field("Category", enchantment.category, false);
+                    .field("Category", enchantment.category, false)
+                    .thumbnail("https://minecraftitemids.com/item/128/enchanted_book.png");
                 if !enchantment.exclude.is_empty() {
                     e = e.field("Incompatible With", enchantment.exclude.join(", "), false);
                 }
