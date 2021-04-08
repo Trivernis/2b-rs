@@ -23,11 +23,15 @@ use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
 use crate::providers::music::queue::{MusicQueue, Song};
+use crate::providers::music::responses::VideoInformation;
 use crate::providers::music::{
     get_video_information, get_videos_for_playlist, search_video_information,
 };
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::Store;
+use futures::future::BoxFuture;
+use futures::FutureExt;
+use regex::Regex;
 
 mod clear;
 mod current;
@@ -151,40 +155,97 @@ async fn play_next_in_queue(
 }
 
 /// Returns the list of songs for a given url
-async fn get_songs_for_query(ctx: &&Context, msg: &Message, query: &str) -> BotResult<Vec<Song>> {
-    let mut songs: Vec<Song> = get_videos_for_playlist(query)?
-        .into_iter()
-        .map(Song::from)
-        .collect();
-    if songs.len() == 0 {
-        let song: Song = if !query.starts_with("http") {
-            search_video_information(query)?
-                .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
-                .into()
+async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotResult<Vec<Song>> {
+    lazy_static::lazy_static! {
+        static ref YOUTUBE_URL_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.)?(youtube\.com/watch\?.*v=.*)|(/youtu.be/.*)$").unwrap();
+        static ref SPOTIFY_PLAYLIST_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/playlist/.*").unwrap();
+        static ref SPOTIFY_ALBUM_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/album/.*").unwrap();
+        static ref SPOTIFY_SONG_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/track/.*").unwrap();
+    }
+    let mut songs = Vec::new();
+    let data = ctx.data.read().await;
+    let store = data.get::<Store>().unwrap();
+
+    if YOUTUBE_URL_REGEX.is_match(query) {
+        songs = get_videos_for_playlist(query)
+            .await?
+            .into_iter()
+            .map(Song::from)
+            .collect();
+
+        if songs.len() == 0 {
+            let song: Song = get_video_information(query).await?.into();
+            added_one_msg(&ctx, msg, &song).await?;
+            songs.push(song);
         } else {
-            get_video_information(query)?.into()
-        };
-
-        msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.embed(|mut e| {
-                    e = e.description(format!("Added [{}]({}) to the queue", song.title, song.url));
-                    if let Some(thumb) = &song.thumbnail {
-                        e = e.thumbnail(thumb);
-                    }
-
-                    e
-                })
-            })
-            .await?;
+            added_multiple_msg(&ctx, msg, &mut songs).await?;
+        }
+    } else if SPOTIFY_PLAYLIST_REGEX.is_match(query) {
+        let song_names = store.spotify_api.get_songs_in_playlist(query).await?;
+        songs = parallel_search_youtube(song_names).await;
+        added_multiple_msg(&ctx, msg, &mut songs).await?;
+    } else if SPOTIFY_ALBUM_REGEX.is_match(query) {
+        let song_names = store.spotify_api.get_songs_in_album(query).await?;
+        songs = parallel_search_youtube(song_names).await;
+        added_multiple_msg(&ctx, msg, &mut songs).await?;
+    } else if SPOTIFY_SONG_REGEX.is_match(query) {
+        let name = store.spotify_api.get_song_name(query).await?;
+        let song: Song = search_video_information(name.clone())
+            .await?
+            .ok_or(BotError::Msg(format!("Noting found for {}", name)))?
+            .into();
+        added_one_msg(ctx, msg, &song).await?;
         songs.push(song);
     } else {
-        msg.channel_id
-            .send_message(&ctx.http, |m| {
-                m.embed(|e| e.description(format!("Added {} songs to the queue", songs.len())))
-            })
-            .await?;
+        let song: Song = search_video_information(query.to_string())
+            .await?
+            .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
+            .into();
+
+        added_one_msg(&ctx, msg, &song).await?;
+        songs.push(song);
     }
 
     Ok(songs)
+}
+
+/// Searches songs on youtube in parallel
+async fn parallel_search_youtube(song_names: Vec<String>) -> Vec<Song> {
+    let search_futures: Vec<BoxFuture<BotResult<Option<VideoInformation>>>> = song_names
+        .into_iter()
+        .map(|s| search_video_information(s).boxed())
+        .collect();
+    let information: Vec<BotResult<Option<VideoInformation>>> =
+        futures::future::join_all(search_futures).await;
+    information
+        .into_iter()
+        .filter_map(|i| i.ok().and_then(|s| s).map(Song::from))
+        .collect()
+}
+
+/// Message when one song was added to the queue
+async fn added_one_msg(ctx: &Context, msg: &Message, song: &Song) -> BotResult<()> {
+    msg.channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|mut e| {
+                e = e.description(format!("Added [{}]({}) to the queue", song.title, song.url));
+                if let Some(thumb) = &song.thumbnail {
+                    e = e.thumbnail(thumb);
+                }
+
+                e
+            })
+        })
+        .await?;
+    Ok(())
+}
+
+/// Message when multiple songs were added to the queue
+async fn added_multiple_msg(ctx: &Context, msg: &Message, songs: &mut Vec<Song>) -> BotResult<()> {
+    msg.channel_id
+        .send_message(&ctx.http, |m| {
+            m.embed(|e| e.description(format!("Added {} songs to the queue", songs.len())))
+        })
+        .await?;
+    Ok(())
 }

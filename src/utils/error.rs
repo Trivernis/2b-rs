@@ -22,6 +22,9 @@ pub enum BotError {
     #[error("JSON Error: {0}")]
     JsonError(#[from] serde_json::Error),
 
+    #[error("Spotify API Error: {0}")]
+    SpotifyError(#[from] aspotify::Error),
+
     #[error("{0}")]
     Msg(String),
 }

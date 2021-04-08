@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::database::Database;
 use crate::providers::music::queue::MusicQueue;
+use crate::providers::music::spotify::SpotifyApi;
 
 pub struct Store;
 
@@ -14,6 +15,7 @@ pub struct StoreData {
     pub database: Arc<Mutex<Database>>,
     pub minecraft_data_api: minecraft_data_rs::api::Api,
     pub music_queues: HashMap<GuildId, Arc<Mutex<MusicQueue>>>,
+    pub spotify_api: SpotifyApi,
 }
 
 impl StoreData {
@@ -24,6 +26,7 @@ impl StoreData {
                 minecraft_data_rs::api::versions::latest_stable().unwrap(),
             ),
             music_queues: HashMap::new(),
+            spotify_api: SpotifyApi::new(),
         }
     }
 }
