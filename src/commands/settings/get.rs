@@ -1,6 +1,6 @@
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandResult};
 use serenity::framework::standard::macros::command;
+use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::database::get_database_from_context;
@@ -17,8 +17,10 @@ use crate::database::guild::GUILD_SETTINGS;
 async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let guild = msg.guild(&ctx.cache).await.unwrap();
+    log::debug!("Displaying guild setting for guild {}", guild.id);
 
     if let Some(key) = args.single::<String>().ok() {
+        log::debug!("Displaying guild setting of '{}'", key);
         let database_lock = database.lock().await;
         let setting = database_lock.get_guild_setting::<String>(&guild.id, &key);
 
@@ -36,6 +38,7 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             }
         }
     } else {
+        log::debug!("Displaying all guild settings");
         for key in GUILD_SETTINGS {
             let mut kv_pairs = Vec::new();
             {

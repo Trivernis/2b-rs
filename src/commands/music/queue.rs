@@ -14,6 +14,7 @@ use crate::commands::music::get_queue_for_guild;
 #[aliases("q")]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
+    log::trace!("Displaying queue for guild {}", guild.id);
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     let queue_lock = queue.lock().await;
@@ -23,6 +24,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
         .map(|s| s.title().clone())
         .enumerate()
         .collect();
+    log::trace!("Songs are {:?}", songs);
 
     if songs.len() == 0 {
         msg.channel_id
@@ -37,13 +39,14 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let mut song_list = Vec::new();
 
     for i in 0..min(10, songs.len() - 1) {
-        song_list.push(format!("{:0>3} - {}", songs[i].0, songs[i].1))
+        song_list.push(format!("{:0>3} - {}", songs[i].0 + 1, songs[i].1))
     }
     if songs.len() > 10 {
         song_list.push("...".to_string());
         let last = songs.last().unwrap();
-        song_list.push(format!("{:0>3} - {}", last.0, last.1))
+        song_list.push(format!("{:0>3} - {}", last.0 + 1, last.1))
     }
+    log::trace!("Song list is {:?}", song_list);
     msg.channel_id
         .send_message(ctx, |m| {
             m.embed(|e| {

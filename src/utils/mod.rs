@@ -2,8 +2,9 @@ use std::collections::VecDeque;
 
 use rand::Rng;
 
-pub mod error;
-pub mod store;
+pub(crate) mod error;
+pub(crate) mod logging;
+pub(crate) mod store;
 
 /// Fisher-Yates shuffle for VecDeque
 pub fn shuffle_vec_deque<T>(deque: &mut VecDeque<T>) {

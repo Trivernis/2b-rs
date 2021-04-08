@@ -1,5 +1,5 @@
 use serenity::client::Context;
-use serenity::framework::standard::{Args, CommandError, CommandResult, macros::command};
+use serenity::framework::standard::{macros::command, Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::utils::store::Store;
@@ -14,6 +14,8 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");
     let enchantment_name = args.message().to_lowercase();
+    log::debug!("Searching for enchantment {}", enchantment_name);
+
     let enchantments_by_name = store
         .minecraft_data_api
         .enchantments
@@ -25,6 +27,7 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
             enchantment_name
         )))?
         .clone();
+    log::trace!("Enchantment is {:?}", enchantment);
 
     msg.channel_id
         .send_message(ctx, |m| {

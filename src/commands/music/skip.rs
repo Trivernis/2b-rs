@@ -1,6 +1,6 @@
 use serenity::client::Context;
-use serenity::framework::standard::CommandResult;
 use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::music::get_queue_for_guild;
@@ -14,6 +14,7 @@ use crate::commands::music::get_queue_for_guild;
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
+    log::debug!("Skipping song for guild {}", guild.id);
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     let queue_lock = queue.lock().await;
 

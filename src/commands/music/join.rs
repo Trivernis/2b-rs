@@ -12,6 +12,7 @@ use crate::commands::music::{get_channel_for_author, join_channel};
 async fn join(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
+    log::debug!("Joining channel {} for guild {}", channel_id, guild.id);
     join_channel(ctx, channel_id, guild.id).await;
 
     Ok(())

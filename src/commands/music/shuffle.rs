@@ -14,6 +14,7 @@ use crate::commands::music::get_queue_for_guild;
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
+    log::debug!("Shuffling queue for guild {}", guild.id);
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     {
         let mut queue_lock = queue.lock().await;

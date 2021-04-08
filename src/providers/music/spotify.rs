@@ -15,12 +15,14 @@ impl SpotifyApi {
             secret: dotenv::var("SPOTIFY_CLIENT_SECRET").expect("Missing Spotify Credentials"),
         };
         let client = Client::new(credentials);
+        log::info!("Spotify API initialized.");
 
         Self { client }
     }
 
-    /// Returns the song names for a playlist
+    /// Returns the songs for a playlist
     pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<Song>> {
+        log::debug!("Fetching spotify songs from playlist '{}'", url);
         let id = self.get_id_for_url(url)?;
         let mut playlist_tracks = Vec::new();
         let mut offset = 0;
@@ -33,8 +35,13 @@ impl SpotifyApi {
             playlist_tracks.append(&mut tracks);
             offset += 100;
         }
+        log::debug!(
+            "{} Songs found in spotify playlist '{}'",
+            playlist_tracks.len(),
+            url
+        );
 
-        let song_names = playlist_tracks
+        let songs = playlist_tracks
             .into_iter()
             .filter_map(|item| item.item)
             .filter_map(|t| match t {
@@ -42,8 +49,9 @@ impl SpotifyApi {
                 PlaylistItemType::Episode(_) => None,
             })
             .collect();
+        log::trace!("Songs are {:?}", songs);
 
-        Ok(song_names)
+        Ok(songs)
     }
 
     /// Returns the tracks of a playlist with pagination
@@ -53,29 +61,40 @@ impl SpotifyApi {
         limit: usize,
         offset: usize,
     ) -> BotResult<Vec<PlaylistItem>> {
+        log::trace!(
+            "Fetching songs from spotify playlist: limit {}, offset {}",
+            limit,
+            offset
+        );
         let tracks = self
             .client
             .playlists()
             .get_playlists_items(id, limit, offset, None)
             .await?
             .data;
+        log::trace!("Tracks are {:?}", tracks);
 
         Ok(tracks.items)
     }
 
-    /// Returns all song names for a given album
+    /// Returns all songs for a given album
     pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<Song>> {
+        log::debug!("Fetching songs for spotify album '{}'", url);
         let id = self.get_id_for_url(url)?;
         let album = self.client.albums().get_album(&*id, None).await?.data;
-        let song_names = album.tracks.items.into_iter().map(Song::from).collect();
+        log::trace!("Album is {:?}", album);
+        let song_names: Vec<Song> = album.tracks.items.into_iter().map(Song::from).collect();
+        log::debug!("{} songs found in album '{}'", song_names.len(), url);
 
         Ok(song_names)
     }
 
-    /// Returns the name for a spotify song url
+    /// Returns song entity for a given spotify url
     pub async fn get_song_name(&self, url: &str) -> BotResult<Song> {
+        log::debug!("Getting song for {}", url);
         let id = self.get_id_for_url(url)?;
         let track = self.client.tracks().get_track(&*id, None).await?.data;
+        log::trace!("Track info is {:?}", track);
 
         Ok(track.into())
     }

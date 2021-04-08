@@ -18,6 +18,7 @@ static THREAD_LIMIT: u8 = 64;
 
 /// Returns a list of youtube videos for a given url
 pub(crate) async fn get_videos_for_playlist(url: &str) -> BotResult<Vec<PlaylistEntry>> {
+    log::debug!("Getting playlist information for {}", url);
     let output =
         youtube_dl(&["--no-warnings", "--flat-playlist", "--dump-json", "-i", url]).await?;
 
@@ -31,6 +32,7 @@ pub(crate) async fn get_videos_for_playlist(url: &str) -> BotResult<Vec<Playlist
 
 /// Returns information for a single video by using youtube-dl
 pub(crate) async fn get_video_information(url: &str) -> BotResult<VideoInformation> {
+    log::debug!("Fetching information for '{}'", url);
     let output = youtube_dl(&["--no-warnings", "--dump-json", "-i", url]).await?;
 
     let information = serde_json::from_str(&*output)?;
@@ -40,6 +42,7 @@ pub(crate) async fn get_video_information(url: &str) -> BotResult<VideoInformati
 
 /// Searches for a video
 pub(crate) async fn search_video_information(query: String) -> BotResult<Option<VideoInformation>> {
+    log::debug!("Searching for video '{}'", query);
     let output = youtube_dl(&[
         "--no-warnings",
         "--dump-json",
@@ -72,6 +75,7 @@ async fn parallel_search_youtube(song_names: Vec<String>) -> Vec<Song> {
 /// to avoid using too much memory
 async fn youtube_dl(args: &[&str]) -> BotResult<String> {
     lazy_static::lazy_static! { static ref THREAD_LOCK: Arc<AtomicU8> = Arc::new(AtomicU8::new(0)); }
+    log::trace!("Running youtube-dl with args {:?}", args);
 
     while THREAD_LOCK.load(Ordering::SeqCst) >= THREAD_LIMIT {
         tokio::time::sleep(Duration::from_millis(100)).await;
@@ -95,6 +99,7 @@ async fn youtube_dl(args: &[&str]) -> BotResult<String> {
             THREAD_LOCK.fetch_sub(1, Ordering::Relaxed);
             e
         })?;
+    log::trace!("youtube-dl response is {}", output);
     THREAD_LOCK.fetch_sub(1, Ordering::Relaxed);
 
     Ok(output)

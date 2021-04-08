@@ -1,5 +1,4 @@
-use serenity::async_trait;
-use serenity::client::{Context, EventHandler};
+use serenity::client::Context;
 use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
@@ -9,19 +8,16 @@ use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::database::get_database;
+use crate::handler::Handler;
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::{Store, StoreData};
-
-struct Handler;
-
-#[async_trait]
-impl EventHandler for Handler {}
 
 pub async fn get_client() -> BotResult<Client> {
     let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
     let database = get_database()?;
 
     let client = Client::builder(token)
+        .event_handler(Handler)
         .framework(get_framework())
         .register_songbird()
         .await?;
@@ -61,18 +57,16 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
         let _ = msg
             .channel_id
             .send_message(ctx, |m| {
-                m.embed(|e| {
-                    e.title("Error occurred")
-                        .description(format!("```\n{}\n```", why))
-                })
+                m.embed(|e| e.title("Error occurred").description(format!("{}", why)))
             })
             .await;
-        println!("Error in {}: {:?}", cmd_name, why);
+        log::warn!("Error in {}: {:?}", cmd_name, why);
     }
 }
 
 #[hook]
 async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
+    log::trace!("Got command message {}", msg.content);
     let _ = msg.channel_id.broadcast_typing(ctx).await;
     true
 }

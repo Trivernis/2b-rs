@@ -15,6 +15,7 @@ pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandRes
     let store = data.get::<Store>().expect("Failed to get store");
 
     let item_name = args.message().to_lowercase();
+    log::debug!("Searching for item '{}'", item_name);
     let items_by_name = store.minecraft_data_api.items.items_by_name()?;
     let item = items_by_name
         .get(&item_name)
@@ -26,6 +27,7 @@ pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandRes
         .minecraft_data_api
         .enchantments
         .enchantments_by_category()?;
+    log::trace!("Item is {:?}", item);
 
     msg.channel_id
         .send_message(ctx, |m| {

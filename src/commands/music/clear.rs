@@ -1,6 +1,6 @@
 use serenity::client::Context;
-use serenity::framework::standard::CommandResult;
 use serenity::framework::standard::macros::command;
+use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::music::get_queue_for_guild;
@@ -13,6 +13,7 @@ use crate::commands::music::get_queue_for_guild;
 #[allowed_roles("DJ")]
 async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
+    log::debug!("Clearing queue for guild {}", guild.id);
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     {

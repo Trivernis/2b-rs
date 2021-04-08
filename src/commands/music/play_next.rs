@@ -19,11 +19,13 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 
     let guild = msg.guild(&ctx.cache).await.unwrap();
+    log::debug!("Playing song as next song for guild {}", guild.id);
 
     let manager = get_voice_manager(ctx).await;
     let mut handler = manager.get(guild.id);
 
     if handler.is_none() {
+        log::debug!("Not in a voice channel. Joining authors channel");
         msg.guild(&ctx.cache).await.unwrap();
         let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
         handler = Some(join_channel(ctx, channel_id, guild.id).await);
@@ -37,6 +39,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let play_first = {
         let mut queue_lock = queue.lock().await;
         songs.reverse();
+        log::debug!("Enqueueing songs as next songs in the queue");
 
         for song in songs {
             queue_lock.add_next(song);

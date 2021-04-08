@@ -82,6 +82,7 @@ impl Song {
         if let Some(url) = self.url.clone() {
             Some(url)
         } else {
+            log::debug!("Lazy fetching video for title");
             let information = search_video_information(format!("{} - {}", self.author, self.title))
                 .await
                 .ok()
