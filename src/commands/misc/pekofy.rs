@@ -1,9 +1,10 @@
+use regex::Regex;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 use serenity::{framework::standard::macros::command, prelude::*};
 
+#[allow(dead_code)]
 static MESSAGE_DELIMITERS: &[char] = &['.', '?', '!', '"'];
-static MARKDOWN_SPECIAL_CHARACTERS: &[&str] = &["~~", "**", "*"];
 
 #[command]
 #[description("Pekofy messages")]
@@ -54,29 +55,21 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
 /// Pekofies a single line
 fn pekofy_line(mut line: &str) -> String {
+    lazy_static::lazy_static! { static ref FORMATTING_REGEX: Regex = Regex::new(r"^(.*?)((<:\w+:\d+>|\W)+)$").unwrap(); }
     log::debug!("Pekofying line '{}'", line);
     let original = line;
-    let mut md_index = None;
 
-    for pattern in MARKDOWN_SPECIAL_CHARACTERS {
-        if let Some(i) = line.rfind(pattern) {
-            log::debug!("Found markdown at index {}", i);
-            md_index = Some(i);
-            break;
-        }
-    }
     let mut md = "";
-    if let Some(index) = md_index {
-        let (line_part, md_part) = line.split_at(index);
-        line = line_part;
-        md = md_part;
+    if let Some(captures) = FORMATTING_REGEX.captures(line) {
+        line = captures.get(1).unwrap().as_str();
+        md = captures.get(2).unwrap().as_str();
     }
+
     if line.ends_with("peko") {
         log::debug!("Peko already found in message. Returning original");
         return original.to_string();
     }
 
-    let punctuation_index = line.rfind(MESSAGE_DELIMITERS);
     let mut peko = "peko".to_string();
 
     if line
@@ -88,11 +81,5 @@ fn pekofy_line(mut line: &str) -> String {
         peko = peko.to_uppercase();
     }
 
-    if let Some(index) = punctuation_index {
-        log::debug!("Found punctuation at index {}", index);
-        let (before, after) = line.split_at(index);
-        format!("{} {}{}{}", before, peko, after, md)
-    } else {
-        format!("{} {}{}", line, peko, md)
-    }
+    format!("{} {}{}", line, peko, md)
 }
