@@ -16,6 +16,7 @@ use clear::CLEAR_COMMAND;
 use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
+use pause::PAUSE_COMMAND;
 use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
 use queue::QUEUE_COMMAND;
@@ -35,6 +36,7 @@ mod clear;
 mod current;
 mod join;
 mod leave;
+mod pause;
 mod play;
 mod play_next;
 mod queue;
@@ -42,7 +44,9 @@ mod shuffle;
 mod skip;
 
 #[group]
-#[commands(join, leave, play, queue, skip, shuffle, current, play_next, clear)]
+#[commands(
+    join, leave, play, queue, skip, shuffle, current, play_next, clear, pause
+)]
 #[prefix("m")]
 pub struct Music;
 

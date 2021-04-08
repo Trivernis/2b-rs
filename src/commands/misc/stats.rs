@@ -12,6 +12,7 @@ use sysinfo::{ProcessExt, SystemExt};
 #[usage("stats")]
 #[example("stats")]
 async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
+    log::debug!("Reading system stats");
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
     let kernel_version = system.get_kernel_version().unwrap_or("n/a".to_string());
@@ -35,6 +36,8 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         bot_info.owner.id, guild_count
     );
 
+    log::trace!("Discord info {}", discord_info);
+
     let system_info = format!(
         r#"
     Kernel Version: {}
@@ -51,6 +54,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         uptime.num_hours() % 24,
         uptime.num_minutes() % 60
     );
+    log::trace!("System info {}", system_info);
 
     msg.channel_id
         .send_message(ctx, |m| {

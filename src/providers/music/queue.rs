@@ -11,6 +11,7 @@ use aspotify::{Track, TrackSimplified};
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<TrackHandle>,
+    paused: bool,
 }
 
 impl MusicQueue {
@@ -18,6 +19,7 @@ impl MusicQueue {
         Self {
             inner: VecDeque::new(),
             current: None,
+            paused: false,
         }
     }
 
@@ -64,6 +66,25 @@ impl MusicQueue {
     /// Clears the queue
     pub fn clear(&mut self) {
         self.inner.clear();
+    }
+
+    /// Toggles pause
+    pub fn pause(&mut self) {
+        if let Some(current) = &self.current {
+            if self.paused {
+                let _ = current.play();
+            } else {
+                let _ = current.pause();
+            }
+
+            self.paused = !self.paused;
+        } else {
+            self.paused = false;
+        }
+    }
+
+    pub fn paused(&self) -> bool {
+        self.paused
     }
 }
 
