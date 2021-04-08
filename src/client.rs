@@ -11,6 +11,8 @@ use crate::database::get_database;
 use crate::handler::Handler;
 use crate::utils::error::{BotError, BotResult};
 use crate::utils::store::{Store, StoreData};
+use serenity::model::id::UserId;
+use std::collections::HashSet;
 
 pub async fn get_client() -> BotResult<Client> {
     let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
@@ -30,6 +32,10 @@ pub async fn get_client() -> BotResult<Client> {
 }
 
 pub fn get_framework() -> StandardFramework {
+    let mut owners = HashSet::new();
+    if let Some(owner) = dotenv::var("BOT_OWNER").ok().and_then(|o| o.parse().ok()) {
+        owners.insert(UserId(owner));
+    }
     StandardFramework::default()
         .configure(|c| {
             c.prefix(
@@ -39,6 +45,7 @@ pub fn get_framework() -> StandardFramework {
             )
             .allow_dm(true)
             .ignore_bots(true)
+            .owners(owners)
         })
         .group(&MINECRAFT_GROUP)
         .group(&MISC_GROUP)
