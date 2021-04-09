@@ -42,7 +42,7 @@ impl ShareableMessage {
 
     /// Deletes the underlying message
     pub async fn delete(&self) -> BotResult<()> {
-        let msg = self.get_message().await?;
+        let msg = self.get_discord_message().await?;
         msg.delete(&self.http).await?;
 
         Ok(())
@@ -53,20 +53,34 @@ impl ShareableMessage {
     where
         F: FnOnce(&mut EditMessage) -> &mut EditMessage,
     {
-        let mut message = self.get_message().await?;
+        let mut message = self.get_discord_message().await?;
         message.edit(&self.http, f).await?;
 
         Ok(())
     }
 
     /// Returns the underlying message
-    async fn get_message(&self) -> BotResult<Message> {
+    pub async fn get_discord_message(&self) -> BotResult<Message> {
         let message = self
             .http
-            .http()
             .get_message(self.channel_id, self.message_id)
             .await?;
 
         Ok(message)
+    }
+
+    /// Returns the channel of the message
+    pub fn channel_id(&self) -> ChannelId {
+        ChannelId(self.channel_id)
+    }
+
+    /// Returns the message id of the message
+    pub fn message_id(&self) -> MessageId {
+        MessageId(self.message_id)
+    }
+
+    /// Returns the reference to the http object
+    pub fn http(&self) -> &Arc<Http> {
+        &self.http
     }
 }

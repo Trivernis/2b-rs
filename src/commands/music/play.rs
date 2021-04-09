@@ -8,8 +8,8 @@ use crate::commands::music::{
     join_channel, play_next_in_queue,
 };
 
-use crate::commands::settings::SETTING_AUTOSHUFFLE;
-use crate::utils::context_data::get_database_from_context;
+use crate::commands::common::handle_autodelete;
+use crate::providers::settings::{get_setting, Setting};
 
 #[command]
 #[only_in(guilds)]
@@ -45,10 +45,10 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         for song in songs {
             queue_lock.add(song);
         }
-        let database = get_database_from_context(ctx).await;
-        let autoshuffle = database
-            .get_guild_setting(guild.id.0, SETTING_AUTOSHUFFLE)?
+        let autoshuffle = get_setting(ctx, guild.id, Setting::MusicAutoShuffle)
+            .await?
             .unwrap_or(false);
+
         if autoshuffle {
             log::debug!("Autoshuffeling");
             queue_lock.shuffle();
@@ -60,6 +60,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         log::debug!("Playing first song in queue");
         while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler_lock).await {}
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

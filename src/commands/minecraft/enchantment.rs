@@ -2,6 +2,7 @@ use serenity::client::Context;
 use serenity::framework::standard::{macros::command, Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::utils::context_data::Store;
 
 #[command]
@@ -64,6 +65,7 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
             })
         })
         .await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

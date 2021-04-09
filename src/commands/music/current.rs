@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 use crate::messages::music::NowPlayingMessage;
 use std::mem;
@@ -29,6 +30,7 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
             let _ = old_np.inner().delete().await;
         }
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

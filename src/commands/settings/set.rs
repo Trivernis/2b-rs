@@ -3,7 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
-use crate::commands::settings::GUILD_SETTINGS;
+use crate::providers::settings::ALL_SETTINGS;
 use crate::utils::context_data::get_database_from_context;
 
 #[command]
@@ -16,7 +16,9 @@ use crate::utils::context_data::get_database_from_context;
 #[required_permissions("MANAGE_GUILD")]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let key = args.single::<String>().unwrap().to_lowercase();
-    if !GUILD_SETTINGS.contains(&&*key) {
+    let all_settings: Vec<String> = ALL_SETTINGS.iter().map(|s| s.to_string()).collect();
+
+    if !all_settings.contains(&key) {
         msg.channel_id
             .say(ctx, format!("Invalid setting `{}`", key))
             .await?;

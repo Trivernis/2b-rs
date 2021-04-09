@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use crate::commands::common::handle_autodelete;
 use serenity::client::Context;
 use serenity::framework::standard::macros::help;
 use serenity::framework::standard::{help_commands, Args};
@@ -18,6 +19,6 @@ pub async fn help(
     owners: HashSet<UserId>,
 ) -> CommandResult {
     let _ = help_commands::with_embeds(ctx, msg, args, help_options, groups, owners).await;
-
+    handle_autodelete(ctx, msg).await?;
     Ok(())
 }

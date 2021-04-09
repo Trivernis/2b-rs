@@ -249,7 +249,7 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
-        if let Some(np) = &queue_lock.now_playing_msg {
+        if let Some(np) = &mut queue_lock.now_playing_msg {
             let _ = np.refresh(track.metadata()).await;
         }
         queue_lock.set_current(track);

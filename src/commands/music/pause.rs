@@ -3,6 +3,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::prelude::*;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 
 #[command]
@@ -28,6 +29,7 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     } else {
         msg.channel_id.say(ctx, "Nothing to pause").await?;
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

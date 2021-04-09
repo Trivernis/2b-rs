@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 use crate::providers::music::lyrics::get_lyrics;
 
@@ -44,6 +45,7 @@ async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
             .say(ctx, "I'm not playing music right now")
             .await?;
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

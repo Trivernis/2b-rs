@@ -8,11 +8,13 @@ use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::handler::Handler;
-use crate::utils::context_data::{DatabaseContainer, Store, StoreData};
+use crate::utils::context_data::{
+    DatabaseContainer, EventDrivenMessageContainer, Store, StoreData,
+};
 use crate::utils::error::{BotError, BotResult};
 use database::get_database;
 use serenity::model::id::UserId;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 pub async fn get_client() -> BotResult<Client> {
     let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
@@ -27,6 +29,7 @@ pub async fn get_client() -> BotResult<Client> {
         let mut data = client.data.write().await;
         data.insert::<Store>(StoreData::new());
         data.insert::<DatabaseContainer>(database);
+        data.insert::<EventDrivenMessageContainer>(HashMap::new());
     }
 
     Ok(client)

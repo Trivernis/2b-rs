@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, get_voice_manager};
 
 #[command]
@@ -35,6 +36,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
         msg.channel_id.say(ctx, "Not in a voice channel").await?;
         log::debug!("Not in a voice channel");
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

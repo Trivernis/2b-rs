@@ -1,3 +1,4 @@
+use crate::commands::common::handle_autodelete;
 use chrono::Duration as ChronoDuration;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
@@ -64,6 +65,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
             })
         })
         .await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

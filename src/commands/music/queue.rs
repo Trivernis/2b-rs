@@ -5,6 +5,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 
 #[command]
@@ -55,6 +56,7 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
             })
         })
         .await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

@@ -32,10 +32,33 @@ impl NowPlayingMessage {
     }
 
     /// Refreshes the now playing message
-    pub async fn refresh(&self, meta: &Metadata) -> BotResult<()> {
-        self.inner
-            .edit(|m| m.embed(|e| Self::create_embed(meta, e)))
+    pub async fn refresh(&mut self, meta: &Metadata) -> BotResult<()> {
+        let channel_id = self.inner.channel_id();
+        let messages = channel_id
+            .messages(self.inner.http(), |p| p.limit(1))
             .await?;
+
+        let needs_recreate = messages
+            .first()
+            .map(|m| m.id != self.inner.message_id())
+            .unwrap_or(true);
+
+        // recreates the message if needed
+        if needs_recreate {
+            log::debug!("Song info message will be recreated");
+            let http = self.inner.http().clone();
+            let _ = self.inner.delete().await;
+
+            self.inner = ShareableMessage::create(http, &channel_id, |f| {
+                f.embed(|e| Self::create_embed(meta, e))
+            })
+            .await?;
+        } else {
+            log::debug!("Reusing old song info");
+            self.inner
+                .edit(|m| m.embed(|e| Self::create_embed(meta, e)))
+                .await?;
+        }
 
         Ok(())
     }

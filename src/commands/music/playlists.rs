@@ -1,3 +1,4 @@
+use crate::commands::common::handle_autodelete;
 use crate::utils::context_data::get_database_from_context;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
@@ -27,6 +28,7 @@ async fn playlists(ctx: &Context, msg: &Message) -> CommandResult {
             })
         })
         .await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

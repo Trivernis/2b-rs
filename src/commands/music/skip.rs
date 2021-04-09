@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 
 #[command]
@@ -23,6 +24,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     msg.channel_id.say(ctx, "Skipped to the next song").await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

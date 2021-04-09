@@ -8,3 +8,4 @@ pub(crate) mod minecraft;
 pub(crate) mod misc;
 pub(crate) mod music;
 pub(crate) mod settings;
+mod common;

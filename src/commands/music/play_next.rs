@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue,
@@ -50,6 +51,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if play_first {
         while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await {}
     }
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }
