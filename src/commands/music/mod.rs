@@ -19,7 +19,9 @@ use leave::LEAVE_COMMAND;
 use pause::PAUSE_COMMAND;
 use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
+use playlists::PLAYLISTS_COMMAND;
 use queue::QUEUE_COMMAND;
+use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
@@ -27,7 +29,7 @@ use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::{
     get_video_information, get_videos_for_playlist, search_video_information,
 };
-use crate::utils::context_data::Store;
+use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::{BotError, BotResult};
 use regex::Regex;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
@@ -40,13 +42,26 @@ mod leave;
 mod pause;
 mod play;
 mod play_next;
+mod playlists;
 mod queue;
+mod save_playlist;
 mod shuffle;
 mod skip;
 
 #[group]
 #[commands(
-    join, leave, play, queue, skip, shuffle, current, play_next, clear, pause
+    join,
+    leave,
+    play,
+    queue,
+    skip,
+    shuffle,
+    current,
+    play_next,
+    clear,
+    pause,
+    save_playlist,
+    playlists
 )]
 #[prefixes("m", "music")]
 pub struct Music;
@@ -240,8 +255,11 @@ async fn play_next_in_queue(
 
 /// Returns the list of songs for a given url
 async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotResult<Vec<Song>> {
+    let guild_id = msg.guild_id.unwrap();
+    let mut query = query.to_string();
     lazy_static::lazy_static! {
         // expressions to determine the type of url
+        static ref PLAYLIST_NAME_REGEX: Regex = Regex::new(r"^pl:(\S+)$").unwrap();
         static ref YOUTUBE_URL_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.)?(youtube\.com/watch\?.*v=.*)|(/youtu.be/.*)|(youtube\.com/playlist\?.*list=.*)$").unwrap();
         static ref SPOTIFY_PLAYLIST_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/playlist/.*").unwrap();
         static ref SPOTIFY_ALBUM_REGEX: Regex = Regex::new(r"^(https?(://))?(www\.|open\.)?spotify\.com/album/.*").unwrap();
@@ -250,12 +268,25 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     let mut songs = Vec::new();
     let data = ctx.data.read().await;
     let store = data.get::<Store>().unwrap();
+    let database = data.get::<DatabaseContainer>().unwrap();
 
     log::debug!("Querying play input {}", query);
-    if YOUTUBE_URL_REGEX.is_match(query) {
+    if let Some(captures) = PLAYLIST_NAME_REGEX.captures(&query) {
+        log::debug!("Query is a saved playlist");
+        let pl_name: &str = captures.get(1).unwrap().as_str();
+        log::trace!("Playlist name is {}", pl_name);
+        let playlist_opt = database.get_guild_playlist(guild_id.0, pl_name)?;
+        log::trace!("Playlist is {:?}", playlist_opt);
+
+        if let Some(playlist) = playlist_opt {
+            log::debug!("Assigning url for saved playlist to query");
+            query = playlist.url;
+        }
+    }
+    if YOUTUBE_URL_REGEX.is_match(&query) {
         log::debug!("Query is youtube video or playlist");
         // try fetching the url as a playlist
-        songs = get_videos_for_playlist(query)
+        songs = get_videos_for_playlist(&query)
             .await?
             .into_iter()
             .map(Song::from)
@@ -264,32 +295,32 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         // if no songs were found fetch the song as a video
         if songs.len() == 0 {
             log::debug!("Query is youtube video");
-            let mut song: Song = get_video_information(query).await?.into();
+            let mut song: Song = get_video_information(&query).await?.into();
             added_one_msg(&ctx, msg, &mut song).await?;
             songs.push(song);
         } else {
             log::debug!("Query is playlist with {} songs", songs.len());
             added_multiple_msg(&ctx, msg, &mut songs).await?;
         }
-    } else if SPOTIFY_PLAYLIST_REGEX.is_match(query) {
+    } else if SPOTIFY_PLAYLIST_REGEX.is_match(&query) {
         // search for all songs in the playlist and search for them on youtube
         log::debug!("Query is spotify playlist");
-        songs = store.spotify_api.get_songs_in_playlist(query).await?;
+        songs = store.spotify_api.get_songs_in_playlist(&query).await?;
         added_multiple_msg(&ctx, msg, &mut songs).await?;
-    } else if SPOTIFY_ALBUM_REGEX.is_match(query) {
+    } else if SPOTIFY_ALBUM_REGEX.is_match(&query) {
         // fetch all songs in the album and search for them on youtube
         log::debug!("Query is spotify album");
-        songs = store.spotify_api.get_songs_in_album(query).await?;
+        songs = store.spotify_api.get_songs_in_album(&query).await?;
         added_multiple_msg(&ctx, msg, &mut songs).await?;
-    } else if SPOTIFY_SONG_REGEX.is_match(query) {
+    } else if SPOTIFY_SONG_REGEX.is_match(&query) {
         // fetch the song name and search it on youtube
         log::debug!("Query is a spotify song");
-        let mut song = store.spotify_api.get_song_name(query).await?;
+        let mut song = store.spotify_api.get_song_name(&query).await?;
         added_one_msg(ctx, msg, &mut song).await?;
         songs.push(song);
     } else {
         log::debug!("Query is a youtube search");
-        let mut song: Song = search_video_information(query.to_string())
+        let mut song: Song = search_video_information(query.clone())
             .await?
             .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
             .into();
