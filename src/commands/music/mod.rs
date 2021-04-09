@@ -1,5 +1,12 @@
 use std::sync::Arc;
 
+use crate::providers::music::queue::{MusicQueue, Song};
+use crate::providers::music::{
+    get_video_information, get_videos_for_playlist, search_video_information,
+};
+use crate::utils::context_data::{DatabaseContainer, Store};
+use crate::utils::error::{BotError, BotResult};
+use regex::Regex;
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::framework::standard::macros::group;
@@ -10,31 +17,10 @@ use serenity::model::id::{ChannelId, GuildId, UserId};
 use songbird::{
     Call, Event, EventContext, EventHandler as VoiceEventHandler, Songbird, TrackEvent,
 };
-use tokio::sync::Mutex;
-
-use clear_queue::CLEAR_QUEUE_COMMAND;
-use current::CURRENT_COMMAND;
-use join::JOIN_COMMAND;
-use leave::LEAVE_COMMAND;
-use lyrics::LYRICS_COMMAND;
-use pause::PAUSE_COMMAND;
-use play::PLAY_COMMAND;
-use play_next::PLAY_NEXT_COMMAND;
-use playlists::PLAYLISTS_COMMAND;
-use queue::QUEUE_COMMAND;
-use save_playlist::SAVE_PLAYLIST_COMMAND;
-use shuffle::SHUFFLE_COMMAND;
-use skip::SKIP_COMMAND;
-
-use crate::providers::music::queue::{MusicQueue, Song};
-use crate::providers::music::{
-    get_video_information, get_videos_for_playlist, search_video_information,
-};
-use crate::utils::context_data::{DatabaseContainer, Store};
-use crate::utils::error::{BotError, BotResult};
-use regex::Regex;
+use std::mem;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::time::Duration;
+use tokio::sync::Mutex;
 
 mod clear_queue;
 mod current;
@@ -49,6 +35,20 @@ mod queue;
 mod save_playlist;
 mod shuffle;
 mod skip;
+
+use clear_queue::CLEAR_QUEUE_COMMAND;
+use current::CURRENT_COMMAND;
+use join::JOIN_COMMAND;
+use leave::LEAVE_COMMAND;
+use lyrics::LYRICS_COMMAND;
+use pause::PAUSE_COMMAND;
+use play::PLAY_COMMAND;
+use play_next::PLAY_NEXT_COMMAND;
+use playlists::PLAYLISTS_COMMAND;
+use queue::QUEUE_COMMAND;
+use save_playlist::SAVE_PLAYLIST_COMMAND;
+use shuffle::SHUFFLE_COMMAND;
+use skip::SKIP_COMMAND;
 
 #[group]
 #[commands(
@@ -248,8 +248,15 @@ async fn play_next_in_queue(
         let mut handler_lock = handler.lock().await;
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
+
+        if let Some(np) = &queue_lock.now_playing_msg {
+            let _ = np.refresh(track.metadata()).await;
+        }
         queue_lock.set_current(track);
     } else {
+        if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
+            let _ = np.inner().delete().await;
+        }
         queue_lock.clear_current();
     }
     true

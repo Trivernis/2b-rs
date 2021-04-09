@@ -8,7 +8,7 @@ use crate::commands::music::{
     join_channel, play_next_in_queue,
 };
 
-use crate::providers::constants::SETTING_AUTOSHUFFLE;
+use crate::commands::settings::SETTING_AUTOSHUFFLE;
 use crate::utils::context_data::get_database_from_context;
 
 #[command]

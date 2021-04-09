@@ -3,7 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
-use crate::providers::constants::GUILD_SETTINGS;
+use crate::commands::settings::GUILD_SETTINGS;
 use crate::utils::context_data::get_database_from_context;
 
 #[command]

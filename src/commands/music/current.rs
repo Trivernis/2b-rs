@@ -4,6 +4,8 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::music::get_queue_for_guild;
+use crate::messages::music::NowPlayingMessage;
+use std::mem;
 
 #[command]
 #[only_in(guilds)]
@@ -15,29 +17,17 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
 
     log::debug!("Displaying current song for queue in {}", guild.id);
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
-    let queue_lock = queue.lock().await;
+    let mut queue_lock = queue.lock().await;
 
     if let Some(current) = queue_lock.current() {
         let metadata = current.metadata().clone();
         log::trace!("Metadata is {:?}", metadata);
-        msg.channel_id
-            .send_message(ctx, |m| {
-                m.embed(|mut e| {
-                    e = e.description(format!(
-                        "Now Playing [{}]({}) by {}",
-                        metadata.title.unwrap(),
-                        metadata.source_url.unwrap(),
-                        metadata.artist.unwrap()
-                    ));
+        let np_msg =
+            NowPlayingMessage::create(ctx.http.clone(), &msg.channel_id, &metadata).await?;
 
-                    if let Some(thumb) = metadata.thumbnail {
-                        e = e.thumbnail(thumb);
-                    }
-
-                    e
-                })
-            })
-            .await?;
+        if let Some(old_np) = mem::replace(&mut queue_lock.now_playing_msg, Some(np_msg)) {
+            let _ = old_np.inner().delete().await;
+        }
     }
 
     Ok(())

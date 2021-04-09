@@ -1,14 +1,24 @@
 use crate::commands::music::get_queue_for_guild;
+use crate::utils::context_data::EventDrivenMessageContainer;
 use serenity::async_trait;
 use serenity::client::Context;
+use serenity::model::channel::Reaction;
 use serenity::model::event::ResumedEvent;
 use serenity::model::gateway::{Activity, Ready};
 use serenity::model::guild::Member;
-use serenity::model::id::{ChannelId, GuildId};
+use serenity::model::id::{ChannelId, GuildId, MessageId};
 use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
 pub(crate) struct Handler;
+
+macro_rules! log_msg_fire_error {
+    ($msg:expr) => {
+        if let Err(e) = $msg {
+            log::error!("Failed to handle event for message: {:?}", e);
+        }
+    };
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -53,6 +63,67 @@ impl EventHandler for Handler {
             let mut queue_lock = queue.lock().await;
             log::debug!("Setting leave flag to {}", count == 0);
             queue_lock.leave_flag = count == 0;
+        }
+    }
+
+    /// Fired when a message was deleted
+    async fn message_delete(
+        &self,
+        ctx: Context,
+        channel_id: ChannelId,
+        message_id: MessageId,
+        _: Option<GuildId>,
+    ) {
+        let mut data = ctx.data.write().await;
+        let listeners = data.get_mut::<EventDrivenMessageContainer>().unwrap();
+
+        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
+            log_msg_fire_error!(msg.on_deleted().await);
+            listeners.remove(&(channel_id.0, message_id.0));
+        }
+    }
+
+    /// Fired when multiple messages were deleted
+    async fn message_delete_bulk(
+        &self,
+        ctx: Context,
+        channel_id: ChannelId,
+        message_ids: Vec<MessageId>,
+        _: Option<GuildId>,
+    ) {
+        let data = ctx.data.read().await;
+        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
+
+        for message_id in message_ids {
+            if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
+                log_msg_fire_error!(msg.on_deleted().await);
+            }
+        }
+    }
+
+    /// Fired when a reaction was added to a message
+    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+        let data = ctx.data.read().await;
+        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
+
+        let message_id = reaction.message_id;
+        let channel_id = reaction.channel_id;
+
+        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
+            log_msg_fire_error!(msg.on_reaction_add(reaction).await);
+        }
+    }
+
+    /// Fired when a reaction was added to a message
+    async fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
+        let data = ctx.data.read().await;
+        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
+
+        let message_id = reaction.message_id;
+        let channel_id = reaction.channel_id;
+
+        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
+            log_msg_fire_error!(msg.on_reaction_remove(reaction).await);
         }
     }
 }

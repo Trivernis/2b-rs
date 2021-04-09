@@ -13,12 +13,10 @@ use crate::commands::music::{get_queue_for_guild, get_voice_manager};
 #[allowed_roles("DJ")]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-
     log::debug!("Leave request received for guild {}", guild.id);
     let manager = get_voice_manager(ctx).await;
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     let queue_lock = queue.lock().await;
-    log::trace!("Queue is {:?}", queue_lock);
     let handler = manager.get(guild.id);
 
     if let Some(handler) = handler {

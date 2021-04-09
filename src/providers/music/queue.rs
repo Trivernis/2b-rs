@@ -2,16 +2,18 @@ use std::collections::VecDeque;
 
 use songbird::tracks::TrackHandle;
 
+use crate::messages::music::NowPlayingMessage;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::search_video_information;
 use crate::utils::shuffle_vec_deque;
 use aspotify::{Track, TrackSimplified};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<TrackHandle>,
     paused: bool,
+    pub now_playing_msg: Option<NowPlayingMessage>,
     pub leave_flag: bool,
 }
 
@@ -22,6 +24,7 @@ impl MusicQueue {
             current: None,
             paused: false,
             leave_flag: false,
+            now_playing_msg: None,
         }
     }
 
@@ -85,6 +88,7 @@ impl MusicQueue {
         }
     }
 
+    /// Returns if the queue is paused
     pub fn paused(&self) -> bool {
         self.paused
     }
