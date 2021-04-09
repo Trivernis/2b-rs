@@ -28,7 +28,11 @@ async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
 
             msg.channel_id
                 .send_message(ctx, |m| {
-                    m.embed(|e| e.title(format!("Lyrics for {}", title)).description(lyrics))
+                    m.embed(|e| {
+                        e.title(format!("Lyrics for {} by {}", title, author))
+                            .description(lyrics)
+                            .footer(|f| f.text("Powered by lyricsovh"))
+                    })
                 })
                 .await?;
         } else {

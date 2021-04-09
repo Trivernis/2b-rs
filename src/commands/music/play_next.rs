@@ -13,7 +13,7 @@ use crate::commands::music::{
 #[description("Puts a song as the next to play in the queue")]
 #[usage("<song-url>")]
 #[min_args(1)]
-#[aliases("pn")]
+#[aliases("pn", "play-next")]
 #[allowed_roles("DJ")]
 async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();

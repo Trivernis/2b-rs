@@ -11,7 +11,7 @@ use crate::commands::music::get_queue_for_guild;
 #[usage("")]
 #[aliases("cl")]
 #[allowed_roles("DJ")]
-async fn clear(ctx: &Context, msg: &Message) -> CommandResult {
+async fn clear_queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Clearing queue for guild {}", guild.id);
 

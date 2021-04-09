@@ -12,7 +12,7 @@ use songbird::{
 };
 use tokio::sync::Mutex;
 
-use clear::CLEAR_COMMAND;
+use clear_queue::CLEAR_QUEUE_COMMAND;
 use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
@@ -36,7 +36,7 @@ use regex::Regex;
 use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::time::Duration;
 
-mod clear;
+mod clear_queue;
 mod current;
 mod join;
 mod leave;
@@ -60,13 +60,12 @@ mod skip;
     shuffle,
     current,
     play_next,
-    clear,
+    clear_queue,
     pause,
     save_playlist,
     playlists,
     lyrics
 )]
-#[prefixes("m", "music")]
 pub struct Music;
 
 struct SongEndNotifier {
