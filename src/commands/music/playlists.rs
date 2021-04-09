@@ -17,8 +17,13 @@ async fn playlists(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id
         .send_message(ctx, |m| {
             m.embed(|e| {
-                e.title("Saved Playlists")
-                    .fields(playlists.into_iter().map(|p| (p.name, p.url, true)))
+                e.title("Saved Playlists").description(
+                    playlists
+                        .into_iter()
+                        .map(|p| format!("[{}]({})", p.name, p.url))
+                        .collect::<Vec<String>>()
+                        .join("\n"),
+                )
             })
         })
         .await?;

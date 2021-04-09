@@ -16,6 +16,7 @@ use clear::CLEAR_COMMAND;
 use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
+use lyrics::LYRICS_COMMAND;
 use pause::PAUSE_COMMAND;
 use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
@@ -39,6 +40,7 @@ mod clear;
 mod current;
 mod join;
 mod leave;
+mod lyrics;
 mod pause;
 mod play;
 mod play_next;
@@ -61,7 +63,8 @@ mod skip;
     clear,
     pause,
     save_playlist,
-    playlists
+    playlists,
+    lyrics
 )]
 #[prefixes("m", "music")]
 pub struct Music;

@@ -10,6 +10,7 @@ use std::time::Duration;
 use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 
+pub(crate) mod lyrics;
 pub(crate) mod queue;
 pub(crate) mod responses;
 pub(crate) mod spotify;

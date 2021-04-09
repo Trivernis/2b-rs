@@ -25,6 +25,9 @@ pub enum BotError {
     #[error("Spotify API Error: {0}")]
     SpotifyError(#[from] aspotify::Error),
 
+    #[error("Reqwest Error: {0}")]
+    Reqwest(#[from] reqwest::Error),
+
     #[error("{0}")]
     Msg(String),
 }
