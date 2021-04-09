@@ -1,3 +1,4 @@
+use crate::commands::music::is_dj;
 use crate::utils::context_data::get_database_from_context;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
@@ -11,9 +12,13 @@ use serenity::model::channel::Message;
 #[example("anime https://www.youtube.com/playlist?list=PLqaM77H_o5hykROCe3uluvZEaPo6bZj-C")]
 #[min_args(2)]
 #[aliases("add-playlist", "save-playlist")]
-#[allowed_roles("DJ")]
 async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
+
+    if !is_dj(ctx, guild.id, &msg.author).await? {
+        msg.channel_id.say(ctx, "Requires DJ permissions").await?;
+        return Ok(());
+    }
     let name: String = args.single().unwrap();
     let url: &str = args.remains().unwrap();
     log::debug!(

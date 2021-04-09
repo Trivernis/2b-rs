@@ -4,11 +4,16 @@ use serenity::client::Context;
 use serenity::model::prelude::GuildId;
 use std::str::FromStr;
 
-pub static ALL_SETTINGS: &[Setting] = &[Setting::MusicAutoShuffle, Setting::BotAutoDelete];
+pub static ALL_SETTINGS: &[Setting] = &[
+    Setting::MusicAutoShuffle,
+    Setting::BotAutoDelete,
+    Setting::MusicDjRole,
+];
 
 #[derive(Clone, Debug)]
 pub enum Setting {
     MusicAutoShuffle,
+    MusicDjRole,
     BotAutoDelete,
 }
 
@@ -17,6 +22,7 @@ impl ToString for Setting {
         match self {
             Self::MusicAutoShuffle => "music.autoshuffle".to_string(),
             Self::BotAutoDelete => "bot.autodelete".to_string(),
+            Self::MusicDjRole => "music.dj-role".to_string(),
         }
     }
 }

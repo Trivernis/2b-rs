@@ -37,21 +37,23 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
     } else {
         log::debug!("Displaying all guild settings");
+        let mut kv_pairs = Vec::new();
+
         for key in ALL_SETTINGS {
             let key = key.to_string();
-            let mut kv_pairs = Vec::new();
+
             {
                 match database.get_guild_setting::<String>(guild.id.0, &key)? {
                     Some(value) => kv_pairs.push(format!("`{}` = `{}`", key, value)),
                     None => kv_pairs.push(format!("`{}` not set", key)),
                 }
             }
-            msg.channel_id
-                .send_message(ctx, |m| {
-                    m.embed(|e| e.title("Guild Settings").description(kv_pairs.join("\n")))
-                })
-                .await?;
         }
+        msg.channel_id
+            .send_message(ctx, |m| {
+                m.embed(|e| e.title("Guild Settings").description(kv_pairs.join("\n")))
+            })
+            .await?;
     }
 
     Ok(())

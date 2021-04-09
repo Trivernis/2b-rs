@@ -36,6 +36,7 @@ mod save_playlist;
 mod shuffle;
 mod skip;
 
+use crate::providers::settings::{get_setting, Setting};
 use clear_queue::CLEAR_QUEUE_COMMAND;
 use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
@@ -47,6 +48,7 @@ use play_next::PLAY_NEXT_COMMAND;
 use playlists::PLAYLISTS_COMMAND;
 use queue::QUEUE_COMMAND;
 use save_playlist::SAVE_PLAYLIST_COMMAND;
+use serenity::model::user::User;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
@@ -368,4 +370,23 @@ async fn added_multiple_msg(ctx: &Context, msg: &Message, songs: &mut Vec<Song>)
         })
         .await?;
     Ok(())
+}
+
+/// Returns if the given user is a dj in the given guild based on the
+/// setting for the name of the dj role
+async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool> {
+    let dj_role = get_setting::<String>(ctx, guild, Setting::MusicDjRole).await?;
+
+    if let Some(role_name) = dj_role {
+        let roles = ctx.http.get_guild_roles(guild.0).await?;
+        let role_result = roles.iter().find(|r| r.name == role_name);
+
+        if let Some(role) = role_result {
+            Ok(user.has_role(ctx, guild, role.id).await?)
+        } else {
+            Ok(false)
+        }
+    } else {
+        Ok(true)
+    }
 }

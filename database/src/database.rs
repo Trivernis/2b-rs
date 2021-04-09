@@ -2,8 +2,8 @@ use crate::error::DatabaseResult;
 use crate::models::*;
 use crate::schema::*;
 use crate::PoolConnection;
-use diesel::insert_into;
 use diesel::prelude::*;
+use diesel::{delete, insert_into};
 use std::any;
 use std::fmt::Debug;
 use std::str::FromStr;
@@ -74,6 +74,19 @@ impl Database {
             .on_conflict((dsl::guild_id, dsl::key))
             .do_update()
             .set(dsl::value.eq(value.to_string()))
+            .execute(&connection)?;
+
+        Ok(())
+    }
+
+    /// Deletes a guild setting
+    pub fn delete_guild_setting(&self, guild_id: u64, key: &str) -> DatabaseResult<()> {
+        use guild_settings::dsl;
+        log::debug!("Deleting '{}' for guild {}", key, guild_id);
+        let connection = self.pool.get()?;
+        delete(dsl::guild_settings)
+            .filter(dsl::guild_id.eq(guild_id as i64))
+            .filter(dsl::key.eq(key))
             .execute(&connection)?;
 
         Ok(())
