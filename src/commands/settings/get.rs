@@ -3,8 +3,8 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
-use crate::database::get_database_from_context;
-use crate::database::guild::GUILD_SETTINGS;
+use crate::providers::constants::GUILD_SETTINGS;
+use crate::utils::context_data::get_database_from_context;
 
 #[command]
 #[only_in(guilds)]
@@ -21,17 +21,15 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
     if let Some(key) = args.single::<String>().ok() {
         log::debug!("Displaying guild setting of '{}'", key);
-        let database_lock = database.lock().await;
-        let setting = database_lock.get_guild_setting::<String>(&guild.id, &key);
+        let setting = database.get_guild_setting::<String>(guild.id.0, &key)?;
 
         match setting {
-            Ok(value) => {
+            Some(value) => {
                 msg.channel_id
                     .say(ctx, format!("`{}` is set to to `{}`", key, value))
                     .await?;
             }
-            Err(e) => {
-                eprintln!("Failed to get setting: {:?}", e);
+            None => {
                 msg.channel_id
                     .say(ctx, format!("`{}` is not set", key))
                     .await?;
@@ -42,13 +40,9 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         for key in GUILD_SETTINGS {
             let mut kv_pairs = Vec::new();
             {
-                let database_lock = database.lock().await;
-                match database_lock.get_guild_setting::<String>(&guild.id, &key) {
-                    Ok(value) => kv_pairs.push(format!("`{}` = `{}`", key, value)),
-                    Err(e) => {
-                        eprintln!("Failed to get setting: {:?}", e);
-                        kv_pairs.push(format!("`{}` not set", key))
-                    }
+                match database.get_guild_setting::<String>(guild.id.0, &key)? {
+                    Some(value) => kv_pairs.push(format!("`{}` = `{}`", key, value)),
+                    None => kv_pairs.push(format!("`{}` not set", key)),
                 }
             }
             msg.channel_id

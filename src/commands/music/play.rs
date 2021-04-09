@@ -7,8 +7,9 @@ use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue,
 };
-use crate::database::get_database_from_context;
-use crate::database::guild::SETTING_AUTOSHUFFLE;
+
+use crate::providers::constants::SETTING_AUTOSHUFFLE;
+use crate::utils::context_data::get_database_from_context;
 
 #[command]
 #[only_in(guilds)]
@@ -45,9 +46,8 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             queue_lock.add(song);
         }
         let database = get_database_from_context(ctx).await;
-        let database_lock = database.lock().await;
-        let autoshuffle = database_lock
-            .get_guild_setting(&guild.id, SETTING_AUTOSHUFFLE)
+        let autoshuffle = database
+            .get_guild_setting(guild.id.0, SETTING_AUTOSHUFFLE)?
             .unwrap_or(false);
         if autoshuffle {
             log::debug!("Autoshuffeling");

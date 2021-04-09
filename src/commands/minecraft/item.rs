@@ -2,7 +2,7 @@ use serenity::client::Context;
 use serenity::framework::standard::{macros::command, Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
-use crate::utils::store::Store;
+use crate::utils::context_data::Store;
 
 #[command]
 #[description("Provides information for a single minecraft item")]

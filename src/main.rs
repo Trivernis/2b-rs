@@ -3,7 +3,6 @@ use crate::utils::logging::init_logger;
 
 pub mod client;
 mod commands;
-pub mod database;
 pub mod handler;
 mod providers;
 pub mod utils;

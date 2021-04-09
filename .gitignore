@@ -3,3 +3,4 @@ bot.db
 .env
 *.env
 logs
+.idea

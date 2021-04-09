@@ -7,10 +7,10 @@ use serenity::Client;
 use songbird::SerenityInit;
 
 use crate::commands::*;
-use crate::database::get_database;
 use crate::handler::Handler;
+use crate::utils::context_data::{DatabaseContainer, Store, StoreData};
 use crate::utils::error::{BotError, BotResult};
-use crate::utils::store::{Store, StoreData};
+use database::get_database;
 use serenity::model::id::UserId;
 use std::collections::HashSet;
 
@@ -25,7 +25,8 @@ pub async fn get_client() -> BotResult<Client> {
         .await?;
     {
         let mut data = client.data.write().await;
-        data.insert::<Store>(StoreData::new(database))
+        data.insert::<Store>(StoreData::new());
+        data.insert::<DatabaseContainer>(database);
     }
 
     Ok(client)
