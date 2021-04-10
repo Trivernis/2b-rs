@@ -28,6 +28,9 @@ pub enum BotError {
     #[error("Reqwest Error: {0}")]
     Reqwest(#[from] reqwest::Error),
 
+    #[error("Detected CLI injection attempt")]
+    CliInject,
+
     #[error("{0}")]
     Msg(String),
 }
