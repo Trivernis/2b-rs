@@ -39,17 +39,6 @@ pub async fn get_previous_message_or_reply(
     Ok(referenced)
 }
 
-/// Returns the domain for a given url
-pub fn get_domain_for_url(url: &str) -> Option<String> {
-    lazy_static::lazy_static! {
-        static ref DOMAIN_REGEX: Regex = Regex::new(r"^(https?://)?(www\.)?((\w+\.)+\w+).*$").unwrap();
-    }
-
-    let captures = DOMAIN_REGEX.captures(url)?;
-
-    captures.get(3).map(|c| c.as_str().to_string())
-}
-
 /// Returns the file for a given domain
 pub fn get_file_name_for_domain(url: &str) -> Option<String> {
     lazy_static::lazy_static! {

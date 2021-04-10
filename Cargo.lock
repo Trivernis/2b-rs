@@ -179,6 +179,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bot-coreutils"
+version = "0.1.0"
+dependencies = [
+ "log 0.4.14",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "bot-database"
 version = "0.1.0"
 dependencies = [
@@ -2272,6 +2281,7 @@ name = "tobi-rs"
 version = "0.2.1"
 dependencies = [
  "aspotify",
+ "bot-coreutils",
  "bot-database",
  "chrono",
  "chrono-tz",

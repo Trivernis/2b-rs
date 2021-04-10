@@ -1,5 +1,5 @@
 use crate::utils::error::BotResult;
-use crate::utils::get_domain_for_url;
+use bot_coreutils::url::get_domain_for_url;
 use sauce_api::{SauceItem, SauceResult};
 use serenity::builder::CreateMessage;
 use serenity::{model::channel::Message, prelude::*};

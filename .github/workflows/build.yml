@@ -35,5 +35,11 @@ jobs:
       - name: Build
         run: cargo build --verbose
 
-      - name: Run tests
+      - name: Test coreutils
+        run: cargo test --verbose --package bot-coreutils
+
+      - name: Test database
+        run: cargo test --verbose --package bot-database
+
+      - name: Test binary
         run: cargo test --verbose
