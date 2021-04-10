@@ -183,6 +183,7 @@ name = "bot-coreutils"
 version = "0.1.0"
 dependencies = [
  "log 0.4.14",
+ "mime_guess",
  "tokio",
  "url",
 ]

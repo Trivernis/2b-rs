@@ -1,3 +1,5 @@
+use mime_guess::{mime, Mime};
+
 pub use url::*;
 
 static PROTOCOL_HTTP: &str = "http://";
@@ -40,4 +42,30 @@ pub fn get_domain_for_url(url_str: &str) -> Option<String> {
     let domain = url.domain()?;
 
     Some(domain.trim_start_matches("www.").to_string())
+}
+
+/// Guesses the mime for a given url string
+#[inline]
+fn guess_mime_for_url(url_str: &str) -> Option<Mime> {
+    parse_url(url_str)
+        .ok()
+        .and_then(|u| mime_guess::from_path(u.path()).first())
+}
+
+/// Returns if a given url could be an image
+pub fn is_image(url_str: &str) -> bool {
+    if let Some(guess) = guess_mime_for_url(url_str) {
+        guess.type_() == mime::IMAGE
+    } else {
+        false
+    }
+}
+
+/// Returns if a given url could be a video
+pub fn is_video(url_str: &str) -> bool {
+    if let Some(guess) = guess_mime_for_url(url_str) {
+        guess.type_() == mime::VIDEO
+    } else {
+        false
+    }
 }

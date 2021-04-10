@@ -1,5 +1,6 @@
 use crate::messages::sauce::show_sauce_menu;
-use crate::utils::{get_previous_message_or_reply, is_image, is_video};
+use crate::utils::get_previous_message_or_reply;
+use bot_coreutils::url;
 
 use sauce_api::Sauce;
 
@@ -29,7 +30,7 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .attachments
         .into_iter()
         .map(|a| a.url)
-        .filter(|url| is_image(url) || is_video(url))
+        .filter(|url| url::is_image(url) || url::is_video(url))
         .collect();
 
     log::debug!("Getting embedded images...");
@@ -37,7 +38,7 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .embeds
         .into_iter()
         .filter_map(|e| e.thumbnail.map(|t| t.url).or(e.image.map(|i| i.url)))
-        .filter(|url| is_image(url) || is_video(url))
+        .filter(|url| url::is_image(url) || url::is_video(url))
         .collect::<Vec<String>>();
 
     attachment_urls.append(&mut embed_images);
