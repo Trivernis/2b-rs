@@ -8,6 +8,8 @@ use std::process;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use sysinfo::{ProcessExt, SystemExt};
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 #[command]
 #[description("Shows some statistics about the bot")]
 #[usage("")]
@@ -30,10 +32,11 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
 
     let discord_info = format!(
         r#"
+    Version: {}
     Owner: <@{}>
     Guilds: {}
     "#,
-        bot_info.owner.id, guild_count
+        VERSION, bot_info.owner.id, guild_count
     );
 
     log::trace!("Discord info {}", discord_info);
