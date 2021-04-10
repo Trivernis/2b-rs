@@ -1,3 +1,4 @@
+use crate::utils::get_previous_message_or_reply;
 use rand::prelude::*;
 use regex::Regex;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
@@ -24,21 +25,12 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let mut content = args.message().to_string();
 
     if args.is_empty() {
-        if let Some(reference) = &msg.referenced_message {
-            reference_message = reference.id;
-            content = reference.content.clone();
-        } else {
-            let messages = msg
-                .channel_id
-                .messages(ctx, |ret| ret.before(&msg.id).limit(1))
-                .await?;
-            let reference = messages
-                .first()
-                .ok_or(CommandError::from("No message to pekofy"))?;
+        let reference = get_previous_message_or_reply(ctx, msg)
+            .await?
+            .ok_or(CommandError::from("No message to pekofy"))?;
+        reference_message = reference.id;
+        content = reference.content;
 
-            reference_message = reference.id;
-            content = reference.content.clone();
-        };
         let _ = msg.delete(ctx).await;
     }
     if content.is_empty() {

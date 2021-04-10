@@ -31,6 +31,9 @@ pub enum BotError {
     #[error("Detected CLI injection attempt")]
     CliInject,
 
+    #[error("Serenity Utils Error: {0}")]
+    SerenityUtils(#[from] serenity_utils::Error),
+
     #[error("{0}")]
     Msg(String),
 }

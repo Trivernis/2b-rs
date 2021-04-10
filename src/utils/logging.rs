@@ -59,6 +59,7 @@ pub fn init_logger() {
         .level_for("want", log::LevelFilter::Warn)
         .level_for("mio", log::LevelFilter::Warn)
         .level_for("songbird", log::LevelFilter::Warn)
+        .level_for("html5ever", log::LevelFilter::Warn)
         .chain(std::io::stdout())
         .chain(
             fern::log_file(log_dir.join(PathBuf::from(format!(
