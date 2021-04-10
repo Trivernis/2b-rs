@@ -9,7 +9,9 @@ use crate::providers::music::queue::MusicQueue;
 use crate::providers::music::spotify::SpotifyApi;
 use crate::utils::messages::EventDrivenMessage;
 use database::Database;
+use sauce_api::prelude::SauceNao;
 use serenity::client::Context;
+use std::env;
 
 pub struct Store;
 
@@ -17,16 +19,22 @@ pub struct StoreData {
     pub minecraft_data_api: minecraft_data_rs::api::Api,
     pub music_queues: HashMap<GuildId, Arc<Mutex<MusicQueue>>>,
     pub spotify_api: SpotifyApi,
+    pub sauce_nao: SauceNao,
 }
 
 impl StoreData {
     pub fn new() -> StoreData {
+        let mut sauce_nao = SauceNao::new();
+        sauce_nao.set_api_key(
+            env::var("SAUCENAO_API_KEY").expect("No SAUCENAO_API_KEY key in environment."),
+        );
         Self {
             minecraft_data_api: minecraft_data_rs::api::Api::new(
                 minecraft_data_rs::api::versions::latest_stable().unwrap(),
             ),
             music_queues: HashMap::new(),
             spotify_api: SpotifyApi::new(),
+            sauce_nao,
         }
     }
 }

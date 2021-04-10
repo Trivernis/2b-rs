@@ -38,6 +38,7 @@ The bot depends on the following APIs
 - [Discord](https://discord.com/developers/applications): It's a discord bot...
 - [Spotify](https://developer.spotify.com/documentation/web-api/): To fetch song names to be searched on youtube for music playback
 - [lyrics.ohv](https://lyricsovh.docs.apiary.io): To fetch lyrics for playing songs
+- [SauceNAO](https://saucenao.com): To fetch source information for images
 
 
 ## Dev Dependencies
@@ -55,6 +56,7 @@ The required values are:
 - `DATABASE_URL` (required): Connection uri to the postgres database in the schema `postgres://myuser:mypassword@localhost:5432/database`
 - `SPOTIFY_CLIENT_ID` (required): Spotify API Client ID
 - `SPOTIFY_CLIENT_SECRET` (required): Spotify API Client Secret
+- `SAUCENAO_API_KEY` (required): SauceNAO API Key
 - `BOT_PREFIX` (optional): The prefix of the bot. Defaults to `~` if not set.
 - `LOG_DIR` (optional): Directory to store log files in. Defaults to `logs` in the cwd.
 
