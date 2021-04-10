@@ -41,8 +41,46 @@ pub async fn get_previous_message_or_reply(
 
 /// Returns the domain for a given url
 pub fn get_domain_for_url(url: &str) -> Option<String> {
-    let domain_regex: Regex = Regex::new(r"^(https?://)?(www\.)?((\w+\.)+\w+).*$").unwrap();
-    let captures = domain_regex.captures(url)?;
+    lazy_static::lazy_static! {
+        static ref DOMAIN_REGEX: Regex = Regex::new(r"^(https?://)?(www\.)?((\w+\.)+\w+).*$").unwrap();
+    }
+
+    let captures = DOMAIN_REGEX.captures(url)?;
 
     captures.get(3).map(|c| c.as_str().to_string())
+}
+
+/// Returns the file for a given domain
+pub fn get_file_name_for_domain(url: &str) -> Option<String> {
+    lazy_static::lazy_static! {
+        static ref FILE_REGEX: Regex = Regex::new(r"^(https?://)?(www\.)?(\w+\.)+\w+([^/]*/)*([^/]+)$").unwrap();
+    }
+
+    let captures = FILE_REGEX.captures(url)?;
+
+    captures.get(3).map(|c| c.as_str().to_string())
+}
+
+/// Returns if the given file is an image
+#[inline]
+pub fn is_image(url: &str) -> bool {
+    static IMAGE_EXTENSIONS: &[&str] = &["png", "webp", "jpg", "jpeg", "ico", "gif"];
+    for ext in IMAGE_EXTENSIONS {
+        if url.ends_with(ext) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Returns if the given file is an image
+#[inline]
+pub fn is_video(url: &str) -> bool {
+    static IMAGE_EXTENSIONS: &[&str] = &["mp4", "flv", "mkv", "webm"];
+    for ext in IMAGE_EXTENSIONS {
+        if url.ends_with(ext) {
+            return true;
+        }
+    }
+    return false;
 }
