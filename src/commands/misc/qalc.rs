@@ -30,6 +30,10 @@ async fn qalc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             description +=
                 "\nRead the [Qalculate! Manual](https://qalculate.github.io/manual/index.html)";
         }
+        if &result == "aborted\n" {
+            description =
+                "Calculation aborted after timeout. Try a less complex calculation.".to_string();
+        }
 
         msg.channel_id
             .send_message(ctx, |f| {
