@@ -286,7 +286,9 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         log::debug!("Query is a saved playlist");
         let pl_name: &str = captures.get(1).unwrap().as_str();
         log::trace!("Playlist name is {}", pl_name);
-        let playlist_opt = database.get_guild_playlist(guild_id.0, pl_name)?;
+        let playlist_opt = database
+            .get_guild_playlist(guild_id.0, pl_name.to_string())
+            .await?;
         log::trace!("Playlist is {:?}", playlist_opt);
 
         if let Some(playlist) = playlist_opt {

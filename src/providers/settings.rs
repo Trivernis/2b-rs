@@ -36,6 +36,7 @@ pub async fn get_setting<T: 'static + FromStr>(
     let data = ctx.data.read().await;
     let database = data.get::<DatabaseContainer>().unwrap();
     database
-        .get_guild_setting::<T>(guild_id.0, &setting.to_string())
+        .get_guild_setting::<T>(guild_id.0, setting.to_string())
+        .await
         .map_err(BotError::from)
 }

@@ -30,12 +30,16 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
     if let Ok(value) = args.single::<String>() {
-        database.set_guild_setting(guild.id.0, &key, value.clone())?;
+        database
+            .set_guild_setting(guild.id.0, key.clone(), value.clone())
+            .await?;
         msg.channel_id
             .say(ctx, format!("Set `{}` to `{}`", key, value))
             .await?;
     } else {
-        database.delete_guild_setting(guild.id.0, &key)?;
+        database
+            .delete_guild_setting(guild.id.0, key.clone())
+            .await?;
         msg.channel_id
             .say(ctx, format!("Setting `{}` reset to default", key))
             .await?;

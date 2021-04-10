@@ -18,4 +18,7 @@ pub enum DatabaseError {
 
     #[error("Result Error: {0}")]
     ResultError(#[from] diesel::result::Error),
+
+    #[error("AsyncError: {0}")]
+    AsyncError(#[from] tokio_diesel::AsyncError),
 }

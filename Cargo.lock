@@ -379,6 +379,7 @@ dependencies = [
  "log 0.4.14",
  "r2d2",
  "thiserror",
+ "tokio-diesel",
 ]
 
 [[package]]
@@ -2159,6 +2160,18 @@ dependencies = [
  "signal-hook-registry",
  "tokio-macros",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "tokio-diesel"
+version = "0.3.0"
+source = "git+https://github.com/Trivernis/tokio-diesel#f4af42558246ab323600622ba8d08803d3c18842"
+dependencies = [
+ "async-trait",
+ "diesel",
+ "futures",
+ "r2d2",
+ "tokio",
 ]
 
 [[package]]

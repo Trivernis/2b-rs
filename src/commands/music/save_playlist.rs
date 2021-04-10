@@ -29,7 +29,9 @@ async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandR
     );
     let database = get_database_from_context(ctx).await;
 
-    database.add_guild_playlist(guild.id.0, &*name, url)?;
+    database
+        .add_guild_playlist(guild.id.0, name.clone(), url.to_string())
+        .await?;
 
     msg.channel_id
         .say(ctx, format!("Playlist **{}** saved", name))

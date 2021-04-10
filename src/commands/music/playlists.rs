@@ -14,7 +14,7 @@ async fn playlists(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Displaying playlists for guild {}", guild.id);
     let database = get_database_from_context(ctx).await;
 
-    let playlists = database.get_guild_playlists(guild.id.0)?;
+    let playlists = database.get_guild_playlists(guild.id.0).await?;
     msg.channel_id
         .send_message(ctx, |m| {
             m.embed(|e| {
