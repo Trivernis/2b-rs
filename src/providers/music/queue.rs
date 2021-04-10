@@ -4,7 +4,7 @@ use songbird::tracks::TrackHandle;
 
 use crate::messages::music::NowPlayingMessage;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
-use crate::providers::music::search_video_information;
+use crate::providers::music::youtube_dl;
 use crate::utils::shuffle_vec_deque;
 use aspotify::{Track, TrackSimplified};
 
@@ -110,10 +110,11 @@ impl Song {
             Some(url)
         } else {
             log::debug!("Lazy fetching video for title");
-            let information = search_video_information(format!("{} - {}", self.author, self.title))
-                .await
-                .ok()
-                .and_then(|i| i)?;
+            let information =
+                youtube_dl::search_video_information(format!("{} - {}", self.author, self.title))
+                    .await
+                    .ok()
+                    .and_then(|i| i)?;
             self.url = Some(information.webpage_url.clone());
             self.thumbnail = information.thumbnail;
             self.author = information.uploader;

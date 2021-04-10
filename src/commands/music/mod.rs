@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::providers::music::queue::{MusicQueue, Song};
-use crate::providers::music::{
-    get_video_information, get_videos_for_playlist, search_video_information,
-};
+use crate::providers::music::youtube_dl;
 use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::{BotError, BotResult};
 use regex::Regex;
@@ -299,7 +297,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     if YOUTUBE_URL_REGEX.is_match(&query) {
         log::debug!("Query is youtube video or playlist");
         // try fetching the url as a playlist
-        songs = get_videos_for_playlist(&query)
+        songs = youtube_dl::get_videos_for_playlist(&query)
             .await?
             .into_iter()
             .map(Song::from)
@@ -308,7 +306,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         // if no songs were found fetch the song as a video
         if songs.len() == 0 {
             log::debug!("Query is youtube video");
-            let mut song: Song = get_video_information(&query).await?.into();
+            let mut song: Song = youtube_dl::get_video_information(&query).await?.into();
             added_one_msg(&ctx, msg, &mut song).await?;
             songs.push(song);
         } else {
@@ -333,7 +331,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         songs.push(song);
     } else {
         log::debug!("Query is a youtube search");
-        let mut song: Song = search_video_information(query.clone())
+        let mut song: Song = youtube_dl::search_video_information(query.clone())
             .await?
             .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
             .into();

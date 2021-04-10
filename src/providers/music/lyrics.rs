@@ -4,6 +4,7 @@ use serde_derive::Deserialize;
 
 const API_ENDPOINT: &str = "https://api.lyrics.ovh/v1/";
 
+/// Returns the lyrics of a song
 pub async fn get_lyrics(artist: &str, title: &str) -> BotResult<Option<String>> {
     lazy_static::lazy_static! { static ref DOUBLE_LB_REGEX: Regex = Regex::new(r"\n\n").unwrap(); }
     log::debug!("Requesting lyrics for '{}' by '{}'", title, artist);

@@ -10,8 +10,6 @@ edition = "2018"
 serenity = "0.10.5"
 dotenv = "0.15.0"
 tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
-serde_rusqlite = "0.26.0"
-rusqlite = "0.24"
 serde_derive = "1.0.125"
 serde = "1.0.125"
 thiserror = "1.0.24"
