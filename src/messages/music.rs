@@ -1,10 +1,12 @@
-use crate::utils::error::BotResult;
-use crate::utils::messages::ShareableMessage;
+use std::sync::Arc;
+
 use serenity::builder::CreateEmbed;
 use serenity::http::Http;
 use serenity::model::prelude::ChannelId;
 use songbird::input::Metadata;
-use std::sync::Arc;
+
+use crate::utils::error::BotResult;
+use crate::utils::messages::ShareableMessage;
 
 #[derive(Clone)]
 pub struct NowPlayingMessage {

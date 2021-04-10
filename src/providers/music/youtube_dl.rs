@@ -1,12 +1,15 @@
-use crate::providers::music::queue::Song;
-use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
-use crate::utils::error::BotResult;
-use bot_coreutils::process::run_command_async;
-use futures::future::BoxFuture;
-use futures::FutureExt;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
+
+use futures::future::BoxFuture;
+use futures::FutureExt;
+
+use bot_coreutils::process::run_command_async;
+
+use crate::providers::music::queue::Song;
+use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
+use crate::utils::error::BotResult;
 
 static THREAD_LIMIT: u8 = 64;
 

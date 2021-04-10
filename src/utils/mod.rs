@@ -1,6 +1,7 @@
-use crate::utils::error::BotResult;
 use serenity::client::Context;
 use serenity::model::channel::Message;
+
+use crate::utils::error::BotResult;
 
 pub(crate) mod context_data;
 pub(crate) mod error;

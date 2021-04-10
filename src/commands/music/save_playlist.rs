@@ -1,9 +1,10 @@
-use crate::commands::music::is_dj;
-use crate::utils::context_data::get_database_from_context;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
+
+use crate::commands::music::is_dj;
+use crate::utils::context_data::get_database_from_context;
 
 #[command]
 #[only_in(guilds)]

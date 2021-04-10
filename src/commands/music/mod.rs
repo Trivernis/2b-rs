@@ -1,9 +1,8 @@
+use std::mem;
+use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 
-use crate::providers::music::queue::{MusicQueue, Song};
-use crate::providers::music::youtube_dl;
-use crate::utils::context_data::{DatabaseContainer, Store};
-use crate::utils::error::{BotError, BotResult};
 use regex::Regex;
 use serenity::async_trait;
 use serenity::client::Context;
@@ -12,13 +11,31 @@ use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::guild::Guild;
 use serenity::model::id::{ChannelId, GuildId, UserId};
+use serenity::model::user::User;
 use songbird::{
     Call, Event, EventContext, EventHandler as VoiceEventHandler, Songbird, TrackEvent,
 };
-use std::mem;
-use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
-use std::time::Duration;
 use tokio::sync::Mutex;
+
+use clear_queue::CLEAR_QUEUE_COMMAND;
+use current::CURRENT_COMMAND;
+use join::JOIN_COMMAND;
+use leave::LEAVE_COMMAND;
+use lyrics::LYRICS_COMMAND;
+use pause::PAUSE_COMMAND;
+use play::PLAY_COMMAND;
+use play_next::PLAY_NEXT_COMMAND;
+use playlists::PLAYLISTS_COMMAND;
+use queue::QUEUE_COMMAND;
+use save_playlist::SAVE_PLAYLIST_COMMAND;
+use shuffle::SHUFFLE_COMMAND;
+use skip::SKIP_COMMAND;
+
+use crate::providers::music::queue::{MusicQueue, Song};
+use crate::providers::music::youtube_dl;
+use crate::providers::settings::{get_setting, Setting};
+use crate::utils::context_data::{DatabaseContainer, Store};
+use crate::utils::error::{BotError, BotResult};
 
 mod clear_queue;
 mod current;
@@ -33,22 +50,6 @@ mod queue;
 mod save_playlist;
 mod shuffle;
 mod skip;
-
-use crate::providers::settings::{get_setting, Setting};
-use clear_queue::CLEAR_QUEUE_COMMAND;
-use current::CURRENT_COMMAND;
-use join::JOIN_COMMAND;
-use leave::LEAVE_COMMAND;
-use lyrics::LYRICS_COMMAND;
-use pause::PAUSE_COMMAND;
-use play::PLAY_COMMAND;
-use play_next::PLAY_NEXT_COMMAND;
-use playlists::PLAYLISTS_COMMAND;
-use queue::QUEUE_COMMAND;
-use save_playlist::SAVE_PLAYLIST_COMMAND;
-use serenity::model::user::User;
-use shuffle::SHUFFLE_COMMAND;
-use skip::SKIP_COMMAND;
 
 #[group]
 #[commands(

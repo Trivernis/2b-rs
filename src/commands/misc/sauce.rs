@@ -1,14 +1,14 @@
-use crate::messages::sauce::show_sauce_menu;
-use crate::utils::get_previous_message_or_reply;
-use bot_coreutils::url;
-
 use sauce_api::Sauce;
-
-use crate::utils::context_data::Store;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+
+use bot_coreutils::url;
+
+use crate::messages::sauce::show_sauce_menu;
+use crate::utils::context_data::Store;
+use crate::utils::get_previous_message_or_reply;
 
 #[command]
 #[description("Searches for the source of a previously posted image or an image replied to.")]

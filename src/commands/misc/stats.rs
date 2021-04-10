@@ -1,12 +1,14 @@
-use crate::commands::common::handle_autodelete;
+use std::process;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use chrono::Duration as ChronoDuration;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::prelude::*;
-use std::process;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use sysinfo::{ProcessExt, SystemExt};
+
+use crate::commands::common::handle_autodelete;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 

@@ -1,7 +1,8 @@
-use crate::providers::settings::{get_setting, Setting};
-use crate::utils::error::BotResult;
 use serenity::model::channel::Message;
 use serenity::prelude::*;
+
+use crate::providers::settings::{get_setting, Setting};
+use crate::utils::error::BotResult;
 
 /// Deletes a message automatically if configured that way
 pub async fn handle_autodelete(ctx: &Context, msg: &Message) -> BotResult<()> {

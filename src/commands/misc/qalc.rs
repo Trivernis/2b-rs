@@ -1,9 +1,10 @@
-use crate::providers::qalc;
 use regex::Regex;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
+
+use crate::providers::qalc;
 
 static QALC_HELP: &[&str] = &["help", "--help", "-h", "h"];
 

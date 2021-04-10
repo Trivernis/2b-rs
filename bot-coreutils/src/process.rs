@@ -13,7 +13,9 @@ pub async fn run_command_async(command: &str, args: &[&str]) -> io::Result<Strin
         .spawn()?;
     let mut stderr = String::new();
     let mut output = String::new();
+
     cmd.stderr.unwrap().read_to_string(&mut stderr).await?;
+
     if stderr.len() != 0 {
         log::debug!("STDERR of command {}: {}", command, stderr);
     }

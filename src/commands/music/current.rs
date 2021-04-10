@@ -1,3 +1,5 @@
+use std::mem;
+
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
@@ -6,7 +8,6 @@ use serenity::model::channel::Message;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
 use crate::messages::music::NowPlayingMessage;
-use std::mem;
 
 #[command]
 #[only_in(guilds)]

@@ -4,12 +4,13 @@
  * See LICENSE for more information
  */
 
-use chrono::Local;
-use colored::*;
-use log::{Level, LevelFilter};
 use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
+
+use chrono::Local;
+use colored::*;
+use log::{Level, LevelFilter};
 
 /// Initializes the env_logger with a custom format
 /// that also logs the thread names

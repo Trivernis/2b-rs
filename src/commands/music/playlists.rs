@@ -1,9 +1,10 @@
-use crate::commands::common::handle_autodelete;
-use crate::utils::context_data::get_database_from_context;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+
+use crate::commands::common::handle_autodelete;
+use crate::utils::context_data::get_database_from_context;
 
 #[command]
 #[only_in(guilds)]

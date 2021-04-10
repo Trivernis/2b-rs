@@ -1,9 +1,11 @@
-use crate::commands::common::handle_autodelete;
+use std::process;
+
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 use serenity::prelude::*;
-use std::process;
+
+use crate::commands::common::handle_autodelete;
 
 #[command]
 #[description("Shuts down the bot with the specified exit code")]

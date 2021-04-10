@@ -1,10 +1,13 @@
-use crate::utils::error::BotResult;
-use bot_coreutils::url::get_domain_for_url;
+use std::cmp::Ordering;
+
 use sauce_api::{SauceItem, SauceResult};
 use serenity::builder::CreateMessage;
 use serenity::{model::channel::Message, prelude::*};
 use serenity_utils::prelude::*;
-use std::cmp::Ordering;
+
+use bot_coreutils::url::get_domain_for_url;
+
+use crate::utils::error::BotResult;
 
 static MAX_RESULTS: usize = 6;
 static MIN_SIMILARITY: f32 = 50.0;

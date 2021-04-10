@@ -1,6 +1,7 @@
+use aspotify::{Client, ClientCredentials, PlaylistItem, PlaylistItemType};
+
 use crate::providers::music::queue::Song;
 use crate::utils::error::{BotError, BotResult};
-use aspotify::{Client, ClientCredentials, PlaylistItem, PlaylistItemType};
 
 pub struct SpotifyApi {
     client: Client,

@@ -1,12 +1,13 @@
 use std::collections::VecDeque;
 
+use aspotify::{Track, TrackSimplified};
 use songbird::tracks::TrackHandle;
+
+use bot_coreutils::shuffle::Shuffle;
 
 use crate::messages::music::NowPlayingMessage;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::youtube_dl;
-use aspotify::{Track, TrackSimplified};
-use bot_coreutils::shuffle::Shuffle;
 
 #[derive(Clone)]
 pub struct MusicQueue {
