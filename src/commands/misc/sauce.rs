@@ -1,5 +1,5 @@
 use crate::messages::sauce::show_sauce_menu;
-use crate::utils::get_previous_message_or_reply;
+use crate::utils::{get_previous_message_or_reply, is_image, is_video};
 
 use sauce_api::Sauce;
 
@@ -12,6 +12,7 @@ use serenity::model::channel::Message;
 #[command]
 #[description("Searches for the source of a previously posted image or an image replied to.")]
 #[usage("")]
+#[aliases("source")]
 async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Got sauce command");
     let source_msg = get_previous_message_or_reply(ctx, msg).await?;
@@ -23,14 +24,20 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
     }
     let source_msg = source_msg.unwrap();
     log::trace!("Source message is {:?}", source_msg);
-    let mut attachment_urls: Vec<String> =
-        source_msg.attachments.into_iter().map(|a| a.url).collect();
+    log::debug!("Getting attachments...");
+    let mut attachment_urls: Vec<String> = source_msg
+        .attachments
+        .into_iter()
+        .map(|a| a.url)
+        .filter(|url| is_image(url) || is_video(url))
+        .collect();
 
+    log::debug!("Getting embedded images...");
     let mut embed_images = source_msg
         .embeds
         .into_iter()
-        .filter_map(|e| e.thumbnail)
-        .map(|t| t.url)
+        .filter_map(|e| e.thumbnail.map(|t| t.url).or(e.image.map(|i| i.url)))
+        .filter(|url| is_image(url) || is_video(url))
         .collect::<Vec<String>>();
 
     attachment_urls.append(&mut embed_images);
@@ -38,7 +45,9 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
 
     if attachment_urls.is_empty() {
         log::debug!("No images in source image");
-        msg.channel_id.say(ctx, "Images in message found.").await?;
+        msg.channel_id
+            .say(ctx, "I could not find any images in the message.")
+            .await?;
         return Ok(());
     }
 

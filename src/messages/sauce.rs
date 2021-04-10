@@ -1,9 +1,13 @@
 use crate::utils::error::BotResult;
 use crate::utils::get_domain_for_url;
-use sauce_api::SauceResult;
+use sauce_api::{SauceItem, SauceResult};
 use serenity::builder::CreateMessage;
 use serenity::{model::channel::Message, prelude::*};
 use serenity_utils::prelude::*;
+use std::cmp::Ordering;
+
+static MAX_RESULTS: usize = 6;
+static MIN_SIMILARITY: f32 = 50.0;
 
 /// Builds a new sauce menu
 pub async fn show_sauce_menu(
@@ -24,7 +28,15 @@ pub async fn show_sauce_menu(
             },
         )
     } else {
-        Menu::new(ctx, msg, &pages, MenuOptions::default())
+        Menu::new(
+            ctx,
+            msg,
+            &pages,
+            MenuOptions {
+                timeout: 600.,
+                ..Default::default()
+            },
+        )
     };
     menu.run().await?;
 
@@ -32,23 +44,47 @@ pub async fn show_sauce_menu(
 }
 
 /// Creates a single sauce page
-fn create_sauce_page<'a>(result: SauceResult) -> CreateMessage<'a> {
+fn create_sauce_page<'a>(mut result: SauceResult) -> CreateMessage<'a> {
     let mut message = CreateMessage::default();
     let mut description_lines = Vec::new();
     let original = result.original_url;
     description_lines.push(format!("[Original]({})", original));
     description_lines.push(String::new());
-
-    for item in result.items {
-        if item.similarity > 70. {
-            description_lines.push(format!(
-                "{}% Similarity: [{}]({})",
-                item.similarity,
-                get_domain_for_url(&item.link).unwrap_or("Source".to_string()),
-                item.link
-            ));
+    // sort by similarity
+    result.items.sort_by(|a, b| {
+        if a.similarity > b.similarity {
+            Ordering::Greater
+        } else if a.similarity < b.similarity {
+            Ordering::Less
+        } else {
+            Ordering::Equal
         }
+    });
+    // display with descending similarity
+    result.items.reverse();
+    let items: Vec<(usize, SauceItem)> = result
+        .items
+        .into_iter()
+        .filter(|i| i.similarity >= MIN_SIMILARITY)
+        .enumerate()
+        .collect();
+
+    if items.is_empty() {
+        description_lines.push("*No Sources found*".to_string());
     }
+
+    for (i, item) in items {
+        if i >= MAX_RESULTS {
+            break;
+        }
+        description_lines.push(format!(
+            "{}% Similarity: [{}]({})",
+            item.similarity,
+            get_domain_for_url(&item.link).unwrap_or("Source".to_string()),
+            item.link
+        ));
+    }
+
     message.embed(|e| {
         e.title("Sources")
             .description(description_lines.join("\n"))
