@@ -20,6 +20,7 @@ jobs:
       - name: Set up toolchain
         uses: actions-rs/toolchain@v1
         with:
+          toolchain: nightly
           override: true
       - name: Cache build data
         uses: actions/cache@v2
