@@ -1,7 +1,7 @@
 use crate::providers::music::queue::Song;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::utils::error::BotResult;
-use crate::utils::process::run_command_async;
+use bot_coreutils::process::run_command_async;
 use futures::future::BoxFuture;
 use futures::FutureExt;
 use std::sync::atomic::{AtomicU8, Ordering};

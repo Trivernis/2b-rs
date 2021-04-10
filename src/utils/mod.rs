@@ -8,7 +8,6 @@ pub(crate) mod context_data;
 pub(crate) mod error;
 pub(crate) mod logging;
 pub(crate) mod messages;
-pub(crate) mod process;
 
 /// Fisher-Yates shuffle for VecDeque
 pub fn shuffle_vec_deque<T>(deque: &mut VecDeque<T>) {
