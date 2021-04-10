@@ -179,6 +179,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bot-database"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "diesel",
+ "diesel_migrations",
+ "dotenv",
+ "log 0.4.14",
+ "r2d2",
+ "thiserror",
+ "tokio-diesel",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -375,20 +389,6 @@ checksum = "e77a43b28d0668df09411cb0bc9a8c2adc40f9a048afe863e05fd43251e8e39c"
 dependencies = [
  "cfg-if 1.0.0",
  "num_cpus",
-]
-
-[[package]]
-name = "database"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "diesel",
- "diesel_migrations",
- "dotenv",
- "log 0.4.14",
- "r2d2",
- "thiserror",
- "tokio-diesel",
 ]
 
 [[package]]
@@ -2272,10 +2272,10 @@ name = "tobi-rs"
 version = "0.2.1"
 dependencies = [
  "aspotify",
+ "bot-database",
  "chrono",
  "chrono-tz",
  "colored",
- "database",
  "dotenv",
  "fern",
  "futures",

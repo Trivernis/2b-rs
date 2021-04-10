@@ -18,7 +18,7 @@ pub use database::Database;
 
 type PoolConnection = Pool<ConnectionManager<PgConnection>>;
 
-embed_migrations!("../database/migrations");
+embed_migrations!("../bot-database/migrations");
 
 fn get_connection() -> DatabaseResult<PoolConnection> {
     dotenv::dotenv()?;

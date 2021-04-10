@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 use crate::providers::music::queue::MusicQueue;
 use crate::providers::music::spotify::SpotifyApi;
 use crate::utils::messages::EventDrivenMessage;
-use database::Database;
+use bot_database::Database;
 use sauce_api::prelude::SauceNao;
 use serenity::client::Context;
 use std::env;

@@ -12,7 +12,7 @@ use crate::utils::context_data::{
     DatabaseContainer, EventDrivenMessageContainer, Store, StoreData,
 };
 use crate::utils::error::{BotError, BotResult};
-use database::get_database;
+use bot_database::get_database;
 use serenity::model::id::UserId;
 use std::collections::{HashMap, HashSet};
 
