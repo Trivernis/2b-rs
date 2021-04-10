@@ -8,7 +8,7 @@ pub enum BotError {
     SerenityError(#[from] serenity::Error),
 
     #[error("Database Error: {0}")]
-    Database(#[from] database::error::DatabaseError),
+    Database(#[from] bot_database::error::DatabaseError),
 
     #[error("Missing Bot Token")]
     MissingToken,

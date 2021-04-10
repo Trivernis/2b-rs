@@ -1,5 +1,5 @@
 [package]
-name = "database"
+name = "bot-database"
 version = "0.1.0"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"

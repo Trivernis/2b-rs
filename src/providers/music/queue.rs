@@ -1,12 +1,13 @@
 use std::collections::VecDeque;
 
+use aspotify::{Track, TrackSimplified};
 use songbird::tracks::TrackHandle;
+
+use bot_coreutils::shuffle::Shuffle;
 
 use crate::messages::music::NowPlayingMessage;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::youtube_dl;
-use crate::utils::shuffle_vec_deque;
-use aspotify::{Track, TrackSimplified};
 
 #[derive(Clone)]
 pub struct MusicQueue {
@@ -40,7 +41,7 @@ impl MusicQueue {
 
     /// Shuffles the queue
     pub fn shuffle(&mut self) {
-        shuffle_vec_deque(&mut self.inner)
+        self.inner.shuffle()
     }
 
     /// Returns a reference to the inner deque

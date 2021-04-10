@@ -1,9 +1,10 @@
-use crate::utils::get_previous_message_or_reply;
 use rand::prelude::*;
 use regex::Regex;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 use serenity::{framework::standard::macros::command, prelude::*};
+
+use crate::utils::get_previous_message_or_reply;
 
 // return a normal peko in most cases
 static PEKOS: &[&str] = &[

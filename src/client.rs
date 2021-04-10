@@ -1,8 +1,12 @@
+use std::collections::{HashMap, HashSet};
+
+use bot_database::get_database;
 use serenity::client::Context;
 use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
+use serenity::model::id::UserId;
 use serenity::Client;
 use songbird::SerenityInit;
 
@@ -12,9 +16,6 @@ use crate::utils::context_data::{
     DatabaseContainer, EventDrivenMessageContainer, Store, StoreData,
 };
 use crate::utils::error::{BotError, BotResult};
-use database::get_database;
-use serenity::model::id::UserId;
-use std::collections::{HashMap, HashSet};
 
 pub async fn get_client() -> BotResult<Client> {
     let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;

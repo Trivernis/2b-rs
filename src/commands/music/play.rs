@@ -3,12 +3,11 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue,
 };
-
-use crate::commands::common::handle_autodelete;
 use crate::providers::settings::{get_setting, Setting};
 
 #[command]

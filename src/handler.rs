@@ -1,5 +1,3 @@
-use crate::commands::music::get_queue_for_guild;
-use crate::utils::context_data::EventDrivenMessageContainer;
 use serenity::async_trait;
 use serenity::client::Context;
 use serenity::model::channel::Reaction;
@@ -9,6 +7,9 @@ use serenity::model::guild::Member;
 use serenity::model::id::{ChannelId, GuildId, MessageId};
 use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
+
+use crate::commands::music::get_queue_for_guild;
+use crate::utils::context_data::EventDrivenMessageContainer;
 
 pub(crate) struct Handler;
 

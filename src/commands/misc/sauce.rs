@@ -1,13 +1,14 @@
-use crate::messages::sauce::show_sauce_menu;
-use crate::utils::{get_previous_message_or_reply, is_image, is_video};
-
 use sauce_api::Sauce;
-
-use crate::utils::context_data::Store;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+
+use bot_coreutils::url;
+
+use crate::messages::sauce::show_sauce_menu;
+use crate::utils::context_data::Store;
+use crate::utils::get_previous_message_or_reply;
 
 #[command]
 #[description("Searches for the source of a previously posted image or an image replied to.")]
@@ -29,7 +30,7 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .attachments
         .into_iter()
         .map(|a| a.url)
-        .filter(|url| is_image(url) || is_video(url))
+        .filter(|url| url::is_image(url) || url::is_video(url))
         .collect();
 
     log::debug!("Getting embedded images...");
@@ -37,7 +38,7 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .embeds
         .into_iter()
         .filter_map(|e| e.thumbnail.map(|t| t.url).or(e.image.map(|i| i.url)))
-        .filter(|url| is_image(url) || is_video(url))
+        .filter(|url| url::is_image(url) || url::is_video(url))
         .collect::<Vec<String>>();
 
     attachment_urls.append(&mut embed_images);

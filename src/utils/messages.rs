@@ -1,10 +1,12 @@
-use crate::utils::error::BotResult;
+use std::sync::Arc;
+
 use serenity::async_trait;
 use serenity::builder::{CreateMessage, EditMessage};
 use serenity::http::{CacheHttp, Http};
 use serenity::model::channel::{Message, Reaction};
 use serenity::model::id::{ChannelId, MessageId};
-use std::sync::Arc;
+
+use crate::utils::error::BotResult;
 
 #[async_trait]
 pub trait EventDrivenMessage: Send + Sync {

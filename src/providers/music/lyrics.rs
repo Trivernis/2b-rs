@@ -1,6 +1,7 @@
-use crate::utils::error::BotResult;
 use regex::Regex;
 use serde_derive::Deserialize;
+
+use crate::utils::error::BotResult;
 
 const API_ENDPOINT: &str = "https://api.lyrics.ovh/v1/";
 

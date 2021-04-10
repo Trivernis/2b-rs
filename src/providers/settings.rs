@@ -1,8 +1,10 @@
-use crate::utils::context_data::DatabaseContainer;
-use crate::utils::error::{BotError, BotResult};
+use std::str::FromStr;
+
 use serenity::client::Context;
 use serenity::model::prelude::GuildId;
-use std::str::FromStr;
+
+use crate::utils::context_data::DatabaseContainer;
+use crate::utils::error::{BotError, BotResult};
 
 pub static ALL_SETTINGS: &[Setting] = &[
     Setting::MusicAutoShuffle,

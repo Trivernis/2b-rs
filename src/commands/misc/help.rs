@@ -1,12 +1,13 @@
 use std::collections::HashSet;
 
-use crate::commands::common::handle_autodelete;
 use serenity::client::Context;
 use serenity::framework::standard::macros::help;
 use serenity::framework::standard::{help_commands, Args};
 use serenity::framework::standard::{CommandGroup, CommandResult, HelpOptions};
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
+
+use crate::commands::common::handle_autodelete;
 
 #[help]
 #[max_levenshtein_distance(2)]
