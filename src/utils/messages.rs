@@ -1,19 +1,11 @@
 use std::sync::Arc;
 
-use serenity::async_trait;
 use serenity::builder::{CreateMessage, EditMessage};
 use serenity::http::{CacheHttp, Http};
-use serenity::model::channel::{Message, Reaction};
+use serenity::model::channel::Message;
 use serenity::model::id::{ChannelId, MessageId};
 
 use crate::utils::error::BotResult;
-
-#[async_trait]
-pub trait EventDrivenMessage: Send + Sync {
-    async fn on_deleted(&self) -> BotResult<()>;
-    async fn on_reaction_add(&self, reaction: Reaction) -> BotResult<()>;
-    async fn on_reaction_remove(&self, reaction: Reaction) -> BotResult<()>;
-}
 
 #[derive(Clone)]
 pub struct ShareableMessage {

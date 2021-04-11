@@ -9,20 +9,76 @@ use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
 use crate::commands::music::get_queue_for_guild;
-use crate::utils::context_data::EventDrivenMessageContainer;
+use bot_serenityutils::menu::{
+    handle_message_delete, handle_message_delete_bulk, handle_reaction_add, handle_reaction_remove,
+    start_update_loop,
+};
 
 pub(crate) struct Handler;
 
-macro_rules! log_msg_fire_error {
-    ($msg:expr) => {
-        if let Err(e) = $msg {
-            log::error!("Failed to handle event for message: {:?}", e);
-        }
-    };
-}
-
 #[async_trait]
 impl EventHandler for Handler {
+    async fn cache_ready(&self, ctx: Context, _: Vec<GuildId>) {
+        log::info!("Cache Ready");
+        start_update_loop(&ctx).await;
+    }
+
+    /// Fired when a message was deleted
+    async fn message_delete(
+        &self,
+        ctx: Context,
+        channel_id: ChannelId,
+        message_id: MessageId,
+        _: Option<GuildId>,
+    ) {
+        tokio::spawn(async move {
+            log::trace!("Handling message delete event");
+            if let Err(e) = handle_message_delete(&ctx, channel_id, message_id).await {
+                log::error!("Failed to handle event: {:?}", e);
+            }
+            log::trace!("Message delete event handled");
+        });
+    }
+
+    /// Fired when multiple messages were deleted
+    async fn message_delete_bulk(
+        &self,
+        ctx: Context,
+        channel_id: ChannelId,
+        message_ids: Vec<MessageId>,
+        _: Option<GuildId>,
+    ) {
+        tokio::spawn(async move {
+            log::trace!("Handling message delete bulk event");
+            if let Err(e) = handle_message_delete_bulk(&ctx, channel_id, &message_ids).await {
+                log::error!("Failed to handle event: {:?}", e);
+            }
+            log::debug!("Message delte bulk event handled");
+        });
+    }
+
+    /// Fired when a reaction was added to a message
+    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+        tokio::spawn(async move {
+            log::trace!("Handling reaction add event...");
+            if let Err(e) = handle_reaction_add(&ctx, &reaction).await {
+                log::error!("Failed to handle event: {:?}", e);
+            }
+            log::trace!("Reaction add event handled");
+        });
+    }
+
+    /// Fired when a reaction was added to a message
+    async fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
+        tokio::spawn(async move {
+            log::trace!("Handling reaction remove event");
+            if let Err(e) = handle_reaction_remove(&ctx, &reaction).await {
+                log::error!("Failed to handle event: {:?}", e);
+            }
+            log::trace!("Reaction remove event handled");
+        });
+    }
+
     async fn ready(&self, ctx: Context, ready: Ready) {
         log::info!("Connected as {}", ready.user.name);
         let prefix = dotenv::var("BOT_PREFIX").unwrap_or("~!".to_string());
@@ -64,67 +120,6 @@ impl EventHandler for Handler {
             let mut queue_lock = queue.lock().await;
             log::debug!("Setting leave flag to {}", count == 0);
             queue_lock.leave_flag = count == 0;
-        }
-    }
-
-    /// Fired when a message was deleted
-    async fn message_delete(
-        &self,
-        ctx: Context,
-        channel_id: ChannelId,
-        message_id: MessageId,
-        _: Option<GuildId>,
-    ) {
-        let mut data = ctx.data.write().await;
-        let listeners = data.get_mut::<EventDrivenMessageContainer>().unwrap();
-
-        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
-            log_msg_fire_error!(msg.on_deleted().await);
-            listeners.remove(&(channel_id.0, message_id.0));
-        }
-    }
-
-    /// Fired when multiple messages were deleted
-    async fn message_delete_bulk(
-        &self,
-        ctx: Context,
-        channel_id: ChannelId,
-        message_ids: Vec<MessageId>,
-        _: Option<GuildId>,
-    ) {
-        let data = ctx.data.read().await;
-        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
-
-        for message_id in message_ids {
-            if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
-                log_msg_fire_error!(msg.on_deleted().await);
-            }
-        }
-    }
-
-    /// Fired when a reaction was added to a message
-    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
-        let data = ctx.data.read().await;
-        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
-
-        let message_id = reaction.message_id;
-        let channel_id = reaction.channel_id;
-
-        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
-            log_msg_fire_error!(msg.on_reaction_add(reaction).await);
-        }
-    }
-
-    /// Fired when a reaction was added to a message
-    async fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
-        let data = ctx.data.read().await;
-        let listeners = data.get::<EventDrivenMessageContainer>().unwrap();
-
-        let message_id = reaction.message_id;
-        let channel_id = reaction.channel_id;
-
-        if let Some(msg) = listeners.get(&(channel_id.0, message_id.0)) {
-            log_msg_fire_error!(msg.on_reaction_remove(reaction).await);
         }
     }
 }

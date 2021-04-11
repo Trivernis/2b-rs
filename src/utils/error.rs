@@ -32,7 +32,7 @@ pub enum BotError {
     CliInject,
 
     #[error("Serenity Utils Error: {0}")]
-    SerenityUtils(#[from] serenity_utils::Error),
+    SerenityUtils(#[from] bot_serenityutils::error::SerenityUtilsError),
 
     #[error("{0}")]
     Msg(String),

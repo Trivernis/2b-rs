@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
+bot-serenityutils = {path="./bot-serenityutils"}
 serenity = "0.10.5"
 dotenv = "0.15.0"
 tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
@@ -31,4 +32,3 @@ sysinfo = "0.16.5"
 reqwest = "0.11.2"
 chrono-tz = "0.5.3"
 sauce-api = "0.7.1"
-serenity_utils = "0.6.1"
