@@ -31,6 +31,7 @@ use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
+use crate::messages::music::update_now_playing_msg;
 use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::youtube_dl;
 use crate::providers::settings::{get_setting, Setting};
@@ -250,13 +251,17 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
-        if let Some(np) = &mut queue_lock.now_playing_msg {
-            let _ = np.refresh(track.metadata()).await;
+        if let Some(np) = queue_lock.now_playing_msg {
+            if let Err(e) = update_now_playing_msg(http, np, track.metadata()).await {
+                log::error!("Failed to update now playing message: {:?}", e);
+            }
         }
         queue_lock.set_current(track);
     } else {
         if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
-            let _ = np.inner().delete().await;
+            if let Ok(message) = np.get_message(http).await {
+                let _ = message.delete(http).await;
+            }
         }
         queue_lock.clear_current();
     }

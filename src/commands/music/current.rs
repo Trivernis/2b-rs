@@ -7,7 +7,7 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
-use crate::messages::music::NowPlayingMessage;
+use crate::messages::music::create_now_playing_msg;
 
 #[command]
 #[only_in(guilds)]
@@ -25,11 +25,12 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(current) = queue_lock.current() {
         let metadata = current.metadata().clone();
         log::trace!("Metadata is {:?}", metadata);
-        let np_msg =
-            NowPlayingMessage::create(ctx.http.clone(), &msg.channel_id, &metadata).await?;
+        let np_msg = create_now_playing_msg(ctx, msg.channel_id, &metadata).await?;
 
         if let Some(old_np) = mem::replace(&mut queue_lock.now_playing_msg, Some(np_msg)) {
-            let _ = old_np.inner().delete().await;
+            if let Ok(message) = old_np.get_message(&ctx.http).await {
+                let _ = message.delete(ctx).await;
+            }
         }
     }
     handle_autodelete(ctx, msg).await?;

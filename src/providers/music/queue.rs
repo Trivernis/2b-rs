@@ -5,16 +5,16 @@ use songbird::tracks::TrackHandle;
 
 use bot_coreutils::shuffle::Shuffle;
 
-use crate::messages::music::NowPlayingMessage;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::youtube_dl;
+use bot_serenityutils::core::MessageHandle;
 
 #[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<TrackHandle>,
     paused: bool,
-    pub now_playing_msg: Option<NowPlayingMessage>,
+    pub now_playing_msg: Option<MessageHandle>,
     pub leave_flag: bool,
 }
 
