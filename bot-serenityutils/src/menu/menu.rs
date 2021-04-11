@@ -97,38 +97,11 @@ impl Menu<'_> {
         Ok(msg)
     }
 
-    /// Deep clones the menu to avoid lifetime conflicts with the stored CreateMessage's
-    fn deep_clone<'b>(&self) -> Menu<'b> {
-        let pages = self
-            .pages
-            .iter()
-            .map(|p| {
-                let mut page = p.clone();
-                let mut new_page: CreateMessage<'b> = CreateMessage::default();
-                new_page.0.clone_from(&mut page.0);
-
-                new_page
-            })
-            .collect::<Vec<CreateMessage<'b>>>();
-        Menu {
-            message: self.message.clone(),
-            sticky: self.sticky,
-            current_page: self.current_page,
-            listeners: self.listeners.clone(),
-            controls: self.controls.clone(),
-            timeout: self.timeout.clone(),
-            pages,
-            closed: self.closed,
-        }
-    }
-
     /// Recreates the message completely
     pub async fn recreate(&self, http: &Http) -> SerenityUtilsResult<()> {
         log::debug!("Recreating message");
         let mut handle = self.message.write().await;
-        log::debug!("Deleting original message");
-        http.delete_message(handle.channel_id, handle.message_id)
-            .await?;
+        let old_handle = (*handle).clone();
         log::debug!("Getting current page");
         let current_page = self
             .pages
@@ -147,15 +120,15 @@ impl Menu<'_> {
 
         handle.message_id = message.id.0;
         let handle = (*handle).clone();
-        log::debug!("Deep cloning menu");
-        let menu: Menu<'static> = self.deep_clone();
-        let menu: Arc<Mutex<Box<dyn EventDrivenMessage>>> = Arc::new(Mutex::new(Box::new(menu)));
-
         {
-            log::debug!("Adding new message to listeners");
+            log::debug!("Changing key of message");
             let mut listeners_lock = self.listeners.lock().await;
+            let menu = listeners_lock.remove(&old_handle).unwrap();
             listeners_lock.insert(handle, menu);
         }
+        log::debug!("Deleting original message");
+        http.delete_message(old_handle.channel_id, old_handle.message_id)
+            .await?;
         log::debug!("Message recreated");
 
         Ok(())
