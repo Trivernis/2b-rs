@@ -38,7 +38,8 @@ pub async fn close_menu(
     menu.close(ctx.http()).await?;
     let listeners = get_listeners_from_context(&ctx).await?;
     let mut listeners_lock = listeners.lock().await;
-    listeners_lock.remove(&menu.message);
+    let message = menu.message.read().await;
+    listeners_lock.remove(&*message);
 
     Ok(())
 }
@@ -49,7 +50,7 @@ async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult
         .pages
         .get(menu.current_page)
         .ok_or(SerenityUtilsError::PageNotFound(menu.current_page))?;
-    let mut msg = menu.get_message(ctx).await?;
+    let mut msg = menu.get_message(ctx.http()).await?;
 
     msg.edit(ctx, |e| {
         e.0.clone_from(&mut page.0.clone());

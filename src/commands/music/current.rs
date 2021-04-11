@@ -28,6 +28,7 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
         let np_msg = create_now_playing_msg(ctx, msg.channel_id, &metadata).await?;
 
         if let Some(old_np) = mem::replace(&mut queue_lock.now_playing_msg, Some(np_msg)) {
+            let old_np = old_np.read().await;
             if let Ok(message) = old_np.get_message(&ctx.http).await {
                 let _ = message.delete(ctx).await;
             }

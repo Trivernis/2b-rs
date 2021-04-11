@@ -251,7 +251,7 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
-        if let Some(np) = queue_lock.now_playing_msg {
+        if let Some(np) = &queue_lock.now_playing_msg {
             if let Err(e) = update_now_playing_msg(http, np, track.metadata()).await {
                 log::error!("Failed to update now playing message: {:?}", e);
             }
@@ -259,6 +259,7 @@ async fn play_next_in_queue(
         queue_lock.set_current(track);
     } else {
         if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
+            let np = np.read().await;
             if let Ok(message) = np.get_message(http).await {
                 let _ = message.delete(http).await;
             }

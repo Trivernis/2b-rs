@@ -3,6 +3,7 @@ use crate::error::{SerenityUtilsError, SerenityUtilsResult};
 use crate::menu::container::get_listeners_from_context;
 use crate::menu::controls::{close_menu, next_page, previous_page};
 use crate::menu::traits::EventDrivenMessage;
+use crate::menu::EventDrivenMessagesRef;
 use futures::FutureExt;
 use serenity::async_trait;
 use serenity::builder::CreateMessage;
@@ -15,7 +16,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
 pub static NEXT_PAGE_EMOJI: &str = "➡️";
 pub static PREVIOUS_PAGE_EMOJI: &str = "⬅️";
@@ -63,33 +64,101 @@ impl ActionContainer {
 }
 
 /// A menu message
+#[derive(Clone)]
 pub struct Menu<'a> {
-    pub message: MessageHandle,
+    pub message: Arc<RwLock<MessageHandle>>,
     pub pages: Vec<CreateMessage<'a>>,
     pub current_page: usize,
     pub controls: HashMap<String, ActionContainer>,
     pub timeout: Instant,
+    pub sticky: bool,
     closed: bool,
+    listeners: EventDrivenMessagesRef,
 }
 
-impl<'a> Menu<'a> {
+impl Menu<'_> {
     /// Removes all reactions from the menu
     pub(crate) async fn close(&mut self, http: &Http) -> SerenityUtilsResult<()> {
         log::debug!("Closing menu...");
-        http.delete_message_reactions(self.message.channel_id, self.message.message_id)
+        let handle = self.message.read().await;
+        http.delete_message_reactions(handle.channel_id, handle.message_id)
             .await?;
         self.closed = true;
         Ok(())
     }
 
     /// Returns the message of the menu
-    pub async fn get_message(&self, ctx: &Context) -> SerenityUtilsResult<Message> {
-        let msg = ctx
-            .http
-            .get_message(self.message.channel_id, self.message.message_id)
+    pub async fn get_message(&self, http: &Http) -> SerenityUtilsResult<Message> {
+        let handle = self.message.read().await;
+        let msg = http
+            .get_message(handle.channel_id, handle.message_id)
             .await?;
 
         Ok(msg)
+    }
+
+    /// Deep clones the menu to avoid lifetime conflicts with the stored CreateMessage's
+    fn deep_clone<'b>(&self) -> Menu<'b> {
+        let pages = self
+            .pages
+            .iter()
+            .map(|p| {
+                let mut page = p.clone();
+                let mut new_page: CreateMessage<'b> = CreateMessage::default();
+                new_page.0.clone_from(&mut page.0);
+
+                new_page
+            })
+            .collect::<Vec<CreateMessage<'b>>>();
+        Menu {
+            message: self.message.clone(),
+            sticky: self.sticky,
+            current_page: self.current_page,
+            listeners: self.listeners.clone(),
+            controls: self.controls.clone(),
+            timeout: self.timeout.clone(),
+            pages,
+            closed: self.closed,
+        }
+    }
+
+    /// Recreates the message completely
+    pub async fn recreate(&self, http: &Http) -> SerenityUtilsResult<()> {
+        log::debug!("Recreating message");
+        let mut handle = self.message.write().await;
+        log::debug!("Deleting original message");
+        http.delete_message(handle.channel_id, handle.message_id)
+            .await?;
+        log::debug!("Getting current page");
+        let current_page = self
+            .pages
+            .get(self.current_page)
+            .cloned()
+            .ok_or(SerenityUtilsError::PageNotFound(self.current_page))?;
+
+        log::debug!("Creating new message");
+        let message = http
+            .send_message(
+                handle.channel_id,
+                &serde_json::to_value(current_page.0).unwrap(),
+            )
+            .await?;
+        log::trace!("New message is {:?}", message);
+
+        handle.message_id = message.id.0;
+        let handle = (*handle).clone();
+        log::debug!("Deep cloning menu");
+        let menu: Menu<'static> = self.deep_clone();
+        let menu: Arc<Mutex<Box<dyn EventDrivenMessage>>> = Arc::new(Mutex::new(Box::new(menu)));
+
+        {
+            log::debug!("Adding new message to listeners");
+            let mut listeners_lock = self.listeners.lock().await;
+            listeners_lock.insert(handle, menu);
+        }
+        log::debug!("Message recreated");
+
+        Ok(())
     }
 }
 
@@ -104,6 +173,22 @@ impl<'a> EventDrivenMessage for Menu<'a> {
         if Instant::now() >= self.timeout {
             log::debug!("Menu timout reached. Closing menu.");
             self.close(http).await?;
+        } else if self.sticky {
+            log::debug!("Message is sticky. Checking for new messages in channel...");
+            let handle = {
+                let handle = self.message.read().await;
+                (*handle).clone()
+            };
+
+            let channel_id = ChannelId(handle.channel_id);
+            let messages = channel_id
+                .messages(http, |p| p.after(handle.message_id).limit(1))
+                .await?;
+            log::trace!("Messages are {:?}", messages);
+            if messages.len() > 0 {
+                log::debug!("New messages in channel. Recreating...");
+                self.recreate(http).await?;
+            }
         }
 
         Ok(())
@@ -148,6 +233,7 @@ pub struct MenuBuilder {
     current_page: usize,
     controls: HashMap<String, ActionContainer>,
     timeout: Duration,
+    sticky: bool,
 }
 
 impl Default for MenuBuilder {
@@ -157,6 +243,7 @@ impl Default for MenuBuilder {
             current_page: 0,
             controls: HashMap::new(),
             timeout: Duration::from_secs(60),
+            sticky: false,
         }
     }
 }
@@ -250,12 +337,20 @@ impl MenuBuilder {
         self
     }
 
+    /// If the message should be sticky and always be
+    /// the last one in the channel
+    pub fn sticky(mut self, value: bool) -> Self {
+        self.sticky = value;
+
+        self
+    }
+
     /// builds the menu
     pub async fn build(
         self,
         ctx: &Context,
         channel_id: ChannelId,
-    ) -> SerenityUtilsResult<MessageHandle> {
+    ) -> SerenityUtilsResult<Arc<RwLock<MessageHandle>>> {
         log::debug!("Building menu...");
         let mut current_page = self
             .pages
@@ -276,14 +371,17 @@ impl MenuBuilder {
 
         log::debug!("Creating menu...");
         let message_handle = MessageHandle::new(message.channel_id, message.id);
+        let handle_lock = Arc::new(RwLock::new(message_handle));
 
         let menu = Menu {
-            message: message_handle,
+            message: Arc::clone(&handle_lock),
             pages: self.pages,
             current_page: self.current_page,
             controls: self.controls,
             timeout: Instant::now() + self.timeout,
             closed: false,
+            listeners: Arc::clone(&listeners),
+            sticky: self.sticky,
         };
 
         log::debug!("Storing menu to listeners...");
@@ -301,6 +399,6 @@ impl MenuBuilder {
         }
         log::debug!("Menu successfully created.");
 
-        Ok(message_handle)
+        Ok(handle_lock)
     }
 }

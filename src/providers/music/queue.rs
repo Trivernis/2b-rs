@@ -8,13 +8,15 @@ use bot_coreutils::shuffle::Shuffle;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::youtube_dl;
 use bot_serenityutils::core::MessageHandle;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<TrackHandle>,
     paused: bool,
-    pub now_playing_msg: Option<MessageHandle>,
+    pub now_playing_msg: Option<Arc<RwLock<MessageHandle>>>,
     pub leave_flag: bool,
 }
 
