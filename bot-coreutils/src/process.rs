@@ -1,26 +1,19 @@
 use std::io;
-use std::process::Stdio;
-use tokio::io::AsyncReadExt;
 use tokio::process::Command;
 
 /// Asynchronously runs a given command and returns the output
 pub async fn run_command_async(command: &str, args: &[&str]) -> io::Result<String> {
     log::trace!("Running command '{}' with args {:?}", command, args);
-    let cmd = Command::new(command)
-        .args(args)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-    let mut stderr = String::new();
-    let mut output = String::new();
+    let process_output: std::process::Output = Command::new(command).args(args).output().await?;
 
-    cmd.stderr.unwrap().read_to_string(&mut stderr).await?;
+    log::trace!("Reading from stderr...");
+    let stderr = String::from_utf8_lossy(&process_output.stderr[..]);
+    let stdout = String::from_utf8_lossy(&process_output.stdout[..]);
 
     if stderr.len() != 0 {
         log::debug!("STDERR of command {}: {}", command, stderr);
     }
-    cmd.stdout.unwrap().read_to_string(&mut output).await?;
-    log::trace!("Command output is {}", output);
+    log::trace!("Command output is {}", stdout);
 
-    Ok(output)
+    Ok(stdout.to_string())
 }
