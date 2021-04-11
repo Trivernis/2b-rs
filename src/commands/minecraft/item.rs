@@ -11,6 +11,7 @@ use crate::utils::context_data::Store;
 #[example("bread")]
 #[min_args(1)]
 #[aliases("i")]
+#[bucket("general")]
 pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");

@@ -10,6 +10,7 @@ use crate::commands::music::{get_queue_for_guild, is_dj};
 #[only_in(guilds)]
 #[description("Pauses playback")]
 #[usage("")]
+#[bucket("general")]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Pausing playback for guild {}", guild.id);

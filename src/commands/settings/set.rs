@@ -16,6 +16,7 @@ use crate::utils::context_data::get_database_from_context;
 #[min_args(1)]
 #[max_args(2)]
 #[required_permissions("MANAGE_GUILD")]
+#[bucket("general")]
 async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let key = args.single::<String>().unwrap().to_lowercase();
     let all_settings: Vec<String> = ALL_SETTINGS.iter().map(|s| s.to_string()).collect();

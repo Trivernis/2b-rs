@@ -16,6 +16,7 @@ use crate::providers::settings::{get_setting, Setting};
 #[usage("(<spotify_url,youtube_url,query>)")]
 #[min_args(1)]
 #[aliases("p")]
+#[bucket("music_api")]
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 

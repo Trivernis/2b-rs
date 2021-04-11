@@ -14,6 +14,7 @@ use crate::utils::get_previous_message_or_reply;
 #[description("Searches for the source of a previously posted image or an image replied to.")]
 #[usage("")]
 #[aliases("source")]
+#[bucket("sauce_api")]
 async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Got sauce command");
     let source_msg = get_previous_message_or_reply(ctx, msg).await?;

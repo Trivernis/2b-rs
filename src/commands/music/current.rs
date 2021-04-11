@@ -14,6 +14,7 @@ use crate::messages::music::NowPlayingMessage;
 #[description("Displays the currently playing song")]
 #[usage("")]
 #[aliases("nowplaying", "np")]
+#[bucket("general")]
 async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 

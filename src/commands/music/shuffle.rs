@@ -11,6 +11,7 @@ use crate::commands::music::{get_queue_for_guild, is_dj};
 #[description("Shuffles the queue")]
 #[usage("")]
 #[aliases("sh")]
+#[bucket("general")]
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 

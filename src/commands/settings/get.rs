@@ -14,6 +14,7 @@ use crate::utils::context_data::get_database_from_context;
 #[min_args(0)]
 #[max_args(1)]
 #[required_permissions("MANAGE_GUILD")]
+#[bucket("general")]
 async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let guild = msg.guild(&ctx.cache).await.unwrap();

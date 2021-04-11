@@ -15,6 +15,7 @@ use crate::commands::music::{
 #[usage("<song-url>")]
 #[min_args(1)]
 #[aliases("pn", "play-next")]
+#[bucket("music_api")]
 async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 

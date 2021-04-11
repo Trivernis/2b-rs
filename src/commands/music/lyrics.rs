@@ -11,6 +11,7 @@ use crate::providers::music::lyrics::get_lyrics;
 #[only_in(guilds)]
 #[description("Shows the lyrics for the currently playing song")]
 #[usage("")]
+#[bucket("general")]
 async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Fetching lyrics for song playing in {}", guild.id);

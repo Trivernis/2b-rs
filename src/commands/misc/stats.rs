@@ -15,6 +15,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 #[command]
 #[description("Shows some statistics about the bot")]
 #[usage("")]
+#[bucket("general")]
 async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Reading system stats");
     let mut system = sysinfo::System::new_all();

@@ -11,6 +11,7 @@ use crate::commands::music::{get_queue_for_guild, get_voice_manager, is_dj};
 #[description("Leaves a voice channel")]
 #[usage("")]
 #[aliases("stop")]
+#[bucket("general")]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Leave request received for guild {}", guild.id);
