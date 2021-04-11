@@ -74,9 +74,10 @@ pub async fn handle_message_delete(
         let mut listeners_lock = listeners.lock().await;
         log::trace!("Listener locked.");
 
-        if let Some(msg) = listeners_lock.get(&(channel_id.0, message_id.0)) {
+        let handle = MessageHandle::new(channel_id, message_id);
+        if let Some(msg) = listeners_lock.get(&handle) {
             affected_messages.push(Arc::clone(msg));
-            listeners_lock.remove(&(channel_id.0, message_id.0));
+            listeners_lock.remove(&handle);
         }
     }
     log::trace!("Listener unlocked");
@@ -102,9 +103,10 @@ pub async fn handle_message_delete_bulk(
         log::trace!("Listener locked.");
 
         for message_id in message_ids {
-            if let Some(msg) = listeners_lock.get_mut(&(channel_id.0, message_id.0)) {
+            let handle = MessageHandle::new(channel_id, *message_id);
+            if let Some(msg) = listeners_lock.get_mut(&handle) {
                 affected_messages.push(Arc::clone(msg));
-                listeners_lock.remove(&(channel_id.0, message_id.0));
+                listeners_lock.remove(&handle);
             }
         }
     }
@@ -126,10 +128,9 @@ pub async fn handle_reaction_add(ctx: &Context, reaction: &Reaction) -> Serenity
         let mut listeners_lock = listeners.lock().await;
         log::trace!("Listener locked.");
 
-        let message_id = reaction.message_id;
-        let channel_id = reaction.channel_id;
+        let handle = MessageHandle::new(reaction.channel_id, reaction.message_id);
 
-        if let Some(msg) = listeners_lock.get_mut(&(channel_id.0, message_id.0)) {
+        if let Some(msg) = listeners_lock.get_mut(&handle) {
             affected_messages.push(Arc::clone(&msg));
         }
     }
@@ -151,10 +152,9 @@ pub async fn handle_reaction_remove(ctx: &Context, reaction: &Reaction) -> Seren
         let mut listeners_lock = listeners.lock().await;
         log::trace!("Listener locked.");
 
-        let message_id = reaction.message_id;
-        let channel_id = reaction.channel_id;
+        let handle = MessageHandle::new(reaction.channel_id, reaction.message_id);
 
-        if let Some(msg) = listeners_lock.get_mut(&(channel_id.0, message_id.0)) {
+        if let Some(msg) = listeners_lock.get_mut(&handle) {
             affected_messages.push(Arc::clone(&msg));
         }
     }

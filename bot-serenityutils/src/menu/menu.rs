@@ -76,7 +76,7 @@ impl<'a> Menu<'a> {
     /// Removes all reactions from the menu
     pub(crate) async fn close(&mut self, http: &Http) -> SerenityUtilsResult<()> {
         log::debug!("Closing menu...");
-        http.delete_message_reactions(self.message.0, self.message.1)
+        http.delete_message_reactions(self.message.channel_id, self.message.message_id)
             .await?;
         self.closed = true;
         Ok(())
@@ -84,7 +84,10 @@ impl<'a> Menu<'a> {
 
     /// Returns the message of the menu
     pub async fn get_message(&self, ctx: &Context) -> SerenityUtilsResult<Message> {
-        let msg = ctx.http.get_message(self.message.0, self.message.1).await?;
+        let msg = ctx
+            .http
+            .get_message(self.message.channel_id, self.message.message_id)
+            .await?;
 
         Ok(msg)
     }
@@ -248,7 +251,11 @@ impl MenuBuilder {
     }
 
     /// builds the menu
-    pub async fn build(self, ctx: &Context, channel_id: ChannelId) -> SerenityUtilsResult<()> {
+    pub async fn build(
+        self,
+        ctx: &Context,
+        channel_id: ChannelId,
+    ) -> SerenityUtilsResult<MessageHandle> {
         log::debug!("Building menu...");
         let mut current_page = self
             .pages
@@ -268,8 +275,10 @@ impl MenuBuilder {
         controls.sort_by_key(|(_, a)| a.position);
 
         log::debug!("Creating menu...");
+        let message_handle = MessageHandle::new(message.channel_id, message.id);
+
         let menu = Menu {
-            message: (message.channel_id.0, message.id.0),
+            message: message_handle,
             pages: self.pages,
             current_page: self.current_page,
             controls: self.controls,
@@ -281,10 +290,7 @@ impl MenuBuilder {
         {
             let mut listeners_lock = listeners.lock().await;
             log::trace!("Listeners locked.");
-            listeners_lock.insert(
-                (message.channel_id.0, message.id.0),
-                Arc::new(Mutex::new(Box::new(menu))),
-            );
+            listeners_lock.insert(message_handle, Arc::new(Mutex::new(Box::new(menu))));
         }
 
         log::debug!("Adding controls...");
@@ -295,6 +301,6 @@ impl MenuBuilder {
         }
         log::debug!("Menu successfully created.");
 
-        Ok(())
+        Ok(message_handle)
     }
 }
