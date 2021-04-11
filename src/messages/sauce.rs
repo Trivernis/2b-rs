@@ -3,14 +3,22 @@ use std::cmp::Ordering;
 use sauce_api::{SauceItem, SauceResult};
 use serenity::builder::CreateMessage;
 use serenity::{model::channel::Message, prelude::*};
-use serenity_utils::prelude::*;
 
 use bot_coreutils::url::get_domain_for_url;
 
 use crate::utils::error::BotResult;
+use bot_serenityutils::menu::MenuBuilder;
+use rand::prelude::SliceRandom;
+use std::time::Duration;
 
 static MAX_RESULTS: usize = 6;
 static MIN_SIMILARITY: f32 = 50.0;
+static SAUCE_MESSAGES: &[&str] = &[
+    "Here's your mayonnaise",
+    "Here's your punched tomatoes",
+    "Warning: It's tabasco",
+    "Yum, apple sauce",
+];
 
 /// Builds a new sauce menu
 pub async fn show_sauce_menu(
@@ -20,28 +28,19 @@ pub async fn show_sauce_menu(
 ) -> BotResult<()> {
     let pages: Vec<CreateMessage> = sources.into_iter().map(create_sauce_page).collect();
 
-    let menu = if pages.len() == 1 {
-        Menu::new(
-            ctx,
-            msg,
-            &pages,
-            MenuOptions {
-                controls: vec![],
-                ..Default::default()
-            },
-        )
+    if pages.len() == 1 {
+        MenuBuilder::default()
+            .timeout(Duration::from_secs(600))
+            .add_pages(pages)
+            .build(ctx, msg.channel_id)
+            .await?;
     } else {
-        Menu::new(
-            ctx,
-            msg,
-            &pages,
-            MenuOptions {
-                timeout: 600.,
-                ..Default::default()
-            },
-        )
+        MenuBuilder::new_paginator()
+            .timeout(Duration::from_secs(600))
+            .add_pages(pages)
+            .build(ctx, msg.channel_id)
+            .await?;
     };
-    menu.run().await?;
 
     Ok(())
 }
@@ -87,9 +86,10 @@ fn create_sauce_page<'a>(mut result: SauceResult) -> CreateMessage<'a> {
             item.link
         ));
     }
+    let mut rng = rand::thread_rng();
 
     message.embed(|e| {
-        e.title("Sources")
+        e.title(SAUCE_MESSAGES.choose(&mut rng).unwrap())
             .description(description_lines.join("\n"))
             .thumbnail(original)
             .footer(|f| f.text("Powered by SauceNAO"))
