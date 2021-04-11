@@ -21,26 +21,33 @@ pub static NEXT_PAGE_EMOJI: &str = "➡️";
 pub static PREVIOUS_PAGE_EMOJI: &str = "⬅️";
 pub static CLOSE_MENU_EMOJI: &str = "❌";
 
-pub type ControlAction = Arc<
-    dyn for<'b> Fn(
-        &'b Context,
-        &'b mut Menu<'_>,
-        Reaction,
-    ) -> Pin<Box<dyn Future<Output = SerenityUtilsResult<()>> + Send + 'b>>
+pub type ControlActionResult<'b> =
+    Pin<Box<dyn Future<Output = SerenityUtilsResult<()>> + Send + 'b>>;
+
+pub type ControlActionArc = Arc<
+    dyn for<'b> Fn(&'b Context, &'b mut Menu<'_>, Reaction) -> ControlActionResult<'b>
         + Send
         + Sync,
 >;
 
 #[derive(Clone)]
 pub struct ActionContainer {
-    inner: ControlAction,
+    inner: ControlActionArc,
     position: usize,
 }
 
 impl ActionContainer {
     /// Creates a new control action
-    pub fn new(position: usize, inner: ControlAction) -> Self {
-        Self { inner, position }
+    pub fn new<F: 'static>(position: usize, callback: F) -> Self
+    where
+        F: for<'b> Fn(&'b Context, &'b mut Menu<'_>, Reaction) -> ControlActionResult<'b>
+            + Send
+            + Sync,
+    {
+        Self {
+            inner: Arc::new(callback),
+            position,
+        }
     }
 
     /// Runs the action
@@ -158,15 +165,15 @@ impl MenuBuilder {
         let mut controls = HashMap::new();
         controls.insert(
             PREVIOUS_PAGE_EMOJI.to_string(),
-            ActionContainer::new(0, Arc::new(|c, m, r| previous_page(c, m, r).boxed())),
+            ActionContainer::new(0, |c, m, r| previous_page(c, m, r).boxed()),
         );
         controls.insert(
             CLOSE_MENU_EMOJI.to_string(),
-            ActionContainer::new(1, Arc::new(|c, m, r| close_menu(c, m, r).boxed())),
+            ActionContainer::new(1, |c, m, r| close_menu(c, m, r).boxed()),
         );
         controls.insert(
             NEXT_PAGE_EMOJI.to_string(),
-            ActionContainer::new(2, Arc::new(|c, m, r| next_page(c, m, r).boxed())),
+            ActionContainer::new(2, |c, m, r| next_page(c, m, r).boxed()),
         );
 
         Self {
@@ -194,12 +201,13 @@ impl MenuBuilder {
     }
 
     /// Adds a single control to the message
-    pub fn add_control<S: ToString>(
-        mut self,
-        position: usize,
-        emoji: S,
-        action: ControlAction,
-    ) -> Self {
+    pub fn add_control<S, F: 'static>(mut self, position: usize, emoji: S, action: F) -> Self
+    where
+        S: ToString,
+        F: for<'b> Fn(&'b Context, &'b mut Menu<'_>, Reaction) -> ControlActionResult<'b>
+            + Send
+            + Sync,
+    {
         self.controls
             .insert(emoji.to_string(), ActionContainer::new(position, action));
 
@@ -210,11 +218,16 @@ impl MenuBuilder {
     pub fn add_controls<S, I>(mut self, controls: I) -> Self
     where
         S: ToString,
-        I: IntoIterator<Item = (usize, S, ControlAction)>,
+        I: IntoIterator<Item = (usize, S, ControlActionArc)>,
     {
         for (position, emoji, action) in controls {
-            self.controls
-                .insert(emoji.to_string(), ActionContainer::new(position, action));
+            self.controls.insert(
+                emoji.to_string(),
+                ActionContainer {
+                    position,
+                    inner: action,
+                },
+            );
         }
 
         self

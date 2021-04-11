@@ -6,7 +6,7 @@ pub(crate) mod traits;
 pub use container::*;
 pub use controls::*;
 pub use menu::{
-    ActionContainer, ControlAction, Menu, MenuBuilder, CLOSE_MENU_EMOJI, NEXT_PAGE_EMOJI,
+    ActionContainer, ControlActionArc, Menu, MenuBuilder, CLOSE_MENU_EMOJI, NEXT_PAGE_EMOJI,
     PREVIOUS_PAGE_EMOJI,
 };
 pub use traits::EventDrivenMessage;
