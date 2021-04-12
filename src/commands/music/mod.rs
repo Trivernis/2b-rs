@@ -28,6 +28,7 @@ use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
 use playlists::PLAYLISTS_COMMAND;
 use queue::QUEUE_COMMAND;
+use remove_song::REMOVE_SONG_COMMAND;
 use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
@@ -50,6 +51,7 @@ mod play;
 mod play_next;
 mod playlists;
 mod queue;
+mod remove_song;
 mod save_playlist;
 mod shuffle;
 mod skip;
@@ -69,7 +71,8 @@ mod skip;
     save_playlist,
     playlists,
     lyrics,
-    move_song
+    move_song,
+    remove_song
 )]
 pub struct Music;
 
