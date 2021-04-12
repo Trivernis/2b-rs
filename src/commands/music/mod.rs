@@ -257,8 +257,14 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
+        if queue_lock.paused() {
+            let _ = track.pause();
+        }
+
         if let Some(np) = &queue_lock.now_playing_msg {
-            if let Err(e) = update_now_playing_msg(http, np, track.metadata(), false).await {
+            if let Err(e) =
+                update_now_playing_msg(http, np, track.metadata(), queue_lock.paused()).await
+            {
                 log::error!("Failed to update now playing message: {:?}", e);
             }
         }
