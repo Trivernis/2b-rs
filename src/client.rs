@@ -58,6 +58,7 @@ pub async fn get_framework() -> StandardFramework {
         .group(&MISC_GROUP)
         .group(&MUSIC_GROUP)
         .group(&SETTINGS_GROUP)
+        .group(&WEEB_GROUP)
         .after(after_hook)
         .before(before_hook)
         .on_dispatch_error(dispatch_error)
