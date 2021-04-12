@@ -22,6 +22,7 @@ use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
 use lyrics::LYRICS_COMMAND;
+use move_song::MOVE_SONG_COMMAND;
 use pause::PAUSE_COMMAND;
 use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
@@ -43,6 +44,7 @@ mod current;
 mod join;
 mod leave;
 mod lyrics;
+mod move_song;
 mod pause;
 mod play;
 mod play_next;
@@ -66,7 +68,8 @@ mod skip;
     pause,
     save_playlist,
     playlists,
-    lyrics
+    lyrics,
+    move_song
 )]
 pub struct Music;
 

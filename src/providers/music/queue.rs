@@ -76,6 +76,18 @@ impl MusicQueue {
         self.inner.clear();
     }
 
+    /// Moves a song to a new position
+    pub fn move_position(&mut self, index: usize, new_index: usize) {
+        if let Some(song) = self.inner.remove(index) {
+            self.inner.insert(new_index, song);
+        }
+    }
+
+    /// Removes a song from the queue
+    pub fn remove(&mut self, index: usize) {
+        self.inner.remove(index);
+    }
+
     /// Toggles pause
     pub fn pause(&mut self) {
         if let Some(current) = &self.current {
