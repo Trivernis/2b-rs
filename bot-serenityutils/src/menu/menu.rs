@@ -3,10 +3,9 @@ use crate::error::{SerenityUtilsError, SerenityUtilsResult};
 use crate::menu::container::get_listeners_from_context;
 use crate::menu::controls::{close_menu, next_page, previous_page};
 use crate::menu::traits::EventDrivenMessage;
-use crate::menu::EventDrivenMessagesRef;
+use crate::menu::{EventDrivenMessagesRef, Page};
 use futures::FutureExt;
 use serenity::async_trait;
-use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::http::Http;
 use serenity::model::channel::{Message, Reaction, ReactionType};
@@ -67,7 +66,7 @@ impl ActionContainer {
 #[derive(Clone)]
 pub struct Menu<'a> {
     pub message: Arc<RwLock<MessageHandle>>,
-    pub pages: Vec<CreateMessage<'a>>,
+    pub pages: Vec<Page<'a>>,
     pub current_page: usize,
     pub controls: HashMap<String, ActionContainer>,
     pub timeout: Instant,
@@ -100,19 +99,24 @@ impl Menu<'_> {
     /// Recreates the message completely
     pub async fn recreate(&self, http: &Http) -> SerenityUtilsResult<()> {
         log::debug!("Recreating message");
-        let mut handle = self.message.write().await;
-        let old_handle = (*handle).clone();
+
+        let old_handle = {
+            let handle = self.message.read().await;
+            (*handle).clone()
+        };
         log::debug!("Getting current page");
         let current_page = self
             .pages
             .get(self.current_page)
             .cloned()
-            .ok_or(SerenityUtilsError::PageNotFound(self.current_page))?;
+            .ok_or(SerenityUtilsError::PageNotFound(self.current_page))?
+            .get()
+            .await?;
 
         log::debug!("Creating new message");
         let message = http
             .send_message(
-                handle.channel_id,
+                old_handle.channel_id,
                 &serde_json::to_value(current_page.0).unwrap(),
             )
             .await?;
@@ -133,13 +137,16 @@ impl Menu<'_> {
         }
         log::trace!("New message is {:?}", message);
 
-        handle.message_id = message.id.0;
-        let handle = (*handle).clone();
+        let new_handle = {
+            let mut handle = self.message.write().await;
+            handle.message_id = message.id.0;
+            (*handle).clone()
+        };
         {
             log::debug!("Changing key of message");
             let mut listeners_lock = self.listeners.lock().await;
             let menu = listeners_lock.remove(&old_handle).unwrap();
-            listeners_lock.insert(handle, menu);
+            listeners_lock.insert(new_handle, menu);
         }
         log::debug!("Deleting original message");
         http.delete_message(old_handle.channel_id, old_handle.message_id)
@@ -217,7 +224,7 @@ impl<'a> EventDrivenMessage for Menu<'a> {
 
 /// A builder for messages
 pub struct MenuBuilder {
-    pages: Vec<CreateMessage<'static>>,
+    pages: Vec<Page<'static>>,
     current_page: usize,
     controls: HashMap<String, ActionContainer>,
     timeout: Duration,
@@ -261,7 +268,7 @@ impl MenuBuilder {
     }
 
     /// Adds a page to the message builder
-    pub fn add_page(mut self, page: CreateMessage<'static>) -> Self {
+    pub fn add_page(mut self, page: Page<'static>) -> Self {
         self.pages.push(page);
 
         self
@@ -270,7 +277,7 @@ impl MenuBuilder {
     /// Adds multiple pages to the message
     pub fn add_pages<I>(mut self, pages: I) -> Self
     where
-        I: IntoIterator<Item = CreateMessage<'static>>,
+        I: IntoIterator<Item = Page<'static>>,
     {
         let mut pages = pages.into_iter().collect();
         self.pages.append(&mut pages);
@@ -344,7 +351,9 @@ impl MenuBuilder {
             .pages
             .get(self.current_page)
             .ok_or(SerenityUtilsError::PageNotFound(self.current_page))?
-            .clone();
+            .clone()
+            .get()
+            .await?;
 
         let message = channel_id.send_message(ctx, |_| &mut current_page).await?;
         log::trace!("Message is {:?}", message);

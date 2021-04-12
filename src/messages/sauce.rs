@@ -7,7 +7,7 @@ use serenity::{model::channel::Message, prelude::*};
 use bot_coreutils::url::get_domain_for_url;
 
 use crate::utils::error::BotResult;
-use bot_serenityutils::menu::MenuBuilder;
+use bot_serenityutils::menu::{MenuBuilder, Page};
 use rand::prelude::SliceRandom;
 use std::time::Duration;
 
@@ -26,7 +26,7 @@ pub async fn show_sauce_menu(
     msg: &Message,
     sources: Vec<SauceResult>,
 ) -> BotResult<()> {
-    let pages: Vec<CreateMessage> = sources.into_iter().map(create_sauce_page).collect();
+    let pages: Vec<Page> = sources.into_iter().map(create_sauce_page).collect();
 
     if pages.len() == 1 {
         MenuBuilder::default()
@@ -46,7 +46,7 @@ pub async fn show_sauce_menu(
 }
 
 /// Creates a single sauce page
-fn create_sauce_page<'a>(mut result: SauceResult) -> CreateMessage<'a> {
+fn create_sauce_page<'a>(mut result: SauceResult) -> Page<'a> {
     let mut message = CreateMessage::default();
     let mut description_lines = Vec::new();
     let original = result.original_url;
@@ -95,5 +95,5 @@ fn create_sauce_page<'a>(mut result: SauceResult) -> CreateMessage<'a> {
             .footer(|f| f.text("Powered by SauceNAO"))
     });
 
-    message
+    Page::new_static(message)
 }

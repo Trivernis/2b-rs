@@ -49,7 +49,9 @@ async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult
     let page = menu
         .pages
         .get(menu.current_page)
-        .ok_or(SerenityUtilsError::PageNotFound(menu.current_page))?;
+        .ok_or(SerenityUtilsError::PageNotFound(menu.current_page))?
+        .get()
+        .await?;
     let mut msg = menu.get_message(ctx.http()).await?;
 
     msg.edit(ctx, |e| {
