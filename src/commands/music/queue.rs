@@ -13,6 +13,7 @@ use crate::commands::music::get_queue_for_guild;
 #[description("Shows the song queue")]
 #[usage("")]
 #[aliases("q")]
+#[bucket("general")]
 async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::trace!("Displaying queue for guild {}", guild.id);

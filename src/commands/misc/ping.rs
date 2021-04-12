@@ -6,6 +6,7 @@ use serenity::model::channel::Message;
 #[command]
 #[description("Simple ping test command")]
 #[usage("")]
+#[bucket("general")]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.reply(ctx, "Pong!").await?;
 

@@ -12,4 +12,7 @@ pub enum SerenityUtilsError {
 
     #[error("Serenity Utils not fully initialized")]
     Uninitialized,
+
+    #[error("{0}")]
+    Msg(String),
 }

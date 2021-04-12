@@ -5,6 +5,7 @@ use serenity::model::channel::Message;
 
 #[command]
 #[description("Displays information about the bot")]
+#[bucket("general")]
 async fn about(ctx: &Context, msg: &Message) -> CommandResult {
     msg.channel_id
         .send_message(ctx, |m| {

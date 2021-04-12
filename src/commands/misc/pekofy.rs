@@ -21,6 +21,7 @@ static PEKOS: &[&str] = &[
 #[usage("(<content>)")]
 #[example("Hello")]
 #[aliases("peko")]
+#[bucket("general")]
 async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let mut reference_message = msg.id;
     let mut content = args.message().to_string();

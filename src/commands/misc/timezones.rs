@@ -8,6 +8,7 @@ use serenity::model::channel::Message;
 #[min_args(1)]
 #[usage("<query...>")]
 #[example("Europe Berlin")]
+#[bucket("general")]
 async fn timezones(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let query = args
         .iter::<String>()

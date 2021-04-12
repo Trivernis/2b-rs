@@ -11,6 +11,7 @@ use crate::commands::music::{get_queue_for_guild, is_dj};
 #[description("Skips to the next song")]
 #[usage("")]
 #[aliases("next")]
+#[bucket("general")]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     if !is_dj(ctx, guild.id, &msg.author).await? {

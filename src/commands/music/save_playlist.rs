@@ -13,6 +13,7 @@ use crate::utils::context_data::get_database_from_context;
 #[example("anime https://www.youtube.com/playlist?list=PLqaM77H_o5hykROCe3uluvZEaPo6bZj-C")]
 #[min_args(2)]
 #[aliases("add-playlist", "save-playlist")]
+#[bucket("general")]
 async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 

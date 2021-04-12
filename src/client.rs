@@ -15,6 +15,7 @@ use crate::handler::Handler;
 use crate::utils::context_data::{DatabaseContainer, Store, StoreData};
 use crate::utils::error::{BotError, BotResult};
 use bot_serenityutils::menu::EventDrivenMessageContainer;
+use serenity::framework::standard::buckets::LimitedFor;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -24,7 +25,7 @@ pub async fn get_client() -> BotResult<Client> {
 
     let client = Client::builder(token)
         .event_handler(Handler)
-        .framework(get_framework())
+        .framework(get_framework().await)
         .register_songbird()
         .await?;
     {
@@ -37,7 +38,7 @@ pub async fn get_client() -> BotResult<Client> {
     Ok(client)
 }
 
-pub fn get_framework() -> StandardFramework {
+pub async fn get_framework() -> StandardFramework {
     let mut owners = HashSet::new();
     if let Some(owner) = dotenv::var("BOT_OWNER").ok().and_then(|o| o.parse().ok()) {
         owners.insert(UserId(owner));
@@ -61,6 +62,22 @@ pub fn get_framework() -> StandardFramework {
         .before(before_hook)
         .on_dispatch_error(dispatch_error)
         .help(&HELP)
+        .bucket("music_api", |b| {
+            b.delay(1)
+                .time_span(60)
+                .limit(30)
+                .limit_for(LimitedFor::User)
+        })
+        .await
+        .bucket("sauce_api", |b| {
+            b.delay(1)
+                .time_span(60)
+                .limit(10)
+                .limit_for(LimitedFor::User)
+        })
+        .await
+        .bucket("general", |b| b.time_span(10).limit(5))
+        .await
 }
 
 #[hook]

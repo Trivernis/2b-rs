@@ -11,6 +11,7 @@ use crate::utils::context_data::Store;
 #[example("unbreaking")]
 #[min_args(1)]
 #[aliases("ench")]
+#[bucket("general")]
 pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");

@@ -10,6 +10,7 @@ use bot_coreutils::process::run_command_async;
 use crate::providers::music::queue::Song;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::utils::error::BotResult;
+use bot_coreutils::string::enquote;
 
 static THREAD_LIMIT: u8 = 64;
 
@@ -44,7 +45,7 @@ pub(crate) async fn search_video_information(query: String) -> BotResult<Option<
         "--no-warnings",
         "--dump-json",
         "-i",
-        format!("ytsearch:\"{}\"", query).as_str(),
+        format!("ytsearch:{}", enquote(query)).as_str(),
     ])
     .await?;
     let information = serde_json::from_str(&*output)?;

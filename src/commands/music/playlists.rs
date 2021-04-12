@@ -10,6 +10,7 @@ use crate::utils::context_data::get_database_from_context;
 #[only_in(guilds)]
 #[description("Displays a list of all saved playlists")]
 #[usage("")]
+#[bucket("general")]
 async fn playlists(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Displaying playlists for guild {}", guild.id);

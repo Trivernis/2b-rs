@@ -10,6 +10,7 @@ use serenity::model::channel::Message;
 #[min_args(1)]
 #[max_args(3)]
 #[usage("<%H:%M/now> (<from-timezone>) (<to-timezone>)")]
+#[bucket("general")]
 async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let when = args.single::<String>().unwrap_or("now".to_string());
     let first_timezone = args.single::<String>().ok();

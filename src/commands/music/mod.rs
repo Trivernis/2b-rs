@@ -31,6 +31,7 @@ use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
+use crate::messages::music::update_now_playing_msg;
 use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::youtube_dl;
 use crate::providers::settings::{get_setting, Setting};
@@ -191,7 +192,7 @@ fn get_channel_for_author(author_id: &UserId, guild: &Guild) -> BotResult<Channe
 }
 
 /// Returns the voice manager from the context
-async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
+pub async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
     songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
@@ -250,13 +251,18 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
-        if let Some(np) = &mut queue_lock.now_playing_msg {
-            let _ = np.refresh(track.metadata()).await;
+        if let Some(np) = &queue_lock.now_playing_msg {
+            if let Err(e) = update_now_playing_msg(http, np, track.metadata(), false).await {
+                log::error!("Failed to update now playing message: {:?}", e);
+            }
         }
         queue_lock.set_current(track);
     } else {
         if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
-            let _ = np.inner().delete().await;
+            let np = np.read().await;
+            if let Ok(message) = np.get_message(http).await {
+                let _ = message.delete(http).await;
+            }
         }
         queue_lock.clear_current();
     }
@@ -375,7 +381,7 @@ async fn added_multiple_msg(ctx: &Context, msg: &Message, songs: &mut Vec<Song>)
 
 /// Returns if the given user is a dj in the given guild based on the
 /// setting for the name of the dj role
-async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool> {
+pub async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool> {
     let dj_role = get_setting::<String>(ctx, guild, Setting::MusicDjRole).await?;
 
     if let Some(role_name) = dj_role {

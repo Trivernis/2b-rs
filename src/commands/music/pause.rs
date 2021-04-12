@@ -5,11 +5,13 @@ use serenity::prelude::*;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, is_dj};
+use crate::messages::music::update_now_playing_msg;
 
 #[command]
 #[only_in(guilds)]
 #[description("Pauses playback")]
 #[usage("")]
+#[bucket("general")]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Pausing playback for guild {}", guild.id);
@@ -26,9 +28,17 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
         if queue_lock.paused() {
             log::debug!("Paused");
             msg.channel_id.say(ctx, "Paused playback").await?;
+            if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
+            {
+                update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
+            }
         } else {
             log::debug!("Resumed");
             msg.channel_id.say(ctx, "Resumed playback").await?;
+            if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
+            {
+                update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
+            }
         }
     } else {
         msg.channel_id.say(ctx, "Nothing to pause").await?;
