@@ -21,4 +21,13 @@ pub enum DatabaseError {
 
     #[error("AsyncError: {0}")]
     AsyncError(#[from] tokio_diesel::AsyncError),
+
+    #[error("{0}")]
+    Msg(String),
+}
+
+impl From<&str> for DatabaseError {
+    fn from(s: &str) -> Self {
+        Self::Msg(s.to_string())
+    }
 }

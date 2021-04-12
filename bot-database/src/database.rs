@@ -2,11 +2,13 @@ use crate::error::DatabaseResult;
 use crate::models::*;
 use crate::schema::*;
 use crate::PoolConnection;
+use diesel::dsl::count;
 use diesel::prelude::*;
 use diesel::{delete, insert_into};
 use std::any;
 use std::fmt::Debug;
 use std::str::FromStr;
+use std::time::SystemTime;
 use tokio_diesel::*;
 
 #[derive(Clone)]
@@ -151,5 +153,89 @@ impl Database {
             .await?;
 
         Ok(())
+    }
+
+    /// Returns a list of all gifs in the database
+    pub async fn get_all_gifs(&self) -> DatabaseResult<Vec<Gif>> {
+        use gifs::dsl;
+        log::debug!("Loading all gifs from the database");
+
+        let gifs: Vec<Gif> = dsl::gifs.load_async::<Gif>(&self.pool).await?;
+        Ok(gifs)
+    }
+
+    /// Returns a list of gifs by assigned category
+    pub async fn get_gifs_by_category(&self, category: &str) -> DatabaseResult<Vec<Gif>> {
+        use gifs::dsl;
+        log::debug!("Searching for gifs in category '{}'", category);
+
+        let gifs: Vec<Gif> = dsl::gifs
+            .filter(dsl::category.eq(category))
+            .load_async::<Gif>(&self.pool)
+            .await?;
+        Ok(gifs)
+    }
+
+    /// Adds a gif to the database
+    pub async fn add_gif(
+        &self,
+        url: &str,
+        category: Option<String>,
+        name: Option<String>,
+    ) -> DatabaseResult<()> {
+        use gifs::dsl;
+        log::debug!(
+            "Inserting gif with url '{}' and name {:?} and category {:?}",
+            url,
+            name,
+            category
+        );
+        insert_into(dsl::gifs)
+            .values(GifInsert {
+                url: url.to_string(),
+                name,
+                category,
+            })
+            .execute_async(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    /// Adds a command statistic to the database
+    pub async fn add_statistic(
+        &self,
+        version: &str,
+        command: &str,
+        executed_at: SystemTime,
+        success: bool,
+        error_msg: Option<String>,
+    ) -> DatabaseResult<()> {
+        use statistics::dsl;
+        log::trace!("Adding statistic to database");
+        insert_into(dsl::statistics)
+            .values(StatisticInsert {
+                version: version.to_string(),
+                command: command.to_string(),
+                executed_at,
+                success,
+                error_msg,
+            })
+            .execute_async(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    /// Returns the total number of commands executed
+    pub async fn get_total_commands_statistic(&self) -> DatabaseResult<u64> {
+        use statistics::dsl;
+        log::trace!("Querying total number of commands");
+        let total_count: i64 = dsl::statistics
+            .select(count(dsl::id))
+            .first_async::<i64>(&self.pool)
+            .await?;
+
+        Ok(total_count as u64)
     }
 }

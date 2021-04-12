@@ -35,3 +35,10 @@ fn it_checks_for_video() {
     assert!(!is_video("https://domain.com/file.pdf"));
     assert!(!is_video("not an url"));
 }
+
+#[test]
+fn it_checks_if_its_valid() {
+    assert!(is_valid("https://domain.com"));
+    assert!(!is_valid("domain.com"));
+    assert!(is_valid("https://url.com/sub/sub/sub.txt"))
+}
