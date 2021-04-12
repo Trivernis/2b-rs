@@ -14,6 +14,7 @@ use bot_serenityutils::menu::{Menu, MenuBuilder, Page};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::channel::Reaction;
+use std::env;
 use std::time::Duration;
 use tokio::sync::{Mutex, RwLock};
 
@@ -98,7 +99,13 @@ fn create_now_playing_embed<'a>(
             meta.title.clone().unwrap(),
             meta.source_url.clone().unwrap(),
             meta.artist.clone().unwrap()
-        ));
+        ))
+        .footer(|f| {
+            f.text(format!(
+                "Use {}play to add a song to the queue",
+                env::var("BOT_PREFIX").unwrap()
+            ))
+        });
 
     if let Some(thumb) = meta.thumbnail.clone() {
         embed = embed.thumbnail(thumb);
