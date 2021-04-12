@@ -35,7 +35,11 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         handler = Some(join_channel(ctx, channel_id, guild.id).await);
     }
 
-    let handler = handler.ok_or(CommandError::from("Not in a voice channel"))?;
+    let handler = forward_error!(
+        ctx,
+        msg.channel_id,
+        handler.ok_or(CommandError::from("I'm not in a voice channel"))
+    );
 
     let mut songs = get_songs_for_query(&ctx, msg, query).await?;
 

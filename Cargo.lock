@@ -205,7 +205,7 @@ dependencies = [
 
 [[package]]
 name = "bot-serenityutils"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "futures",
  "log 0.4.14",
@@ -2282,7 +2282,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tobi-rs"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "aspotify",
  "bot-coreutils",

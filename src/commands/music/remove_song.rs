@@ -1,4 +1,7 @@
+use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, is_dj};
+use bot_serenityutils::core::SHORT_TIMEOUT;
+use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
@@ -24,14 +27,20 @@ async fn remove_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
         return Ok(());
     }
     {
-        let queue = get_queue_for_guild(ctx, &guild.id).await?;
+        let queue = forward_error!(
+            ctx,
+            msg.channel_id,
+            get_queue_for_guild(ctx, &guild.id).await
+        );
         let mut queue_lock = queue.lock().await;
         queue_lock.remove(pos);
     }
 
-    msg.channel_id
-        .say(ctx, format!("Removed Song at `{}`", pos))
-        .await?;
+    EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+        m.content(format!("🗑️ Removed Song at `{}`", pos))
+    })
+    .await?;
+    handle_autodelete(ctx, msg).await?;
 
     Ok(())
 }

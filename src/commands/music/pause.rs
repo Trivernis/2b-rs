@@ -6,6 +6,8 @@ use serenity::prelude::*;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, is_dj};
 use crate::messages::music::now_playing::update_now_playing_msg;
+use bot_serenityutils::core::SHORT_TIMEOUT;
+use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]
@@ -20,21 +22,31 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
 
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     let mut queue_lock = queue.lock().await;
 
     if let Some(_) = queue_lock.current() {
         queue_lock.pause();
         if queue_lock.paused() {
             log::debug!("Paused");
-            msg.channel_id.say(ctx, "Paused playback").await?;
+            EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+                m.content("⏸️ Paused playback️")
+            })
+            .await?;
             if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
             {
                 update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
             }
         } else {
             log::debug!("Resumed");
-            msg.channel_id.say(ctx, "Resumed playback").await?;
+            EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+                m.content("▶ Resumed playback️")
+            })
+            .await?;
             if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
             {
                 update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;

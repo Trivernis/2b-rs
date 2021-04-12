@@ -16,7 +16,11 @@ async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Fetching lyrics for song playing in {}", guild.id);
 
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     let queue_lock = queue.lock().await;
 
     if let Some(current) = queue_lock.current() {

@@ -23,7 +23,11 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .map(|s| s.unwrap().to_lowercase())
         .collect::<Vec<String>>();
 
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     let queue_lock = queue.lock().await;
     let songs: Vec<(usize, Song)> = queue_lock
         .entries()

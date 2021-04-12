@@ -194,7 +194,7 @@ fn get_channel_for_author(author_id: &UserId, guild: &Guild) -> BotResult<Channe
         .voice_states
         .get(author_id)
         .and_then(|voice_state| voice_state.channel_id)
-        .ok_or(BotError::from("Not in a voice channel."))
+        .ok_or(BotError::from("You're not in a Voice Channel"))
 }
 
 /// Returns the voice manager from the context
@@ -216,7 +216,7 @@ pub(crate) async fn get_queue_for_guild(
     let queue = store
         .music_queues
         .get(guild_id)
-        .ok_or(BotError::from("No queue for server"))?
+        .ok_or(BotError::from("I'm not in a Voice Channel"))?
         .clone();
     Ok(queue)
 }
@@ -257,8 +257,14 @@ async fn play_next_in_queue(
         let track = handler_lock.play_only_source(source);
         log::trace!("Track is {:?}", track);
 
+        if queue_lock.paused() {
+            let _ = track.pause();
+        }
+
         if let Some(np) = &queue_lock.now_playing_msg {
-            if let Err(e) = update_now_playing_msg(http, np, track.metadata(), false).await {
+            if let Err(e) =
+                update_now_playing_msg(http, np, track.metadata(), queue_lock.paused()).await
+            {
                 log::error!("Failed to update now playing message: {:?}", e);
             }
         }
