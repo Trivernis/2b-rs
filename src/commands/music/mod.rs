@@ -22,16 +22,18 @@ use current::CURRENT_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
 use lyrics::LYRICS_COMMAND;
+use move_song::MOVE_SONG_COMMAND;
 use pause::PAUSE_COMMAND;
 use play::PLAY_COMMAND;
 use play_next::PLAY_NEXT_COMMAND;
 use playlists::PLAYLISTS_COMMAND;
 use queue::QUEUE_COMMAND;
+use remove_song::REMOVE_SONG_COMMAND;
 use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
-use crate::messages::music::update_now_playing_msg;
+use crate::messages::music::now_playing::update_now_playing_msg;
 use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::youtube_dl;
 use crate::providers::settings::{get_setting, Setting};
@@ -43,11 +45,13 @@ mod current;
 mod join;
 mod leave;
 mod lyrics;
+mod move_song;
 mod pause;
 mod play;
 mod play_next;
 mod playlists;
 mod queue;
+mod remove_song;
 mod save_playlist;
 mod shuffle;
 mod skip;
@@ -66,7 +70,9 @@ mod skip;
     pause,
     save_playlist,
     playlists,
-    lyrics
+    lyrics,
+    move_song,
+    remove_song
 )]
 pub struct Music;
 

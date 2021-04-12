@@ -7,7 +7,7 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
-use crate::messages::music::create_now_playing_msg;
+use crate::messages::music::now_playing::create_now_playing_msg;
 
 #[command]
 #[only_in(guilds)]

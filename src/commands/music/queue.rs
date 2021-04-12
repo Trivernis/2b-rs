@@ -1,30 +1,49 @@
-use std::cmp::min;
-
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::CommandResult;
+use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::get_queue_for_guild;
+use crate::messages::music::queue::create_queue_menu;
+use crate::providers::music::queue::Song;
 
 #[command]
 #[only_in(guilds)]
 #[description("Shows the song queue")]
-#[usage("")]
+#[usage("(<query...>)")]
 #[aliases("q")]
 #[bucket("general")]
-async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
+async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::trace!("Displaying queue for guild {}", guild.id);
 
+    let query = args
+        .iter::<String>()
+        .map(|s| s.unwrap().to_lowercase())
+        .collect::<Vec<String>>();
+
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
     let queue_lock = queue.lock().await;
-    let songs: Vec<(usize, String)> = queue_lock
+    let songs: Vec<(usize, Song)> = queue_lock
         .entries()
         .into_iter()
-        .map(|s| s.title().clone())
         .enumerate()
+        .filter(|(i, s)| {
+            if query.is_empty() {
+                return true;
+            }
+            for kw in &query {
+                if s.title().to_lowercase().contains(kw)
+                    || s.author().to_lowercase().contains(kw)
+                    || &i.to_string() == kw
+                {
+                    return true;
+                }
+            }
+            false
+        })
+        .map(|(i, s)| (i, s.clone()))
         .collect();
     log::trace!("Songs are {:?}", songs);
 
@@ -37,26 +56,8 @@ async fn queue(ctx: &Context, msg: &Message) -> CommandResult {
 
         return Ok(());
     }
+    create_queue_menu(ctx, msg.channel_id, songs).await?;
 
-    let mut song_list = Vec::new();
-
-    for i in 0..min(10, songs.len() - 1) {
-        song_list.push(format!("{:0>3} - {}", songs[i].0 + 1, songs[i].1))
-    }
-    if songs.len() > 10 {
-        song_list.push("...".to_string());
-        let last = songs.last().unwrap();
-        song_list.push(format!("{:0>3} - {}", last.0 + 1, last.1))
-    }
-    log::trace!("Song list is {:?}", song_list);
-    msg.channel_id
-        .send_message(ctx, |m| {
-            m.embed(|e| {
-                e.title("Queue")
-                    .description(format!("```\n{}\n```", song_list.join("\n")))
-            })
-        })
-        .await?;
     handle_autodelete(ctx, msg).await?;
 
     Ok(())

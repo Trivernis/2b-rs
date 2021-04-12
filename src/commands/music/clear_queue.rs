@@ -10,7 +10,7 @@ use crate::commands::music::{get_queue_for_guild, is_dj};
 #[only_in(guilds)]
 #[description("Clears the queue")]
 #[usage("")]
-#[aliases("cl")]
+#[aliases("cq", "clear-queue", "clearqueue")]
 #[bucket("general")]
 async fn clear_queue(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();

@@ -8,6 +8,7 @@ use serenity::model::channel::Message;
 #[command]
 #[description("Displays a list of all gifs used by the bot")]
 #[bucket("general")]
+#[only_in(guilds)]
 async fn gifs(ctx: &Context, msg: &Message) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let gifs = database.get_all_gifs().await?;
