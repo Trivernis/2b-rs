@@ -23,7 +23,11 @@ async fn clear_queue(ctx: &Context, msg: &Message) -> CommandResult {
     }
     log::debug!("Clearing queue for guild {}", guild.id);
 
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     {
         let mut queue_lock = queue.lock().await;
         queue_lock.clear();

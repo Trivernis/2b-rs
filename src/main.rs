@@ -1,6 +1,9 @@
 use crate::client::get_client;
 use crate::utils::logging::init_logger;
 
+#[macro_use]
+extern crate bot_serenityutils;
+
 pub mod client;
 mod commands;
 pub mod handler;

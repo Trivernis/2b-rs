@@ -22,7 +22,11 @@ async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
         msg.channel_id.say(ctx, "Requires DJ permissions").await?;
         return Ok(());
     }
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     {
         let mut queue_lock = queue.lock().await;
         queue_lock.shuffle();

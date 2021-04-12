@@ -21,7 +21,11 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
         return Ok(());
     }
     log::debug!("Skipping song for guild {}", guild.id);
-    let queue = get_queue_for_guild(ctx, &guild.id).await?;
+    let queue = forward_error!(
+        ctx,
+        msg.channel_id,
+        get_queue_for_guild(ctx, &guild.id).await
+    );
     let queue_lock = queue.lock().await;
 
     if let Some(current) = queue_lock.current() {

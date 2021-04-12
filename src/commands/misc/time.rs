@@ -17,13 +17,13 @@ async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let second_timezone = args.single::<String>().ok();
 
     let from_timezone: Tz = if let Some(first) = &first_timezone {
-        first.parse::<Tz>()?
+        forward_error!(ctx, msg.channel_id, first.parse::<Tz>())
     } else {
         Tz::UTC
     };
 
     let to_timezone = if let Some(second) = &second_timezone {
-        second.parse::<Tz>()?
+        forward_error!(ctx, msg.channel_id, second.parse::<Tz>())
     } else {
         Tz::UTC
     };
@@ -33,18 +33,25 @@ async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     } else {
         let now = Utc::now();
         if second_timezone.is_some() {
-            from_timezone.datetime_from_str(
-                &format!("{} {}:00", now.format("%Y-%m-%d"), &*when),
-                "%Y-%m-%d %H:%M:%S",
-            )?
-        } else {
-            let timezone: Tz = "UTC".parse().unwrap();
-            timezone
-                .datetime_from_str(
+            forward_error!(
+                ctx,
+                msg.channel_id,
+                from_timezone.datetime_from_str(
                     &format!("{} {}:00", now.format("%Y-%m-%d"), &*when),
                     "%Y-%m-%d %H:%M:%S",
-                )?
-                .with_timezone(&from_timezone)
+                )
+            )
+        } else {
+            let timezone: Tz = "UTC".parse().unwrap();
+            forward_error!(
+                ctx,
+                msg.channel_id,
+                timezone.datetime_from_str(
+                    &format!("{} {}:00", now.format("%Y-%m-%d"), &*when),
+                    "%Y-%m-%d %H:%M:%S",
+                )
+            )
+            .with_timezone(&from_timezone)
         }
     };
 

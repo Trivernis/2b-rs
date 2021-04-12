@@ -27,7 +27,11 @@ async fn remove_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandRes
         return Ok(());
     }
     {
-        let queue = get_queue_for_guild(ctx, &guild.id).await?;
+        let queue = forward_error!(
+            ctx,
+            msg.channel_id,
+            get_queue_for_guild(ctx, &guild.id).await
+        );
         let mut queue_lock = queue.lock().await;
         queue_lock.remove(pos);
     }

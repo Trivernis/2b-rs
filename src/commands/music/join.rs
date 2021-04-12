@@ -20,10 +20,18 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         if is_dj(ctx, guild.id, &msg.author).await? {
             ChannelId(arg)
         } else {
-            get_channel_for_author(&msg.author.id, &guild)?
+            forward_error!(
+                ctx,
+                msg.channel_id,
+                get_channel_for_author(&msg.author.id, &guild)
+            )
         }
     } else {
-        get_channel_for_author(&msg.author.id, &guild)?
+        forward_error!(
+            ctx,
+            msg.channel_id,
+            get_channel_for_author(&msg.author.id, &guild)
+        )
     };
     log::debug!("Joining channel {} for guild {}", channel_id, guild.id);
     join_channel(ctx, channel_id, guild.id).await;
