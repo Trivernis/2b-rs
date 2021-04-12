@@ -7,6 +7,7 @@ use serenity::model::channel::Reaction;
 
 /// Shows the next page in the menu
 pub async fn next_page(ctx: &Context, menu: &mut Menu<'_>, _: Reaction) -> SerenityUtilsResult<()> {
+    log::debug!("Showing next page");
     menu.current_page = (menu.current_page + 1) % menu.pages.len();
     display_page(ctx, menu).await?;
 
@@ -19,6 +20,7 @@ pub async fn previous_page(
     menu: &mut Menu<'_>,
     _: Reaction,
 ) -> SerenityUtilsResult<()> {
+    log::debug!("Showing previous page");
     if menu.current_page == 0 {
         menu.current_page = menu.pages.len() - 1;
     } else {
@@ -35,6 +37,7 @@ pub async fn close_menu(
     menu: &mut Menu<'_>,
     _: Reaction,
 ) -> SerenityUtilsResult<()> {
+    log::debug!("Closing menu");
     menu.close(ctx.http()).await?;
     let listeners = get_listeners_from_context(&ctx).await?;
     let mut listeners_lock = listeners.lock().await;
@@ -46,6 +49,7 @@ pub async fn close_menu(
 
 /// Displays the menu page
 async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult<()> {
+    log::debug!("Displaying page {}", menu.current_page);
     let page = menu
         .pages
         .get(menu.current_page)
@@ -59,6 +63,7 @@ async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult
         e
     })
     .await?;
+    log::debug!("Page displayed");
 
     Ok(())
 }

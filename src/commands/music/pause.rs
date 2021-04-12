@@ -5,7 +5,7 @@ use serenity::prelude::*;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, is_dj};
-use crate::messages::music::update_now_playing_msg;
+use crate::messages::music::now_playing::update_now_playing_msg;
 
 #[command]
 #[only_in(guilds)]

@@ -31,7 +31,7 @@ use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
-use crate::messages::music::update_now_playing_msg;
+use crate::messages::music::now_playing::update_now_playing_msg;
 use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::youtube_dl;
 use crate::providers::settings::{get_setting, Setting};
