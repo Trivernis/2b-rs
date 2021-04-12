@@ -4,6 +4,12 @@ use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::id::{ChannelId, MessageId};
 use std::sync::Arc;
+use std::time::Duration;
+
+pub static SHORT_TIMEOUT: Duration = Duration::from_secs(5);
+pub static MEDIUM_TIMEOUT: Duration = Duration::from_secs(20);
+pub static LONG_TIMEOUT: Duration = Duration::from_secs(60);
+pub static EXTRA_LONG_TIMEOUT: Duration = Duration::from_secs(600);
 
 pub type BoxedEventDrivenMessage = Box<dyn EventDrivenMessage>;
 

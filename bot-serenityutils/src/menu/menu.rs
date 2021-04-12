@@ -189,10 +189,6 @@ impl<'a> EventDrivenMessage for Menu<'a> {
         Ok(())
     }
 
-    async fn on_deleted(&mut self, _: &Context) -> SerenityUtilsResult<()> {
-        Ok(())
-    }
-
     async fn on_reaction_add(
         &mut self,
         ctx: &Context,
@@ -214,10 +210,6 @@ impl<'a> EventDrivenMessage for Menu<'a> {
             control.run(ctx, self, reaction).await?;
         }
 
-        Ok(())
-    }
-
-    async fn on_reaction_remove(&mut self, _: &Context, _: Reaction) -> SerenityUtilsResult<()> {
         Ok(())
     }
 }

@@ -17,6 +17,8 @@ impl TypeMapKey for EventDrivenMessageContainer {
     type Value = EventDrivenMessagesRef;
 }
 
+static UPDATE_INTERVAL_SECS: u64 = 5;
+
 /// Starts the loop to handle message updates
 pub async fn start_update_loop(ctx: &Context) {
     let event_messages = get_listeners_from_context(ctx)
@@ -56,7 +58,7 @@ pub async fn start_update_loop(ctx: &Context) {
                 }
             }
             log::trace!("Listener unlocked");
-            tokio::time::sleep(Duration::from_secs(10)).await;
+            tokio::time::sleep(Duration::from_secs(UPDATE_INTERVAL_SECS)).await;
         }
     });
 }

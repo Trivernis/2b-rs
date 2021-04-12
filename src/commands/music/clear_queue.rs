@@ -5,6 +5,8 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, is_dj};
+use bot_serenityutils::core::SHORT_TIMEOUT;
+use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]
@@ -27,9 +29,10 @@ async fn clear_queue(ctx: &Context, msg: &Message) -> CommandResult {
         queue_lock.clear();
     }
 
-    msg.channel_id
-        .say(ctx, "The queue has been cleared")
-        .await?;
+    EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+        m.content("🧹 The queue has been cleared")
+    })
+    .await?;
     handle_autodelete(ctx, msg).await?;
 
     Ok(())

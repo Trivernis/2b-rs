@@ -5,6 +5,8 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_channel_for_author, is_dj, join_channel};
+use bot_serenityutils::core::SHORT_TIMEOUT;
+use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::model::id::ChannelId;
 
 #[command]
@@ -25,6 +27,10 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     };
     log::debug!("Joining channel {} for guild {}", channel_id, guild.id);
     join_channel(ctx, channel_id, guild.id).await;
+    EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+        m.content("🎤 Joined the Voice Channel")
+    })
+    .await?;
     handle_autodelete(ctx, msg).await?;
 
     Ok(())
