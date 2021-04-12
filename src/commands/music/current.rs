@@ -25,7 +25,8 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(current) = queue_lock.current() {
         let metadata = current.metadata().clone();
         log::trace!("Metadata is {:?}", metadata);
-        let np_msg = create_now_playing_msg(ctx, msg.channel_id, &metadata).await?;
+        let np_msg =
+            create_now_playing_msg(ctx, msg.channel_id, &metadata, queue_lock.paused()).await?;
 
         if let Some(old_np) = mem::replace(&mut queue_lock.now_playing_msg, Some(np_msg)) {
             let old_np = old_np.read().await;

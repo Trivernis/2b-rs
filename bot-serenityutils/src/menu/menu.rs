@@ -116,6 +116,21 @@ impl Menu<'_> {
                 &serde_json::to_value(current_page.0).unwrap(),
             )
             .await?;
+        let mut controls = self
+            .controls
+            .clone()
+            .into_iter()
+            .collect::<Vec<(String, ActionContainer)>>();
+        controls.sort_by_key(|(_, a)| a.position);
+
+        for emoji in controls.into_iter().map(|(e, _)| e) {
+            http.create_reaction(
+                message.channel_id.0,
+                message.id.0,
+                &ReactionType::Unicode(emoji.clone()),
+            )
+            .await?;
+        }
         log::trace!("New message is {:?}", message);
 
         handle.message_id = message.id.0;

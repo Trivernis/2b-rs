@@ -1,3 +1,4 @@
+use bot_serenityutils::error::SerenityUtilsError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -34,6 +35,12 @@ pub enum BotError {
     #[error("Serenity Utils Error: {0}")]
     SerenityUtils(#[from] bot_serenityutils::error::SerenityUtilsError),
 
+    #[error("Track Error: {0}")]
+    TrackError(#[from] songbird::error::TrackError),
+
+    #[error("JoinError: {0}")]
+    JoinError(#[from] songbird::error::JoinError),
+
     #[error("{0}")]
     Msg(String),
 }
@@ -41,5 +48,11 @@ pub enum BotError {
 impl From<&str> for BotError {
     fn from(s: &str) -> Self {
         Self::Msg(s.to_string())
+    }
+}
+
+impl From<BotError> for SerenityUtilsError {
+    fn from(e: BotError) -> Self {
+        Self::Msg(format!("{:?}", e))
     }
 }

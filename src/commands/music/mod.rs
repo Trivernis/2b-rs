@@ -192,7 +192,7 @@ fn get_channel_for_author(author_id: &UserId, guild: &Guild) -> BotResult<Channe
 }
 
 /// Returns the voice manager from the context
-async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
+pub async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
     songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
@@ -252,7 +252,7 @@ async fn play_next_in_queue(
         log::trace!("Track is {:?}", track);
 
         if let Some(np) = &queue_lock.now_playing_msg {
-            if let Err(e) = update_now_playing_msg(http, np, track.metadata()).await {
+            if let Err(e) = update_now_playing_msg(http, np, track.metadata(), false).await {
                 log::error!("Failed to update now playing message: {:?}", e);
             }
         }
@@ -381,7 +381,7 @@ async fn added_multiple_msg(ctx: &Context, msg: &Message, songs: &mut Vec<Song>)
 
 /// Returns if the given user is a dj in the given guild based on the
 /// setting for the name of the dj role
-async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool> {
+pub async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool> {
     let dj_role = get_setting::<String>(ctx, guild, Setting::MusicDjRole).await?;
 
     if let Some(role_name) = dj_role {
