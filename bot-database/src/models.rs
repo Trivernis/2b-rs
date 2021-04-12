@@ -1,4 +1,5 @@
 use crate::schema::*;
+use std::time::SystemTime;
 
 #[derive(Queryable, Debug)]
 pub struct GuildSetting {
@@ -44,4 +45,14 @@ pub struct GifInsert {
     pub category: Option<String>,
     pub name: Option<String>,
     pub url: String,
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "statistics"]
+pub struct StatisticsInsert {
+    pub version: String,
+    pub command: String,
+    pub executed_at: SystemTime,
+    pub success: bool,
+    pub error_msg: Option<String>,
 }

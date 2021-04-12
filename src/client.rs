@@ -12,11 +12,12 @@ use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::handler::Handler;
-use crate::utils::context_data::{DatabaseContainer, Store, StoreData};
+use crate::utils::context_data::{get_database_from_context, DatabaseContainer, Store, StoreData};
 use crate::utils::error::{BotError, BotResult};
 use bot_serenityutils::menu::EventDrivenMessageContainer;
 use serenity::framework::standard::buckets::LimitedFor;
 use std::sync::Arc;
+use std::time::SystemTime;
 use tokio::sync::Mutex;
 
 pub async fn get_client() -> BotResult<Client> {
@@ -84,7 +85,9 @@ pub async fn get_framework() -> StandardFramework {
 #[hook]
 async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: CommandResult) {
     //  Print out an error if it happened
+    let mut error_msg = None;
     if let Err(why) = error {
+        error_msg = Some(why.to_string());
         let _ = msg
             .channel_id
             .send_message(ctx, |m| {
@@ -93,6 +96,16 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
             .await;
         log::warn!("Error in {}: {:?}", cmd_name, why);
     }
+    let database = get_database_from_context(ctx).await;
+    let _ = database
+        .add_statistic(
+            env!("CARGO_PKG_VERSION"),
+            cmd_name,
+            SystemTime::now(),
+            error_msg.is_none(),
+            error_msg,
+        )
+        .await;
 }
 
 #[hook]

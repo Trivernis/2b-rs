@@ -7,6 +7,7 @@ use diesel::{delete, insert_into};
 use std::any;
 use std::fmt::Debug;
 use std::str::FromStr;
+use std::time::SystemTime;
 use tokio_diesel::*;
 
 #[derive(Clone)]
@@ -193,6 +194,31 @@ impl Database {
                 url: url.to_string(),
                 name,
                 category,
+            })
+            .execute_async(&self.pool)
+            .await?;
+
+        Ok(())
+    }
+
+    /// Adds a command statistic to the database
+    pub async fn add_statistic(
+        &self,
+        version: &str,
+        command: &str,
+        executed_at: SystemTime,
+        success: bool,
+        error_msg: Option<String>,
+    ) -> DatabaseResult<()> {
+        use statistics::dsl;
+        log::trace!("Adding statistic to database");
+        insert_into(dsl::statistics)
+            .values(StatisticsInsert {
+                version: version.to_string(),
+                command: command.to_string(),
+                executed_at,
+                success,
+                error_msg,
             })
             .execute_async(&self.pool)
             .await?;
