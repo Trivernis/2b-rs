@@ -9,6 +9,7 @@ use serenity::prelude::*;
 use sysinfo::{ProcessExt, SystemExt};
 
 use crate::commands::common::handle_autodelete;
+use crate::utils::context_data::get_database_from_context;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -18,6 +19,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 #[bucket("general")]
 async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Reading system stats");
+    let database = get_database_from_context(ctx).await;
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
     let kernel_version = system.get_kernel_version().unwrap_or("n/a".to_string());
@@ -32,14 +34,16 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let current_time_seconds = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let uptime = current_time_seconds - Duration::from_secs(own_process.start_time());
     let uptime = ChronoDuration::from_std(uptime).unwrap();
+    let total_commands_executed = database.get_total_commands_statistic().await?;
 
     let discord_info = format!(
         r#"
     Version: {}
     Owner: <@{}>
     Guilds: {}
+    Times Used: {}
     "#,
-        VERSION, bot_info.owner.id, guild_count
+        VERSION, bot_info.owner.id, guild_count, total_commands_executed
     );
 
     log::trace!("Discord info {}", discord_info);

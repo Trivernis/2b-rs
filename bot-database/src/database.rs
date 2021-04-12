@@ -2,6 +2,7 @@ use crate::error::DatabaseResult;
 use crate::models::*;
 use crate::schema::*;
 use crate::PoolConnection;
+use diesel::dsl::count;
 use diesel::prelude::*;
 use diesel::{delete, insert_into};
 use std::any;
@@ -213,7 +214,7 @@ impl Database {
         use statistics::dsl;
         log::trace!("Adding statistic to database");
         insert_into(dsl::statistics)
-            .values(StatisticsInsert {
+            .values(StatisticInsert {
                 version: version.to_string(),
                 command: command.to_string(),
                 executed_at,
@@ -224,5 +225,17 @@ impl Database {
             .await?;
 
         Ok(())
+    }
+
+    /// Returns the total number of commands executed
+    pub async fn get_total_commands_statistic(&self) -> DatabaseResult<u64> {
+        use statistics::dsl;
+        log::trace!("Querying total number of commands");
+        let total_count: i64 = dsl::statistics
+            .select(count(dsl::id))
+            .first_async::<i64>(&self.pool)
+            .await?;
+
+        Ok(total_count as u64)
     }
 }

@@ -49,7 +49,7 @@ pub struct GifInsert {
 
 #[derive(Insertable, Debug)]
 #[table_name = "statistics"]
-pub struct StatisticsInsert {
+pub struct StatisticInsert {
     pub version: String,
     pub command: String,
     pub executed_at: SystemTime,
