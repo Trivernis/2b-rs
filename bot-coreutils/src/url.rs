@@ -69,3 +69,8 @@ pub fn is_video(url_str: &str) -> bool {
         false
     }
 }
+
+/// Returns if the given url is valid
+pub fn is_valid(url_str: &str) -> bool {
+    Url::parse(url_str).is_ok()
+}

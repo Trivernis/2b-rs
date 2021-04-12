@@ -4,7 +4,10 @@ use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 use serenity::{framework::standard::macros::command, prelude::*};
 
+use crate::utils::context_data::get_database_from_context;
+use crate::utils::error::{BotError, BotResult};
 use crate::utils::get_previous_message_or_reply;
+use bot_database::models::Gif;
 
 // return a normal peko in most cases
 static PEKOS: &[&str] = &[
@@ -15,6 +18,7 @@ static PEKOS: &[&str] = &[
     "🇵 🇪 🇰 🇴",
     "p3k0",
 ];
+static GIF_CATEGORY: &str = "pain-peko";
 
 #[command]
 #[description("Pekofy messages")]
@@ -44,7 +48,7 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     alpha_lowercase.retain(|c| c.is_alphanumeric());
 
     let pekofied: String = if alpha_lowercase == "pain" {
-        "https://tenor.com/view/pekora-usada-peko-hololive-died-gif-18114577".to_string()
+        random_pain_gif(ctx).await?.url
     } else if PEKOS.contains(&&*alpha_lowercase) {
         random_peko()
     } else {
@@ -107,4 +111,13 @@ fn random_peko() -> String {
     } else {
         "peko".to_string()
     }
+}
+
+/// Chooses a random pain peko gif
+async fn random_pain_gif(ctx: &Context) -> BotResult<Gif> {
+    let database = get_database_from_context(ctx).await;
+    let gifs = database.get_gifs_by_category(GIF_CATEGORY).await?;
+    gifs.into_iter()
+        .choose(&mut rand::thread_rng())
+        .ok_or(BotError::from("No gifs found"))
 }

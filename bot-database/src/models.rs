@@ -29,3 +29,19 @@ pub struct GuildPlaylistInsert {
     pub name: String,
     pub url: String,
 }
+
+#[derive(Queryable, Debug, Clone)]
+pub struct Gif {
+    pub id: i64,
+    pub category: Option<String>,
+    pub name: Option<String>,
+    pub url: String,
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "gifs"]
+pub struct GifInsert {
+    pub category: Option<String>,
+    pub name: Option<String>,
+    pub url: String,
+}
