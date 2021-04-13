@@ -11,6 +11,8 @@ mod messages;
 mod providers;
 pub mod utils;
 
+pub static VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[tokio::main]
 async fn main() {
     init_logger();

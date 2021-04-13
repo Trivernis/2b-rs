@@ -4,7 +4,8 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_queue_for_guild, get_voice_manager, is_dj};
+use crate::commands::music::{get_voice_manager, is_dj};
+use crate::utils::context_data::Store;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
@@ -23,11 +24,14 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     let manager = get_voice_manager(ctx).await;
-    let queue = forward_error!(
-        ctx,
-        msg.channel_id,
-        get_queue_for_guild(ctx, &guild.id).await
-    );
+    let queue = {
+        let mut data = ctx.data.write().await;
+        let store = data.get_mut::<Store>().unwrap();
+        store
+            .music_queues
+            .remove(&guild.id)
+            .expect("No queue for guild.")
+    };
     let queue_lock = queue.lock().await;
     let handler = manager.get(guild.id);
 

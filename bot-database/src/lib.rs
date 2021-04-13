@@ -14,6 +14,7 @@ pub mod error;
 pub mod models;
 pub mod schema;
 
+pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 pub use database::Database;
 
 type PoolConnection = Pool<ConnectionManager<PgConnection>>;
