@@ -19,7 +19,7 @@ async fn main() {
     let mut client = get_client().await.unwrap();
 
     // start listening for events by starting a single shard
-    if let Err(why) = client.start().await {
+    if let Err(why) = client.start_autosharded().await {
         log::error!("An error occurred while running the client: {:?}", why);
     }
 }

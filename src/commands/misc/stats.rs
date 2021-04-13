@@ -36,6 +36,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let uptime = current_time_seconds - Duration::from_secs(own_process.start_time());
     let uptime = ChronoDuration::from_std(uptime).unwrap();
     let total_commands_executed = database.get_total_commands_statistic().await?;
+    let shard_count = ctx.cache.shard_count().await;
 
     let discord_info = format!(
         r#"
@@ -43,6 +44,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     Compiled with: rustc {}
     Owner: <@{}>
     Guilds: {}
+    Shards: {}
     Voice Connections: {}
     Times Used: {}
     "#,
@@ -50,6 +52,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         rustc_version_runtime::version(),
         bot_info.owner.id,
         guild_count,
+        shard_count,
         get_queue_count(ctx).await,
         total_commands_executed
     );
