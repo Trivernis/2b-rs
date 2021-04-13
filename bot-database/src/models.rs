@@ -56,3 +56,24 @@ pub struct StatisticInsert {
     pub success: bool,
     pub error_msg: Option<String>,
 }
+
+#[derive(Queryable, Debug, Clone)]
+pub struct YoutubeSong {
+    pub id: i64,
+    pub spotify_id: String,
+    pub artist: String,
+    pub title: String,
+    pub album: String,
+    pub url: String,
+    pub score: i32,
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "youtube_songs"]
+pub struct YoutubeSongInsert {
+    pub spotify_id: String,
+    pub artist: String,
+    pub title: String,
+    pub album: String,
+    pub url: String,
+}

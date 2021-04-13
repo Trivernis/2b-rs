@@ -34,9 +34,22 @@ table! {
     }
 }
 
+table! {
+    youtube_songs (id) {
+        id -> Int8,
+        spotify_id -> Varchar,
+        artist -> Varchar,
+        title -> Varchar,
+        album -> Varchar,
+        url -> Varchar,
+        score -> Int4,
+    }
+}
+
 allow_tables_to_appear_in_same_query!(
     gifs,
     guild_playlists,
     guild_settings,
     statistics,
+    youtube_songs,
 );
