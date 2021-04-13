@@ -11,13 +11,15 @@ mod messages;
 mod providers;
 pub mod utils;
 
+pub static VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[tokio::main]
 async fn main() {
     init_logger();
     let mut client = get_client().await.unwrap();
 
     // start listening for events by starting a single shard
-    if let Err(why) = client.start().await {
+    if let Err(why) = client.start_autosharded().await {
         log::error!("An error occurred while running the client: {:?}", why);
     }
 }

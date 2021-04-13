@@ -9,9 +9,9 @@ use serenity::prelude::*;
 use sysinfo::{ProcessExt, SystemExt};
 
 use crate::commands::common::handle_autodelete;
-use crate::utils::context_data::get_database_from_context;
-
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+use crate::providers::music::queue::MusicQueue;
+use crate::utils::context_data::{get_database_from_context, Store};
+use std::sync::Arc;
 
 #[command]
 #[description("Shows some statistics about the bot")]
@@ -22,6 +22,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
+
     let kernel_version = system.get_kernel_version().unwrap_or("n/a".to_string());
     let own_process = system.get_process(process::id() as i32).unwrap();
     let memory_usage = own_process.memory();
@@ -35,15 +36,25 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let uptime = current_time_seconds - Duration::from_secs(own_process.start_time());
     let uptime = ChronoDuration::from_std(uptime).unwrap();
     let total_commands_executed = database.get_total_commands_statistic().await?;
+    let shard_count = ctx.cache.shard_count().await;
 
     let discord_info = format!(
         r#"
     Version: {}
+    Compiled with: rustc {}
     Owner: <@{}>
     Guilds: {}
+    Shards: {}
+    Voice Connections: {}
     Times Used: {}
     "#,
-        VERSION, bot_info.owner.id, guild_count, total_commands_executed
+        crate::VERSION,
+        rustc_version_runtime::version(),
+        bot_info.owner.id,
+        guild_count,
+        shard_count,
+        get_queue_count(ctx).await,
+        total_commands_executed
     );
 
     log::trace!("Discord info {}", discord_info);
@@ -78,4 +89,28 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     handle_autodelete(ctx, msg).await?;
 
     Ok(())
+}
+
+/// Returns the total number of queues that are not
+/// flagged to leave
+async fn get_queue_count(ctx: &Context) -> usize {
+    let queues: Vec<Arc<Mutex<MusicQueue>>> = {
+        let data = ctx.data.read().await;
+        let store = data.get::<Store>().unwrap();
+
+        store
+            .music_queues
+            .iter()
+            .map(|(_, q)| Arc::clone(q))
+            .collect()
+    };
+    let mut count = 0;
+    for queue in queues {
+        let queue = queue.lock().await;
+        if !queue.leave_flag {
+            count += 1;
+        }
+    }
+
+    count
 }

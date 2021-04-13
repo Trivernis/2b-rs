@@ -99,7 +99,7 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
     let database = get_database_from_context(ctx).await;
     let _ = database
         .add_statistic(
-            env!("CARGO_PKG_VERSION"),
+            crate::VERSION,
             cmd_name,
             SystemTime::now(),
             error_msg.is_none(),

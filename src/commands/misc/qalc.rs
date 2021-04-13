@@ -13,6 +13,7 @@ static QALC_HELP: &[&str] = &["help", "--help", "-h", "h"];
 #[min_args(1)]
 #[usage("<expression>")]
 #[example("1 * 1 + 1 / sqrt(2)")]
+#[aliases("calc", "calculate", "qalculate")]
 #[bucket("general")]
 async fn qalc(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let expression = args.message();
