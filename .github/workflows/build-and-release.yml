@@ -20,7 +20,6 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            target
             ~/.cargo/
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
@@ -31,6 +30,8 @@ jobs:
           use-cross: false
           command: build
           args: --release --target x86_64-unknown-linux-gnu
+      - name: Strip symbols
+        run: strip target/x86_64-unknown-linux-gnu/release/tobi-rs
       - name: Move binaries
         run: mv target/x86_64-unknown-linux-gnu/release/tobi-rs target/tobi-rs-linux-x86_64
       - name: Upload artifacts
