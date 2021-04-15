@@ -1,6 +1,5 @@
-use aspotify::{Client, ClientCredentials, PlaylistItem, PlaylistItemType};
+use aspotify::{Client, ClientCredentials, ItemType, PlaylistItemType, Track};
 
-use crate::providers::music::queue::Song;
 use crate::utils::error::{BotError, BotResult};
 
 pub struct SpotifyApi {
@@ -21,8 +20,26 @@ impl SpotifyApi {
         Self { client }
     }
 
+    /// Searches for a song on spotify
+    pub async fn search_for_song(&self, query: &str) -> BotResult<Option<Track>> {
+        log::debug!("Searching for song '{}' on spotify", query);
+        let types = vec![ItemType::Track];
+        let result = self
+            .client
+            .search()
+            .search(query, types, false, 1, 0, None)
+            .await?;
+        log::trace!("Result is {:?}", result);
+        let tracks = result
+            .data
+            .tracks
+            .ok_or(BotError::from("Failed to get search spotify results"))?;
+
+        Ok(tracks.items.into_iter().next())
+    }
+
     /// Returns the songs for a playlist
-    pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<Song>> {
+    pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<Track>> {
         log::debug!("Fetching spotify songs from playlist '{}'", url);
         let id = self.get_id_for_url(url)?;
         let mut playlist_tracks = Vec::new();
@@ -42,17 +59,9 @@ impl SpotifyApi {
             url
         );
 
-        let songs = playlist_tracks
-            .into_iter()
-            .filter_map(|item| item.item)
-            .filter_map(|t| match t {
-                PlaylistItemType::Track(t) => Some(Song::from(t)),
-                PlaylistItemType::Episode(_) => None,
-            })
-            .collect();
-        log::trace!("Songs are {:?}", songs);
+        log::trace!("Songs are {:?}", playlist_tracks);
 
-        Ok(songs)
+        Ok(playlist_tracks)
     }
 
     /// Returns the tracks of a playlist with pagination
@@ -61,43 +70,66 @@ impl SpotifyApi {
         id: &str,
         limit: usize,
         offset: usize,
-    ) -> BotResult<Vec<PlaylistItem>> {
+    ) -> BotResult<Vec<Track>> {
         log::trace!(
             "Fetching songs from spotify playlist: limit {}, offset {}",
             limit,
             offset
         );
-        let tracks = self
+        let page = self
             .client
             .playlists()
             .get_playlists_items(id, limit, offset, None)
             .await?
             .data;
+
+        let tracks: Vec<Track> = page
+            .items
+            .into_iter()
+            .filter_map(|item| item.item)
+            .filter_map(|t| match t {
+                PlaylistItemType::Track(t) => Some(t),
+                PlaylistItemType::Episode(_) => None,
+            })
+            .collect();
         log::trace!("Tracks are {:?}", tracks);
 
-        Ok(tracks.items)
+        Ok(tracks)
     }
 
     /// Returns all songs for a given album
-    pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<Song>> {
+    pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<Track>> {
         log::debug!("Fetching songs for spotify album '{}'", url);
         let id = self.get_id_for_url(url)?;
         let album = self.client.albums().get_album(&*id, None).await?.data;
         log::trace!("Album is {:?}", album);
-        let song_names: Vec<Song> = album.tracks.items.into_iter().map(Song::from).collect();
-        log::debug!("{} songs found in album '{}'", song_names.len(), url);
 
-        Ok(song_names)
+        let simple_tracks: Vec<String> = album
+            .tracks
+            .items
+            .into_iter()
+            .filter_map(|t| t.id)
+            .collect();
+        let tracks = self
+            .client
+            .tracks()
+            .get_tracks(simple_tracks, None)
+            .await?
+            .data;
+
+        log::trace!("Tracks are {:?}", tracks);
+
+        Ok(tracks)
     }
 
     /// Returns song entity for a given spotify url
-    pub async fn get_song_name(&self, url: &str) -> BotResult<Song> {
+    pub async fn get_track_for_url(&self, url: &str) -> BotResult<Track> {
         log::debug!("Getting song for {}", url);
         let id = self.get_id_for_url(url)?;
         let track = self.client.tracks().get_track(&*id, None).await?.data;
         log::trace!("Track info is {:?}", track);
 
-        Ok(track.into())
+        Ok(track)
     }
 
     /// Returns the id for a given spotify URL

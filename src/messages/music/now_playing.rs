@@ -6,7 +6,9 @@ use serenity::model::prelude::ChannelId;
 use songbird::input::Metadata;
 
 use crate::commands::music::{get_queue_for_guild, get_voice_manager, is_dj};
+use crate::providers::music::add_youtube_song_to_database;
 use crate::providers::music::queue::MusicQueue;
+use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::*;
 use bot_serenityutils::core::MessageHandle;
 use bot_serenityutils::error::SerenityUtilsResult;
@@ -21,6 +23,7 @@ use tokio::sync::{Mutex, RwLock};
 static PAUSE_BUTTON: &str = "⏯️";
 static SKIP_BUTTON: &str = "⏭️";
 static STOP_BUTTON: &str = "⏹️";
+static GOOD_PICK_BUTTON: &str = "👍";
 
 /// Creates a new now playing message and returns the embed for that message
 pub async fn create_now_playing_msg(
@@ -39,6 +42,9 @@ pub async fn create_now_playing_msg(
         .add_control(2, SKIP_BUTTON, |c, m, r| {
             Box::pin(skip_button_action(c, m, r))
         })
+        .add_control(3, GOOD_PICK_BUTTON, |c, m, r| {
+            Box::pin(good_pick_action(c, m, r))
+        })
         .add_page(Page::new_builder(move || {
             let queue = Arc::clone(&queue);
             Box::pin(async move {
@@ -47,7 +53,7 @@ pub async fn create_now_playing_msg(
                 log::debug!("Queue locked");
                 let mut page = CreateMessage::default();
 
-                if let Some(current) = queue.current() {
+                if let Some((current, _)) = queue.current() {
                     page.embed(|e| create_now_playing_embed(current.metadata(), e, queue.paused()));
                 } else {
                     page.embed(|e| e.description("Queue is empty"));
@@ -142,7 +148,7 @@ async fn play_pause_button_action(
         };
         log::debug!("Queue is unlocked");
 
-        if let Some(current) = current {
+        if let Some((current, _)) = current {
             update_now_playing_msg(&ctx.http, &message, current.metadata(), paused).await?;
         }
     }
@@ -169,7 +175,7 @@ async fn skip_button_action(
             queue.current().clone()
         };
 
-        if let Some(current) = current {
+        if let Some((current, _)) = current {
             let _ = current.stop();
         }
     }
@@ -201,7 +207,7 @@ async fn stop_button_action(
             handler_lock.remove_all_global_events();
         }
         if let Some(current) = queue.current() {
-            current.stop().map_err(BotError::from)?;
+            current.0.stop().map_err(BotError::from)?;
         }
 
         if manager.get(guild_id).is_some() {
@@ -217,6 +223,25 @@ async fn stop_button_action(
         ctx.http
             .delete_message(handle.channel_id, handle.message_id)
             .await?;
+    }
+
+    Ok(())
+}
+
+async fn good_pick_action(
+    ctx: &Context,
+    _menu: &mut Menu<'_>,
+    reaction: Reaction,
+) -> SerenityUtilsResult<()> {
+    let guild_id = reaction.guild_id.unwrap();
+    let queue = get_queue_for_guild(ctx, &guild_id).await?;
+    let queue = queue.lock().await;
+
+    if let Some((_, song)) = queue.current() {
+        let data = ctx.data.read().await;
+        let store = data.get::<Store>().unwrap();
+        let database = data.get::<DatabaseContainer>().unwrap();
+        add_youtube_song_to_database(store, database, &mut song.clone()).await?;
     }
 
     Ok(())

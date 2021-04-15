@@ -37,7 +37,8 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
                 m.content("⏸️ Paused playback️")
             })
             .await?;
-            if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
+            if let (Some(menu), Some((current, _))) =
+                (&queue_lock.now_playing_msg, queue_lock.current())
             {
                 update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
             }
@@ -47,7 +48,8 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
                 m.content("▶ Resumed playback️")
             })
             .await?;
-            if let (Some(menu), Some(current)) = (&queue_lock.now_playing_msg, queue_lock.current())
+            if let (Some(menu), Some((current, _))) =
+                (&queue_lock.now_playing_msg, queue_lock.current())
             {
                 update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
             }

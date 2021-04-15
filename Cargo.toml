@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.5.3"
+version = "0.6.0"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -36,3 +36,4 @@ reqwest = "0.11.2"
 chrono-tz = "0.5.3"
 sauce-api = "0.7.1"
 rustc_version_runtime = "0.2.0"
+trigram = "0.4.4"

@@ -24,6 +24,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
+name = "bot-database"
+version = "0.4.0"
+dependencies = [
+ "chrono",
+ "diesel",
+ "diesel_migrations",
+ "dotenv",
+ "log",
+ "r2d2",
+ "thiserror",
+ "tokio-diesel",
+]
+
+[[package]]
 name = "byteorder"
 version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,20 +60,6 @@ dependencies = [
  "num-traits",
  "time",
  "winapi",
-]
-
-[[package]]
-name = "database"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "diesel",
- "diesel_migrations",
- "dotenv",
- "log",
- "r2d2",
- "thiserror",
- "tokio-diesel",
 ]
 
 [[package]]

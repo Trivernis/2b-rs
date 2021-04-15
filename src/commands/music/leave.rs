@@ -41,7 +41,7 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     if manager.get(guild.id).is_some() {
-        if let Some(current) = queue_lock.current() {
+        if let Some((current, _)) = queue_lock.current() {
             current.stop()?;
         }
         manager.remove(guild.id).await?;

@@ -4,12 +4,12 @@ use crate::utils::logging::init_logger;
 #[macro_use]
 extern crate bot_serenityutils;
 
-pub mod client;
+mod client;
 mod commands;
-pub mod handler;
+mod handler;
 mod messages;
 mod providers;
-pub mod utils;
+mod utils;
 
 pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 

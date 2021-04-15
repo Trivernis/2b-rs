@@ -1,12 +1,13 @@
 use std::collections::VecDeque;
 
-use aspotify::{Track, TrackSimplified};
+use aspotify::Track;
 use songbird::tracks::TrackHandle;
 
 use bot_coreutils::shuffle::Shuffle;
 
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
-use crate::providers::music::youtube_dl;
+use crate::providers::music::song_to_youtube_video;
+use bot_database::models::YoutubeSong;
 use bot_serenityutils::core::MessageHandle;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -14,7 +15,7 @@ use tokio::sync::RwLock;
 #[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
-    current: Option<TrackHandle>,
+    current: Option<(TrackHandle, Song)>,
     paused: bool,
     pub now_playing_msg: Option<Arc<RwLock<MessageHandle>>>,
     pub leave_flag: bool,
@@ -57,8 +58,8 @@ impl MusicQueue {
     }
 
     /// Sets the currently playing song
-    pub fn set_current(&mut self, handle: TrackHandle) {
-        self.current = Some(handle)
+    pub fn set_current(&mut self, handle: TrackHandle, song: Song) {
+        self.current = Some((handle, song))
     }
 
     /// Clears the currently playing song
@@ -67,7 +68,7 @@ impl MusicQueue {
     }
 
     /// Returns the reference to the currently playing song
-    pub fn current(&self) -> &Option<TrackHandle> {
+    pub fn current(&self) -> &Option<(TrackHandle, Song)> {
         &self.current
     }
 
@@ -92,9 +93,9 @@ impl MusicQueue {
     pub fn pause(&mut self) {
         if let Some(current) = &self.current {
             if self.paused {
-                let _ = current.play();
+                let _ = current.0.play();
             } else {
-                let _ = current.pause();
+                let _ = current.0.pause();
             }
 
             self.paused = !self.paused;
@@ -110,11 +111,18 @@ impl MusicQueue {
 }
 
 #[derive(Clone, Debug)]
+pub enum SongSource {
+    Spotify(Track),
+    YouTube(String),
+}
+
+#[derive(Clone, Debug)]
 pub struct Song {
     url: Option<String>,
     title: String,
     author: String,
     thumbnail: Option<String>,
+    source: SongSource,
 }
 
 impl Song {
@@ -125,11 +133,7 @@ impl Song {
             Some(url)
         } else {
             log::debug!("Lazy fetching video for title");
-            let information =
-                youtube_dl::search_video_information(format!("{} - {}", self.author, self.title))
-                    .await
-                    .ok()
-                    .and_then(|i| i)?;
+            let information = song_to_youtube_video(&self).await.ok()??;
             self.url = Some(information.webpage_url.clone());
             self.thumbnail = information.thumbnail;
             self.author = information.uploader;
@@ -153,15 +157,21 @@ impl Song {
     pub fn thumbnail(&self) -> &Option<String> {
         &self.thumbnail
     }
+
+    /// The source of the song
+    pub fn source(&self) -> &SongSource {
+        &self.source
+    }
 }
 
 impl From<VideoInformation> for Song {
     fn from(info: VideoInformation) -> Self {
         Self {
-            url: Some(info.webpage_url),
+            url: Some(info.webpage_url.clone()),
             title: info.title,
             author: info.uploader,
             thumbnail: info.thumbnail,
+            source: SongSource::YouTube(info.webpage_url),
         }
     }
 }
@@ -173,6 +183,7 @@ impl From<PlaylistEntry> for Song {
             title: entry.title,
             author: entry.uploader,
             thumbnail: None,
+            source: SongSource::YouTube(format!("https://www.youtube.com/watch?v={}", entry.url)),
         }
     }
 }
@@ -180,31 +191,29 @@ impl From<PlaylistEntry> for Song {
 impl From<Track> for Song {
     fn from(track: Track) -> Self {
         Self {
-            title: track.name,
+            title: track.name.clone(),
             author: track
+                .clone()
                 .artists
                 .into_iter()
-                .map(|a| a.name)
+                .map(|a| a.name.clone())
                 .collect::<Vec<String>>()
                 .join(" & "),
             url: None,
             thumbnail: None,
+            source: SongSource::Spotify(track),
         }
     }
 }
 
-impl From<TrackSimplified> for Song {
-    fn from(track: TrackSimplified) -> Self {
+impl From<YoutubeSong> for Song {
+    fn from(song: YoutubeSong) -> Self {
         Self {
-            title: track.name,
-            author: track
-                .artists
-                .into_iter()
-                .map(|a| a.name)
-                .collect::<Vec<String>>()
-                .join(" & "),
-            url: None,
+            title: song.title,
+            author: song.artist,
+            url: Some(song.url.clone()),
             thumbnail: None,
+            source: SongSource::YouTube(song.url),
         }
     }
 }

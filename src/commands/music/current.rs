@@ -30,7 +30,7 @@ async fn current(ctx: &Context, msg: &Message) -> CommandResult {
         queue_lock.current().clone()
     };
 
-    if let Some(current) = current {
+    if let Some((current, _)) = current {
         let metadata = current.metadata().clone();
         log::trace!("Metadata is {:?}", metadata);
         let np_msg = create_now_playing_msg(ctx, queue.clone(), msg.channel_id).await?;
