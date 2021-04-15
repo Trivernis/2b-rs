@@ -39,10 +39,6 @@ jobs:
         with:
           name: tobi-rs-linux-x86_64
           path: target/tobi-rs-linux-x86_64
-      - name: Upload to ipfs
-        uses: aquiladev/ipfs-action@v1
-        with:
-          path: target/tobi-rs-linux-x86_64
       - name: publish release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
