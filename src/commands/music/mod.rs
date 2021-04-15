@@ -35,10 +35,12 @@ use skip::SKIP_COMMAND;
 
 use crate::messages::music::now_playing::update_now_playing_msg;
 use crate::providers::music::queue::{MusicQueue, Song};
-use crate::providers::music::youtube_dl;
+use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
 use crate::providers::settings::{get_setting, Setting};
 use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::{BotError, BotResult};
+use aspotify::Track;
+use bot_database::Database;
 
 mod clear_queue;
 mod current;
@@ -327,6 +329,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
             log::debug!("Query is youtube video");
             let mut song: Song = youtube_dl::get_video_information(&query).await?.into();
             added_one_msg(&ctx, msg, &mut song).await?;
+            add_youtube_song_to_database(&store, &database, &mut song).await?;
             songs.push(song);
         } else {
             log::debug!("Query is playlist with {} songs", songs.len());
@@ -335,17 +338,38 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     } else if SPOTIFY_PLAYLIST_REGEX.is_match(&query) {
         // search for all songs in the playlist and search for them on youtube
         log::debug!("Query is spotify playlist");
-        songs = store.spotify_api.get_songs_in_playlist(&query).await?;
+        let tracks = store.spotify_api.get_songs_in_playlist(&query).await?;
+
+        for track in tracks {
+            songs.push(
+                get_youtube_song_for_track(&database, track.clone())
+                    .await?
+                    .unwrap_or(track.into()),
+            )
+        }
+
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_ALBUM_REGEX.is_match(&query) {
         // fetch all songs in the album and search for them on youtube
         log::debug!("Query is spotify album");
-        songs = store.spotify_api.get_songs_in_album(&query).await?;
+        let tracks = store.spotify_api.get_songs_in_album(&query).await?;
+
+        for track in tracks {
+            songs.push(
+                get_youtube_song_for_track(&database, track.clone())
+                    .await?
+                    .unwrap_or(track.into()),
+            )
+        }
+
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_SONG_REGEX.is_match(&query) {
         // fetch the song name and search it on youtube
         log::debug!("Query is a spotify song");
-        let mut song = store.spotify_api.get_song_name(&query).await?;
+        let track = store.spotify_api.get_song_name(&query).await?;
+        let mut song = get_youtube_song_for_track(&database, track.clone())
+            .await?
+            .unwrap_or(track.into());
         added_one_msg(ctx, msg, &mut song).await?;
         songs.push(song);
     } else {
@@ -407,5 +431,18 @@ pub async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool
         }
     } else {
         Ok(true)
+    }
+}
+
+/// Searches for a matching youtube song for the given track in the local database
+async fn get_youtube_song_for_track(database: &Database, track: Track) -> BotResult<Option<Song>> {
+    log::debug!("Trying to find track in database.");
+    if let Some(id) = track.id {
+        let entry = database.get_song(&id).await?;
+        log::trace!("Found entry is {:?}", entry);
+        Ok(entry.map(Song::from))
+    } else {
+        log::debug!("Track has no ID");
+        Ok(None)
     }
 }

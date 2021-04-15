@@ -6,7 +6,8 @@ use songbird::tracks::TrackHandle;
 use bot_coreutils::shuffle::Shuffle;
 
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
-use crate::providers::music::youtube_dl;
+use crate::providers::music::song_to_youtube_video;
+use bot_database::models::YoutubeSong;
 use bot_serenityutils::core::MessageHandle;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -125,11 +126,7 @@ impl Song {
             Some(url)
         } else {
             log::debug!("Lazy fetching video for title");
-            let information =
-                youtube_dl::search_video_information(format!("{} - {}", self.author, self.title))
-                    .await
-                    .ok()
-                    .and_then(|i| i)?;
+            let information = song_to_youtube_video(&self).await.ok()??;
             self.url = Some(information.webpage_url.clone());
             self.thumbnail = information.thumbnail;
             self.author = information.uploader;
@@ -204,6 +201,17 @@ impl From<TrackSimplified> for Song {
                 .collect::<Vec<String>>()
                 .join(" & "),
             url: None,
+            thumbnail: None,
+        }
+    }
+}
+
+impl From<YoutubeSong> for Song {
+    fn from(song: YoutubeSong) -> Self {
+        Self {
+            title: song.title,
+            author: song.artist,
+            url: Some(song.url),
             thumbnail: None,
         }
     }

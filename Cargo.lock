@@ -193,7 +193,7 @@ dependencies = [
 
 [[package]]
 name = "bot-database"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "chrono",
  "diesel",
@@ -2346,6 +2346,7 @@ dependencies = [
  "sysinfo",
  "thiserror",
  "tokio",
+ "trigram",
 ]
 
 [[package]]
@@ -2472,6 +2473,16 @@ checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
 dependencies = [
  "pin-project",
  "tracing",
+]
+
+[[package]]
+name = "trigram"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "324350103581dfc6869f2c9399c019f394ac49a7ab16af23206add07851c5347"
+dependencies = [
+ "lazy_static",
+ "regex",
 ]
 
 [[package]]
