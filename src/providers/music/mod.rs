@@ -83,7 +83,7 @@ async fn search_for_song_variations(
     static COMMON_AFFIXES: &str =
         r"feat\.(\s\w+)|official(\svideo)?|remastered|revisited|(with\s)?lyrics";
     lazy_static::lazy_static! {
-        static ref COMMON_ADDITIONS: Regex = Regex::new(format!(r"(?i)\[.*\]|\(?[^\w\s]*\s?({})[^\w\s]*\s?\)?", COMMON_AFFIXES).as_str()).unwrap();
+        static ref COMMON_ADDITIONS: Regex = Regex::new(format!(r"(?i)\[.*\]|#\w+|\(?[^\w\s]*\s?({})[^\w\s]*\s?\)?", COMMON_AFFIXES).as_str()).unwrap();
     }
     let mut query = COMMON_ADDITIONS.replace_all(song.title(), " ").to_string();
     query = query.replace(|c| c != ' ' && !char::is_alphanumeric(c), "");
