@@ -1,5 +1,5 @@
-use diesel::insert_into;
 use diesel::prelude::*;
+use diesel::{delete, insert_into};
 use tokio_diesel::*;
 
 use crate::error::DatabaseResult;
@@ -56,5 +56,16 @@ impl Database {
             .await?;
 
         Ok(songs.into_iter().next())
+    }
+
+    /// Deletes a song from the database
+    pub async fn delete_song(&self, id: i64) -> DatabaseResult<()> {
+        use youtube_songs::dsl;
+        delete(dsl::youtube_songs)
+            .filter(dsl::id.eq(id))
+            .execute_async(&self.pool)
+            .await?;
+
+        Ok(())
     }
 }
