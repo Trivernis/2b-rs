@@ -125,7 +125,7 @@ impl VoiceEventHandler for ChannelDurationNotifier {
                     let mut handler_lock = self.handler.lock().await;
                     handler_lock.remove_all_global_events();
                 }
-                if let Some(current) = queue_lock.current() {
+                if let Some((current, _)) = queue_lock.current() {
                     let _ = current.stop();
                 }
                 let _ = self.manager.remove(self.guild_id).await;
@@ -270,7 +270,7 @@ async fn play_next_in_queue(
                 log::error!("Failed to update now playing message: {:?}", e);
             }
         }
-        queue_lock.set_current(track);
+        queue_lock.set_current(track, next);
     } else {
         if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
             let np = np.read().await;
@@ -366,7 +366,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     } else if SPOTIFY_SONG_REGEX.is_match(&query) {
         // fetch the song name and search it on youtube
         log::debug!("Query is a spotify song");
-        let track = store.spotify_api.get_song_name(&query).await?;
+        let track = store.spotify_api.get_track_for_url(&query).await?;
         let mut song = get_youtube_song_for_track(&database, track.clone())
             .await?
             .unwrap_or(track.into());

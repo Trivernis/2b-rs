@@ -123,7 +123,7 @@ impl SpotifyApi {
     }
 
     /// Returns song entity for a given spotify url
-    pub async fn get_song_name(&self, url: &str) -> BotResult<Track> {
+    pub async fn get_track_for_url(&self, url: &str) -> BotResult<Track> {
         log::debug!("Getting song for {}", url);
         let id = self.get_id_for_url(url)?;
         let track = self.client.tracks().get_track(&*id, None).await?.data;

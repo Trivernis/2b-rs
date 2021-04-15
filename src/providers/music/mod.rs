@@ -1,4 +1,4 @@
-use crate::providers::music::queue::Song;
+use crate::providers::music::queue::{Song, SongSource};
 use crate::utils::context_data::StoreData;
 use crate::utils::error::BotResult;
 use aspotify::{ArtistSimplified, Track};
@@ -20,6 +20,7 @@ pub(crate) async fn song_to_youtube_video(song: &Song) -> BotResult<Option<Video
     let match_query = format!("{} - {}", artist, title);
 
     let queries = vec![
+        format! {"{} - {} topic", artist, title},
         format!("{} - {} lyrics", artist, title),
         format!("{} - {} audio only", artist, title),
         format!("{} by {}", title, artist),
@@ -50,20 +51,25 @@ pub async fn add_youtube_song_to_database(
     database: &Database,
     song: &mut Song,
 ) -> BotResult<()> {
-    match search_for_song_variations(store, song).await {
-        Ok(Some(track)) => {
-            log::debug!("Song found on spotify. Inserting metadata");
-            let artists = artists_to_string(track.artists);
-            let url = song.url().await.unwrap();
-
-            if let Some(id) = track.id {
-                database
-                    .add_song(&id, &artists, &track.name, &track.album.name, &url)
-                    .await?;
+    let track = match song.source() {
+        SongSource::Spotify(track) => track.clone(),
+        SongSource::YouTube(_) => match search_for_song_variations(store, song).await {
+            Ok(Some(track)) => track,
+            Err(e) => {
+                log::error!("Failed to search for song on spotify {:?}", e);
+                return Ok(());
             }
-        }
-        Err(e) => log::error!("Failed to search for song on spotify {:?}", e),
-        _ => {}
+            _ => return Ok(()),
+        },
+    };
+    log::debug!("Song found on spotify. Inserting metadata");
+    let artists = artists_to_string(track.artists);
+    let url = song.url().await.unwrap();
+
+    if let Some(id) = track.id {
+        database
+            .add_song(&id, &artists, &track.name, &track.album.name, &url)
+            .await?;
     }
 
     Ok(())

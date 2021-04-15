@@ -28,7 +28,7 @@ async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     );
     let queue_lock = queue.lock().await;
 
-    if let Some(current) = queue_lock.current() {
+    if let Some((current, _)) = queue_lock.current() {
         current.stop()?;
     }
 
