@@ -1,4 +1,12 @@
 table! {
+    ephemeral_messages (channel_id, message_id) {
+        channel_id -> Int8,
+        message_id -> Int8,
+        timeout -> Timestamp,
+    }
+}
+
+table! {
     gifs (id) {
         id -> Int8,
         category -> Nullable<Varchar>,
@@ -47,6 +55,7 @@ table! {
 }
 
 allow_tables_to_appear_in_same_query!(
+    ephemeral_messages,
     gifs,
     guild_playlists,
     guild_settings,
