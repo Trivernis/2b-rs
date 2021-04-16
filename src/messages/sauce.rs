@@ -40,7 +40,7 @@ pub async fn show_sauce_menu(
             .add_pages(pages)
             .build(ctx, msg.channel_id)
             .await?;
-    };
+    }
 
     Ok(())
 }

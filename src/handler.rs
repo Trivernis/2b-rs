@@ -9,6 +9,7 @@ use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
 use crate::commands::music::get_queue_for_guild;
+use crate::utils::delete_messages_from_database;
 use bot_serenityutils::menu::{
     handle_message_delete, handle_message_delete_bulk, handle_reaction_add, handle_reaction_remove,
     start_update_loop,
@@ -21,6 +22,9 @@ impl EventHandler for Handler {
     async fn cache_ready(&self, ctx: Context, _: Vec<GuildId>) {
         log::info!("Cache Ready");
         start_update_loop(&ctx).await;
+        if let Err(e) = delete_messages_from_database(&ctx).await {
+            log::error!("Failed to delete expired messages {:?}", e);
+        }
     }
 
     /// Fired when a message was deleted

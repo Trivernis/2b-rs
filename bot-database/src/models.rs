@@ -77,3 +77,18 @@ pub struct YoutubeSongInsert {
     pub album: String,
     pub url: String,
 }
+
+#[derive(Queryable, Debug, Clone)]
+pub struct EphemeralMessage {
+    pub channel_id: i64,
+    pub message_id: i64,
+    pub timeout: SystemTime,
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "ephemeral_messages"]
+pub struct EphemeralMessageInsert {
+    pub channel_id: i64,
+    pub message_id: i64,
+    pub timeout: SystemTime,
+}

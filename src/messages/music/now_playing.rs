@@ -6,6 +6,7 @@ use serenity::model::prelude::ChannelId;
 use songbird::input::Metadata;
 
 use crate::commands::music::{get_queue_for_guild, get_voice_manager, is_dj};
+use crate::messages::add_ephemeral_handle_to_database;
 use crate::providers::music::add_youtube_song_to_database;
 use crate::providers::music::queue::MusicQueue;
 use crate::utils::context_data::{DatabaseContainer, Store};
@@ -67,6 +68,8 @@ pub async fn create_now_playing_msg(
         .timeout(Duration::from_secs(60 * 60 * 24))
         .build(ctx, channel_id)
         .await?;
+
+    add_ephemeral_handle_to_database(ctx, *handle.read().await, Duration::from_secs(0)).await?;
 
     Ok(handle)
 }
