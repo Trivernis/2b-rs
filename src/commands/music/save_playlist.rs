@@ -9,10 +9,10 @@ use crate::utils::context_data::get_database_from_context;
 #[command]
 #[only_in(guilds)]
 #[description("Adds a playlist to the guilds saved playlists")]
-#[usage("<name> <url/query>")]
+#[usage("<name> (<url>|<query>")]
 #[example("anime https://www.youtube.com/playlist?list=PLqaM77H_o5hykROCe3uluvZEaPo6bZj-C")]
 #[min_args(2)]
-#[aliases("add-playlist", "save-playlist")]
+#[aliases("add-playlist", "save-playlist", "saveplaylist", "savepl")]
 #[bucket("general")]
 #[checks(DJ)]
 async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {

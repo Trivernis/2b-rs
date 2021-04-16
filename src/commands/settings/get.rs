@@ -9,7 +9,7 @@ use crate::utils::context_data::get_database_from_context;
 #[command]
 #[only_in(guilds)]
 #[description("Get a guild setting")]
-#[usage("(<setting>)")]
+#[usage("[<setting>]")]
 #[example("music.autoshuffle")]
 #[min_args(0)]
 #[max_args(1)]

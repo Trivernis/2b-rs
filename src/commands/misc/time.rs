@@ -9,7 +9,7 @@ use serenity::model::channel::Message;
 #[description("Converts a time into a different timezone")]
 #[min_args(1)]
 #[max_args(3)]
-#[usage("<%H:%M/now> (<from-timezone>) (<to-timezone>)")]
+#[usage("(now | <%H:%M>) [<from-timezone>] [<to-timezone>]")]
 #[bucket("general")]
 async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let when = args.single::<String>().unwrap_or("now".to_string());

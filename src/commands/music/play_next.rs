@@ -12,7 +12,7 @@ use crate::commands::music::{
 #[command]
 #[only_in(guilds)]
 #[description("Puts a song as the next to play in the queue")]
-#[usage("<song-url>")]
+#[usage("(<spotify_ur>|<youtube_url>|<query>|pl:<saved_playlist>)")]
 #[min_args(1)]
 #[aliases("pn", "play-next", "playnext")]
 #[bucket("music_api")]

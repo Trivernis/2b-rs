@@ -22,7 +22,7 @@ static GIF_CATEGORY: &str = "pain-peko";
 
 #[command]
 #[description("Pekofy messages")]
-#[usage("(<content>)")]
+#[usage("[<content>...]")]
 #[example("Hello")]
 #[aliases("peko")]
 #[bucket("general")]
