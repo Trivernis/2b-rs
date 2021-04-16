@@ -4,7 +4,7 @@ use serenity::model::channel::Message;
 use serenity::prelude::*;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_queue_for_guild, is_dj};
+use crate::commands::music::{get_queue_for_guild, DJ_CHECK};
 use crate::messages::music::now_playing::update_now_playing_msg;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
@@ -14,13 +14,10 @@ use bot_serenityutils::ephemeral_message::EphemeralMessage;
 #[description("Pauses playback")]
 #[usage("")]
 #[bucket("general")]
+#[checks(DJ)]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Pausing playback for guild {}", guild.id);
-    if !is_dj(ctx, guild.id, &msg.author).await? {
-        msg.channel_id.say(ctx, "Requires DJ permissions").await?;
-        return Ok(());
-    }
 
     let queue = forward_error!(
         ctx,

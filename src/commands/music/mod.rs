@@ -3,10 +3,11 @@ use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
+use aspotify::Track;
 use regex::Regex;
 use serenity::async_trait;
 use serenity::client::Context;
-use serenity::framework::standard::macros::group;
+use serenity::framework::standard::macros::{check, group};
 use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::guild::Guild;
@@ -39,8 +40,8 @@ use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
 use crate::providers::settings::{get_setting, Setting};
 use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::{BotError, BotResult};
-use aspotify::Track;
 use bot_database::Database;
+use serenity::framework::standard::{Args, CommandOptions, Reason};
 
 mod clear_queue;
 mod current;
@@ -413,6 +414,29 @@ async fn added_multiple_msg(ctx: &Context, msg: &Message, songs: &mut Vec<Song>)
         })
         .await?;
     Ok(())
+}
+
+#[check]
+#[name = "DJ"]
+pub async fn check_dj(
+    ctx: &Context,
+    msg: &Message,
+    _: &mut Args,
+    _: &CommandOptions,
+) -> Result<(), Reason> {
+    let guild = msg
+        .guild(&ctx.cache)
+        .await
+        .ok_or(Reason::Log("Not in a guild".to_string()))?;
+
+    if is_dj(ctx, guild.id, &msg.author)
+        .await
+        .map_err(|e| Reason::Log(format!("{:?}", e)))?
+    {
+        Ok(())
+    } else {
+        Err(Reason::User("Lacking DJ role".to_string()))
+    }
 }
 
 /// Returns if the given user is a dj in the given guild based on the

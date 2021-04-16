@@ -3,7 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
-use crate::commands::music::is_dj;
+use crate::commands::music::DJ_CHECK;
 use crate::utils::context_data::get_database_from_context;
 
 #[command]
@@ -14,13 +14,10 @@ use crate::utils::context_data::get_database_from_context;
 #[min_args(2)]
 #[aliases("add-playlist", "save-playlist")]
 #[bucket("general")]
+#[checks(DJ)]
 async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
-    if !is_dj(ctx, guild.id, &msg.author).await? {
-        msg.channel_id.say(ctx, "Requires DJ permissions").await?;
-        return Ok(());
-    }
     let name: String = args.single().unwrap();
     let url: &str = args.remains().unwrap();
     log::debug!(

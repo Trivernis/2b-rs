@@ -1,5 +1,5 @@
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_queue_for_guild, is_dj};
+use crate::commands::music::{get_queue_for_guild, DJ_CHECK};
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::client::Context;
@@ -11,11 +11,11 @@ use serenity::model::channel::Message;
 #[description("Moves a song in the queue from one position to a new one")]
 #[usage("<old-pos> <new-pos>")]
 #[example("102 2")]
-#[min_args(2)]
-#[max_args(2)]
+#[num_args(2)]
 #[bucket("general")]
 #[only_in(guilds)]
 #[aliases("mvs", "movesong", "move-song")]
+#[checks(DJ)]
 async fn move_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Moving song for guild {}", guild.id);
@@ -23,10 +23,6 @@ async fn move_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     let pos1 = args.single::<usize>()?;
     let pos2 = args.single::<usize>()?;
 
-    if !is_dj(ctx, guild.id, &msg.author).await? {
-        msg.channel_id.say(ctx, "Requires DJ permissions").await?;
-        return Ok(());
-    }
     {
         let queue = forward_error!(
             ctx,
