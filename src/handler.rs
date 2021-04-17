@@ -120,10 +120,11 @@ impl EventHandler for Handler {
 
         if let Some(count) = member_count {
             log::debug!("{} Members in channel", count);
-            let queue = get_queue_for_guild(&ctx, &guild_id).await.unwrap();
-            let mut queue_lock = queue.lock().await;
-            log::debug!("Setting leave flag to {}", count == 0);
-            queue_lock.leave_flag = count == 0;
+            if let Ok(queue) = get_queue_for_guild(&ctx, &guild_id).await {
+                let mut queue_lock = queue.lock().await;
+                log::debug!("Setting leave flag to {}", count == 0);
+                queue_lock.leave_flag = count == 0;
+            }
         }
     }
 }

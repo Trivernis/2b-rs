@@ -1,6 +1,6 @@
 [package]
 name = "bot-serenityutils"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 

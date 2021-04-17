@@ -3,6 +3,7 @@ pub(crate) mod controls;
 pub(crate) mod menu;
 pub(crate) mod page;
 pub(crate) mod traits;
+pub(crate) mod typedata;
 
 pub use container::*;
 pub use controls::*;

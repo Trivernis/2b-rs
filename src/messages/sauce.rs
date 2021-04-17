@@ -38,6 +38,7 @@ pub async fn show_sauce_menu(
         MenuBuilder::new_paginator()
             .timeout(Duration::from_secs(600))
             .add_pages(pages)
+            .show_help()
             .build(ctx, msg.channel_id)
             .await?;
     }

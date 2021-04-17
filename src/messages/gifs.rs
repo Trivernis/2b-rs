@@ -22,6 +22,7 @@ pub async fn create_gifs_menu(
     MenuBuilder::new_paginator()
         .timeout(Duration::from_secs(120))
         .add_pages(pages)
+        .show_help()
         .build(ctx, channel_id)
         .await?;
 
