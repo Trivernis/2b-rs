@@ -8,6 +8,7 @@ use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue, DJ_CHECK,
 };
+use crate::messages::music::now_playing::create_now_playing_msg;
 
 #[command]
 #[only_in(guilds)]
@@ -41,7 +42,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let mut songs = get_songs_for_query(&ctx, msg, query).await?;
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
-    let play_first = {
+    let (play_first, create_now_playing) = {
         let mut queue_lock = queue.lock().await;
         songs.reverse();
         log::debug!("Enqueueing songs as next songs in the queue");
@@ -49,11 +50,17 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         for song in songs {
             queue_lock.add_next(song);
         }
-        queue_lock.current().is_none()
+        (
+            queue_lock.current().is_none(),
+            queue_lock.now_playing_msg.is_none(),
+        )
     };
 
     if play_first {
         while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await {}
+    }
+    if create_now_playing {
+        create_now_playing_msg(ctx, queue, msg.channel_id).await?;
     }
     handle_autodelete(ctx, msg).await?;
 

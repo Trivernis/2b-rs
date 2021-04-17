@@ -8,6 +8,7 @@ use crate::commands::music::{
     get_channel_for_author, get_queue_for_guild, get_songs_for_query, get_voice_manager,
     join_channel, play_next_in_queue,
 };
+use crate::messages::music::now_playing::create_now_playing_msg;
 use crate::providers::settings::{get_setting, Setting};
 
 #[command]
@@ -43,7 +44,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 
     let queue = get_queue_for_guild(ctx, &guild.id).await?;
 
-    let play_first = {
+    let (play_first, create_now_playing) = {
         log::debug!("Adding song to queue");
         let mut queue_lock = queue.lock().await;
         for song in songs {
@@ -57,12 +58,18 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             log::debug!("Autoshuffeling");
             queue_lock.shuffle();
         }
-        queue_lock.current().is_none()
+        (
+            queue_lock.current().is_none(),
+            queue_lock.now_playing_msg.is_none(),
+        )
     };
 
     if play_first {
         log::debug!("Playing first song in queue");
         while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler_lock).await {}
+    }
+    if create_now_playing {
+        create_now_playing_msg(ctx, queue, msg.channel_id).await?;
     }
     handle_autodelete(ctx, msg).await?;
 

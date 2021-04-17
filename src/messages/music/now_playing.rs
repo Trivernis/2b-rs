@@ -21,6 +21,7 @@ use std::env;
 use std::time::Duration;
 use tokio::sync::{Mutex, RwLock};
 
+static DELETE_BUTTON: &str = "🗑️";
 static PAUSE_BUTTON: &str = "⏯️";
 static SKIP_BUTTON: &str = "⏭️";
 static STOP_BUTTON: &str = "⏹️";
@@ -34,6 +35,10 @@ pub async fn create_now_playing_msg(
 ) -> BotResult<Arc<RwLock<MessageHandle>>> {
     log::debug!("Creating now playing menu");
     let handle = MenuBuilder::default()
+        .add_control(-1, DELETE_BUTTON, |c, m, r| {
+            Box::pin(delete_action(c, m, r))
+        })
+        .add_help(DELETE_BUTTON, "Deletes this message")
         .add_control(0, STOP_BUTTON, |c, m, r| {
             Box::pin(stop_button_action(c, m, r))
         })
@@ -254,6 +259,28 @@ async fn good_pick_action(
         let database = data.get::<DatabaseContainer>().unwrap();
         add_youtube_song_to_database(store, database, &mut song.clone()).await?;
     }
+
+    Ok(())
+}
+
+async fn delete_action(
+    ctx: &Context,
+    menu: &mut Menu<'_>,
+    reaction: Reaction,
+) -> SerenityUtilsResult<()> {
+    let guild_id = reaction.guild_id.unwrap();
+    let handle = {
+        let handle = menu.message.read().await;
+        handle.clone()
+    };
+    {
+        let queue = get_queue_for_guild(ctx, &guild_id).await?;
+        let mut queue = queue.lock().await;
+        queue.now_playing_msg = None;
+    }
+    ctx.http
+        .delete_message(handle.channel_id, handle.message_id)
+        .await?;
 
     Ok(())
 }
