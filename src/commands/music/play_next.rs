@@ -60,7 +60,9 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await {}
     }
     if create_now_playing {
-        create_now_playing_msg(ctx, queue, msg.channel_id).await?;
+        let handle = create_now_playing_msg(ctx, queue.clone(), msg.channel_id).await?;
+        let mut queue_lock = queue.lock().await;
+        queue_lock.now_playing_msg = Some(handle);
     }
     handle_autodelete(ctx, msg).await?;
 
