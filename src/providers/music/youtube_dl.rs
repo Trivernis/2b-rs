@@ -28,6 +28,15 @@ pub(crate) async fn get_videos_for_playlist(url: &str) -> BotResult<Vec<Playlist
     Ok(videos)
 }
 
+/// Runs youtube-dl to check if a video is available
+/// Doesn't parse the output
+pub async fn check_video_available(url: &str) -> BotResult<bool> {
+    log::debug!("Checking if video {} is available", url);
+    let output = youtube_dl(&["--no-warnings", "--skip-download", "--get-id", "-i", url]).await?;
+
+    Ok(output.is_empty())
+}
+
 /// Returns information for a single video by using youtube-dl
 pub(crate) async fn get_video_information(url: &str) -> BotResult<VideoInformation> {
     log::debug!("Fetching information for '{}'", url);

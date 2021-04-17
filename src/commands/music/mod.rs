@@ -41,6 +41,8 @@ use crate::providers::settings::{get_setting, Setting};
 use crate::utils::context_data::{DatabaseContainer, Store};
 use crate::utils::error::{BotError, BotResult};
 use bot_database::Database;
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use serenity::framework::standard::{Args, CommandOptions, Reason};
 
 mod clear_queue;
@@ -341,13 +343,19 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         log::debug!("Query is spotify playlist");
         let tracks = store.spotify_api.get_songs_in_playlist(&query).await?;
 
-        for track in tracks {
-            songs.push(
-                get_youtube_song_for_track(&database, track.clone())
-                    .await?
-                    .unwrap_or(track.into()),
-            )
-        }
+        let futures: Vec<BoxFuture<Song>> = tracks
+            .into_iter()
+            .map(|track| {
+                async {
+                    get_youtube_song_for_track(&database, track.clone())
+                        .await
+                        .unwrap_or(None)
+                        .unwrap_or(track.into())
+                }
+                .boxed()
+            })
+            .collect();
+        songs = futures::future::join_all(futures).await;
 
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_ALBUM_REGEX.is_match(&query) {
@@ -466,7 +474,10 @@ async fn get_youtube_song_for_track(database: &Database, track: Track) -> BotRes
 
         if let Some(song) = &entry {
             // check if the video is still available
-            if youtube_dl::get_video_information(&song.url).await.is_err() {
+            if youtube_dl::check_video_available(&song.url)
+                .await
+                .unwrap_or(false)
+            {
                 log::debug!("Video '{}' is not available. Deleting entry", song.url);
                 database.delete_song(song.id).await?;
                 return Ok(None);
