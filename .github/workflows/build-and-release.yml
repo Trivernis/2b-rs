@@ -41,7 +41,7 @@ jobs:
       - name: Move binaries
         run: mv target/x86_64-unknown-linux-gnu/release/tobi-rs target/tobi-rs-linux-x86_64
       - name: Sign artifact
-        run: gpg --detach-sign --sign --armor --default-key steps.import_gpg.outputs.keyid --output target/tobi-rs-linux-x86_64.sig target/tobi-rs-linux-x86_64
+        run: gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.PASSPHRASE }}" --detach-sign --sign --armor --default-key steps.import_gpg.outputs.keyid --output target/tobi-rs-linux-x86_64.sig target/tobi-rs-linux-x86_64
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
