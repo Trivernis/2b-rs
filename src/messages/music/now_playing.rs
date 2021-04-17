@@ -37,15 +37,23 @@ pub async fn create_now_playing_msg(
         .add_control(0, STOP_BUTTON, |c, m, r| {
             Box::pin(stop_button_action(c, m, r))
         })
+        .add_help(STOP_BUTTON, "Stops the music and leaves the channel")
         .add_control(1, PAUSE_BUTTON, |c, m, r| {
             Box::pin(play_pause_button_action(c, m, r))
         })
+        .add_help(PAUSE_BUTTON, "Pauses the music")
         .add_control(2, SKIP_BUTTON, |c, m, r| {
             Box::pin(skip_button_action(c, m, r))
         })
+        .add_help(SKIP_BUTTON, "Skips to the next song")
         .add_control(3, GOOD_PICK_BUTTON, |c, m, r| {
             Box::pin(good_pick_action(c, m, r))
         })
+        .add_help(
+            GOOD_PICK_BUTTON,
+            "Remembers this video for spotify-youtube mappings",
+        )
+        .show_help()
         .add_page(Page::new_builder(move || {
             let queue = Arc::clone(&queue);
             Box::pin(async move {

@@ -1,8 +1,9 @@
 use crate::core::MessageHandle;
 use crate::error::{SerenityUtilsError, SerenityUtilsResult};
 use crate::menu::container::get_listeners_from_context;
-use crate::menu::controls::{close_menu, next_page, previous_page};
+use crate::menu::controls::{close_menu, next_page, previous_page, toggle_help};
 use crate::menu::traits::EventDrivenMessage;
+use crate::menu::typedata::HelpActiveContainer;
 use crate::menu::{EventDrivenMessagesRef, Page};
 use futures::FutureExt;
 use serenity::async_trait;
@@ -10,9 +11,11 @@ use serenity::client::Context;
 use serenity::http::Http;
 use serenity::model::channel::{Message, Reaction, ReactionType};
 use serenity::model::id::ChannelId;
+use serenity::prelude::{TypeMap, TypeMapKey};
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{Mutex, RwLock};
@@ -20,6 +23,7 @@ use tokio::sync::{Mutex, RwLock};
 pub static NEXT_PAGE_EMOJI: &str = "➡️";
 pub static PREVIOUS_PAGE_EMOJI: &str = "⬅️";
 pub static CLOSE_MENU_EMOJI: &str = "❌";
+pub static HELP_EMOJI: &str = "❔";
 
 pub type ControlActionResult<'b> =
     Pin<Box<dyn Future<Output = SerenityUtilsResult<()>> + Send + 'b>>;
@@ -33,12 +37,12 @@ pub type ControlActionArc = Arc<
 #[derive(Clone)]
 pub struct ActionContainer {
     inner: ControlActionArc,
-    position: usize,
+    position: isize,
 }
 
 impl ActionContainer {
     /// Creates a new control action
-    pub fn new<F: 'static>(position: usize, callback: F) -> Self
+    pub fn new<F: 'static>(position: isize, callback: F) -> Self
     where
         F: for<'b> Fn(&'b Context, &'b mut Menu<'_>, Reaction) -> ControlActionResult<'b>
             + Send
@@ -63,7 +67,6 @@ impl ActionContainer {
 }
 
 /// A menu message
-#[derive(Clone)]
 pub struct Menu<'a> {
     pub message: Arc<RwLock<MessageHandle>>,
     pub pages: Vec<Page<'a>>,
@@ -71,6 +74,8 @@ pub struct Menu<'a> {
     pub controls: HashMap<String, ActionContainer>,
     pub timeout: Instant,
     pub sticky: bool,
+    pub data: TypeMap,
+    pub help_entries: HashMap<String, String>,
     closed: bool,
     listeners: EventDrivenMessagesRef,
 }
@@ -221,6 +226,8 @@ pub struct MenuBuilder {
     controls: HashMap<String, ActionContainer>,
     timeout: Duration,
     sticky: bool,
+    data: TypeMap,
+    help_entries: HashMap<String, String>,
 }
 
 impl Default for MenuBuilder {
@@ -231,6 +238,8 @@ impl Default for MenuBuilder {
             controls: HashMap::new(),
             timeout: Duration::from_secs(60),
             sticky: false,
+            data: TypeMap::new(),
+            help_entries: HashMap::new(),
         }
     }
 }
@@ -240,21 +249,35 @@ impl MenuBuilder {
     pub fn new_paginator() -> Self {
         log::debug!("Creating new paginator");
         let mut controls = HashMap::new();
+        let mut help_entries = HashMap::new();
         controls.insert(
             PREVIOUS_PAGE_EMOJI.to_string(),
             ActionContainer::new(0, |c, m, r| previous_page(c, m, r).boxed()),
+        );
+        help_entries.insert(
+            PREVIOUS_PAGE_EMOJI.to_string(),
+            "Displays the previous page".to_string(),
         );
         controls.insert(
             CLOSE_MENU_EMOJI.to_string(),
             ActionContainer::new(1, |c, m, r| close_menu(c, m, r).boxed()),
         );
+        help_entries.insert(
+            CLOSE_MENU_EMOJI.to_string(),
+            "Closes the menu buttons".to_string(),
+        );
         controls.insert(
             NEXT_PAGE_EMOJI.to_string(),
             ActionContainer::new(2, |c, m, r| next_page(c, m, r).boxed()),
         );
+        help_entries.insert(
+            NEXT_PAGE_EMOJI.to_string(),
+            "Displays the next page".to_string(),
+        );
 
         Self {
             controls,
+            help_entries,
             ..Default::default()
         }
     }
@@ -278,7 +301,7 @@ impl MenuBuilder {
     }
 
     /// Adds a single control to the message
-    pub fn add_control<S, F: 'static>(mut self, position: usize, emoji: S, action: F) -> Self
+    pub fn add_control<S, F: 'static>(mut self, position: isize, emoji: S, action: F) -> Self
     where
         S: ToString,
         F: for<'b> Fn(&'b Context, &'b mut Menu<'_>, Reaction) -> ControlActionResult<'b>
@@ -295,7 +318,7 @@ impl MenuBuilder {
     pub fn add_controls<S, I>(mut self, controls: I) -> Self
     where
         S: ToString,
-        I: IntoIterator<Item = (usize, S, ControlActionArc)>,
+        I: IntoIterator<Item = (isize, S, ControlActionArc)>,
     {
         for (position, emoji, action) in controls {
             self.controls.insert(
@@ -330,6 +353,30 @@ impl MenuBuilder {
         self.sticky = value;
 
         self
+    }
+
+    /// Adds data to the menu typemap
+    pub fn add_data<T>(mut self, value: T::Value) -> Self
+    where
+        T: TypeMapKey,
+    {
+        self.data.insert::<T>(value);
+
+        self
+    }
+
+    /// Adds a help entry
+    pub fn add_help<S: ToString>(mut self, button: S, help: S) -> Self {
+        self.help_entries
+            .insert(button.to_string(), help.to_string());
+
+        self
+    }
+
+    /// Turns showing help for buttons on
+    pub fn show_help(self) -> Self {
+        self.add_control(100, HELP_EMOJI, |c, m, r| Box::pin(toggle_help(c, m, r)))
+            .add_data::<HelpActiveContainer>(Arc::new(AtomicBool::new(false)))
     }
 
     /// builds the menu
@@ -371,6 +418,8 @@ impl MenuBuilder {
             closed: false,
             listeners: Arc::clone(&listeners),
             sticky: self.sticky,
+            data: self.data,
+            help_entries: self.help_entries,
         };
 
         log::debug!("Storing menu to listeners...");

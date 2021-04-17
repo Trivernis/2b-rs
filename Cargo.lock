@@ -2347,6 +2347,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "trigram",
+ "typemap_rev",
 ]
 
 [[package]]
@@ -2535,9 +2536,9 @@ dependencies = [
 
 [[package]]
 name = "typemap_rev"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "335fb14412163adc9ed4a3e53335afaa7a4b72bdd122e5f72f51b8f1db1a131e"
+checksum = "ed5b74f0a24b5454580a79abb6994393b09adf0ab8070f15827cb666255de155"
 
 [[package]]
 name = "typenum"
