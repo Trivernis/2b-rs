@@ -13,7 +13,7 @@ use crate::providers::settings::{get_setting, Setting};
 #[command]
 #[only_in(guilds)]
 #[description("Plays a song in a voice channel")]
-#[usage("(<spotify_url,youtube_url,query>)")]
+#[usage("(<spotify_ur>|<youtube_url>|<query>|pl:<saved_playlist>)")]
 #[min_args(1)]
 #[aliases("p")]
 #[bucket("music_api")]

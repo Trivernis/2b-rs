@@ -4,7 +4,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_voice_manager, is_dj};
+use crate::commands::music::{get_voice_manager, DJ_CHECK};
 use crate::utils::context_data::Store;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
@@ -15,13 +15,10 @@ use bot_serenityutils::ephemeral_message::EphemeralMessage;
 #[usage("")]
 #[aliases("stop")]
 #[bucket("general")]
+#[checks(DJ)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Leave request received for guild {}", guild.id);
-    if !is_dj(ctx, guild.id, &msg.author).await? {
-        msg.channel_id.say(ctx, "Requires DJ permissions").await?;
-        return Ok(());
-    }
 
     let manager = get_voice_manager(ctx).await;
     let queue = {

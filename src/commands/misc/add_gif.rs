@@ -9,7 +9,7 @@ use serenity::model::channel::Message;
 
 #[command]
 #[description("Simple ping test command")]
-#[usage("<url> (<category>) (<name>)")]
+#[usage("<url> [<category>] [<name>]")]
 #[bucket("general")]
 #[aliases("add-gif", "addgif")]
 #[min_args(1)]

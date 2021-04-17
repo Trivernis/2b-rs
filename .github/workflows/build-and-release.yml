@@ -16,6 +16,12 @@ jobs:
         with:
           toolchain: stable
           override: true
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
       - name: Cache cargo builds
         uses: actions/cache@v2
         with:
@@ -34,11 +40,15 @@ jobs:
         run: strip target/x86_64-unknown-linux-gnu/release/tobi-rs
       - name: Move binaries
         run: mv target/x86_64-unknown-linux-gnu/release/tobi-rs target/tobi-rs-linux-x86_64
+      - name: Sign artifact
+        run: gpg --detach-sign --sign --armor --default-key steps.import_gpg.outputs.keyid --output target/tobi-rs-linux-x86_64.sig target/tobi-rs-linux-x86_64
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: tobi-rs-linux-x86_64
-          path: target/tobi-rs-linux-x86_64
+          path:  |
+            target/tobi-rs-linux-x86_64
+            target/tobi-rs-linux-x86_64.sig
       - name: publish release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -47,3 +57,4 @@ jobs:
           files: |
             LICENSE
             target/tobi-rs-linux-x86_64
+            target/tobi-rs-linux-x86_64.sig

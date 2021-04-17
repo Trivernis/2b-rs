@@ -11,7 +11,7 @@ use crate::commands::common::handle_autodelete;
 #[description("Shuts down the bot with the specified exit code")]
 #[min_args(0)]
 #[max_args(1)]
-#[usage("(<code>)")]
+#[usage("[<code>]")]
 #[owners_only]
 async fn shutdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let code = args.single::<i32>().unwrap_or(0);

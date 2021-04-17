@@ -11,7 +11,7 @@ use crate::utils::context_data::get_database_from_context;
 #[description(
     "Set a guild setting. If no value is given the setting will be reset to the default value."
 )]
-#[usage("<setting> (<value>)")]
+#[usage("<setting> [<value>]")]
 #[example("music.autoshuffle true")]
 #[min_args(1)]
 #[max_args(2)]
