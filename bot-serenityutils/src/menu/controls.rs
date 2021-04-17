@@ -2,6 +2,7 @@ use crate::error::{SerenityUtilsError, SerenityUtilsResult};
 use crate::menu::container::get_listeners_from_context;
 use crate::menu::menu::Menu;
 use crate::menu::typedata::HelpActiveContainer;
+use crate::menu::ActionContainer;
 use serde_json::json;
 use serde_json::Value;
 use serenity::client::Context;
@@ -75,12 +76,19 @@ pub async fn toggle_help(
         .get()
         .await?;
     let mut message = menu.get_message(ctx.http()).await?;
-    let help_message = menu
+    log::debug!("Building help entries");
+    let mut help_entries = menu
         .help_entries
         .iter()
-        .map(|(e, h)| format!(" - {} {}", e, h))
+        .filter_map(|(e, h)| Some((menu.controls.get(e)?, e, h)))
+        .collect::<Vec<(&ActionContainer, &String, &String)>>();
+    help_entries.sort_by_key(|(c, _, _)| c.position());
+    let help_message = help_entries
+        .into_iter()
+        .map(|(_, e, h)| format!(" - {} {}", e, h))
         .collect::<Vec<String>>()
         .join("\n");
+    log::trace!("Help message is {}", help_message);
 
     message
         .edit(ctx, |m| {

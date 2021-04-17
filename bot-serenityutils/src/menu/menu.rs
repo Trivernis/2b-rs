@@ -64,6 +64,11 @@ impl ActionContainer {
         self.inner.clone()(ctx, menu, reaction).await?;
         Ok(())
     }
+
+    /// Returns the position of the action
+    pub fn position(&self) -> isize {
+        self.position
+    }
 }
 
 /// A menu message
