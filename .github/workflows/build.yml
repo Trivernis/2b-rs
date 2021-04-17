@@ -43,3 +43,24 @@ jobs:
 
       - name: Test binary
         run: cargo test --verbose
+
+      - name: Move binaries
+        run: mv target/x86_64-unknown-linux-gnu/debug/tobi-rs target/tobi-rs-linux-x86_64_debug
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Sign artifact
+        run: gpg --detach-sign --sign --armor --default-key steps.import_gpg.outputs.keyid --output target/tobi-rs-linux-x86_64_debug.sig target/tobi-rs-linux-x86_64_debug
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: tobi-rs-linux_debug
+          path: |
+            target/tobi-rs-linux-x86_64_debug
+            target/tobi-rs-linux-x86_64_debug.sig
