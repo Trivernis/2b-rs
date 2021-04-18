@@ -11,7 +11,7 @@ pub(crate) struct PlaylistEntry {
 
 #[derive(Deserialize, Clone, Debug)]
 pub(crate) struct VideoInformation {
-    id: String,
+    pub(crate) id: String,
     pub title: String,
     pub thumbnail: Option<String>,
     pub webpage_url: String,

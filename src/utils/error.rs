@@ -41,6 +41,9 @@ pub enum BotError {
     #[error("JoinError: {0}")]
     JoinError(#[from] songbird::error::JoinError),
 
+    #[error("YouTube Error: {0}")]
+    YoutubeError(#[from] youtube_metadata::error::YoutubeError),
+
     #[error("{0}")]
     Msg(String),
 }
