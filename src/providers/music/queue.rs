@@ -217,3 +217,15 @@ impl From<YoutubeSong> for Song {
         }
     }
 }
+
+impl From<youtube_metadata::VideoInformation> for Song {
+    fn from(i: youtube_metadata::VideoInformation) -> Self {
+        Self {
+            title: i.title,
+            author: i.uploader,
+            url: Some(i.url.clone()),
+            thumbnail: i.thumbnail,
+            source: SongSource::YouTube(i.url),
+        }
+    }
+}

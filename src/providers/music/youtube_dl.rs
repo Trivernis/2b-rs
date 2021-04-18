@@ -28,16 +28,6 @@ pub(crate) async fn get_videos_for_playlist(url: &str) -> BotResult<Vec<Playlist
     Ok(videos)
 }
 
-/// Returns information for a single video by using youtube-dl
-pub(crate) async fn get_video_information(url: &str) -> BotResult<VideoInformation> {
-    log::debug!("Fetching information for '{}'", url);
-    let output = youtube_dl(&["--no-warnings", "--dump-json", "-i", url]).await?;
-
-    let information = serde_json::from_str(&*output)?;
-
-    Ok(information)
-}
-
 /// Searches for a video
 pub(crate) async fn search_video_information(query: String) -> BotResult<Option<VideoInformation>> {
     log::debug!("Searching for video '{}'", query);

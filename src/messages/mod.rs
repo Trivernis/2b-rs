@@ -5,6 +5,7 @@ use serenity::client::Context;
 use std::time::{Duration, SystemTime};
 
 pub mod gifs;
+pub mod minecraft;
 pub mod music;
 pub mod sauce;
 

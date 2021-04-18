@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.6.4"
+version = "0.6.5"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -19,7 +19,7 @@ tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
 serde_derive = "1.0.125"
 serde = "1.0.125"
 thiserror = "1.0.24"
-minecraft-data-rs = "0.2.0"
+minecraft-data-rs = "0.3.0"
 songbird =  "0.1.5"
 serde_json = "1.0.64"
 rand = "0.8.3"
@@ -38,3 +38,4 @@ sauce-api = "0.7.1"
 rustc_version_runtime = "0.2.0"
 trigram = "0.4.4"
 typemap_rev = "0.1.5"
+youtube-metadata = "0.1.1"
