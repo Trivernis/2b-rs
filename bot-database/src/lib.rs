@@ -22,7 +22,6 @@ type PoolConnection = Pool<ConnectionManager<PgConnection>>;
 embed_migrations!("../bot-database/migrations");
 
 fn get_connection() -> DatabaseResult<PoolConnection> {
-    dotenv::dotenv()?;
     let database_url = env::var("DATABASE_URL").expect("No DATABASE_URL in path");
     log::debug!("Establishing database connection...");
     let manager = ConnectionManager::<PgConnection>::new(database_url);

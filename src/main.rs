@@ -15,6 +15,7 @@ pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() {
+    let _ = dotenv::dotenv();
     init_logger();
     let mut client = get_client().await.unwrap();
 
