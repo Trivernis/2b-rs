@@ -19,7 +19,7 @@ tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
 serde_derive = "1.0.125"
 serde = "1.0.125"
 thiserror = "1.0.24"
-minecraft-data-rs = "0.2.0"
+minecraft-data-rs = "0.3.0"
 songbird =  "0.1.5"
 serde_json = "1.0.64"
 rand = "0.8.3"

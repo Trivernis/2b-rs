@@ -1224,9 +1224,9 @@ dependencies = [
 
 [[package]]
 name = "minecraft-data-rs"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6878c011df73cf61f64b8c55022a2b9b713233d234a8083d2e8a01057921856e"
+checksum = "2e1b246bcfc363acfa56bb9414deee90e194a9de2fbfb8c43442da0d77663de4"
 dependencies = [
  "include_dir",
  "itertools",
