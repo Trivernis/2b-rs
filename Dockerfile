@@ -17,7 +17,7 @@ RUN mkdir /tmp/tobi
 RUN --mount=type=cache,target=target cp target/release/tobi-rs /tmp/tobi/
 
 FROM bitnami/minideb:latest
-RUN install_packages openssl libopus0 ffmpeg python3 python3-pip postgresql-client
+RUN install_packages openssl libopus0 ffmpeg python3 python3-pip libpq5
 RUN pip3 install youtube-dl
 RUN rm -rf /var/lib/{apt,dpkg,cache,log}/
 COPY --from=builder /tmp/tobi/tobi-rs .
