@@ -4,9 +4,9 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-use crate::error::DatabaseResult;
+use crate::error::{DatabaseError, DatabaseResult};
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::r2d2::{ConnectionManager, ManageConnection, Pool};
 use std::env;
 
 pub mod database;
@@ -22,11 +22,16 @@ type PoolConnection = Pool<ConnectionManager<PgConnection>>;
 embed_migrations!("../bot-database/migrations");
 
 fn get_connection() -> DatabaseResult<PoolConnection> {
-    dotenv::dotenv()?;
     let database_url = env::var("DATABASE_URL").expect("No DATABASE_URL in path");
     log::debug!("Establishing database connection...");
     let manager = ConnectionManager::<PgConnection>::new(database_url);
+    log::trace!("Connecting...");
+    manager
+        .connect()
+        .map_err(|e| DatabaseError::Msg(format!("{:?}", e)))?;
+    log::trace!("Creating pool...");
     let pool = Pool::builder().max_size(16).build(manager)?;
+    log::trace!("Getting one connection to run migrations...");
     let connection = pool.get()?;
     log::debug!("Running migrations...");
     embedded_migrations::run(&connection)?;

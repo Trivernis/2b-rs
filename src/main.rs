@@ -15,8 +15,12 @@ pub static VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[tokio::main]
 async fn main() {
+    let _ = dotenv::dotenv();
     init_logger();
-    let mut client = get_client().await.unwrap();
+    let mut client = get_client()
+        .await
+        .map_err(|e| log::error!("Failed to get client: {:?}", e))
+        .expect("Failed to get client");
 
     // start listening for events by starting a single shard
     if let Err(why) = client.start_autosharded().await {
