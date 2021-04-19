@@ -34,6 +34,7 @@ pub async fn create_now_playing_msg(
     channel_id: ChannelId,
 ) -> BotResult<Arc<RwLock<MessageHandle>>> {
     log::debug!("Creating now playing menu");
+    let nsfw = channel_id.to_channel(ctx).await?.is_nsfw();
     let handle = MenuBuilder::default()
         .add_control(-1, DELETE_BUTTON, |c, m, r| {
             Box::pin(delete_action(c, m, r))
@@ -68,7 +69,9 @@ pub async fn create_now_playing_msg(
                 let mut page = CreateMessage::default();
 
                 if let Some((current, _)) = queue.current() {
-                    page.embed(|e| create_now_playing_embed(current.metadata(), e, queue.paused()));
+                    page.embed(|e| {
+                        create_now_playing_embed(current.metadata(), e, queue.paused(), nsfw)
+                    });
                 } else {
                     page.embed(|e| e.description("Queue is empty"));
                 }
@@ -97,10 +100,11 @@ pub async fn update_now_playing_msg(
     log::debug!("Updating now playing message");
     let handle = handle.read().await;
     let mut message = handle.get_message(http).await?;
+    let nsfw = http.get_channel(handle.channel_id).await?.is_nsfw();
 
     message
         .edit(http, |m| {
-            m.embed(|e| create_now_playing_embed(meta, e, paused))
+            m.embed(|e| create_now_playing_embed(meta, e, paused, nsfw))
         })
         .await?;
     log::debug!("Message updated.");
@@ -113,6 +117,7 @@ fn create_now_playing_embed<'a>(
     meta: &Metadata,
     mut embed: &'a mut CreateEmbed,
     paused: bool,
+    nsfw: bool,
 ) -> &'a mut CreateEmbed {
     embed = embed
         .title(if paused { "Paused" } else { "Playing" })
@@ -129,8 +134,10 @@ fn create_now_playing_embed<'a>(
             ))
         });
 
-    if let Some(thumb) = meta.thumbnail.clone() {
-        embed = embed.thumbnail(thumb);
+    if nsfw {
+        if let Some(thumb) = meta.thumbnail.clone() {
+            embed = embed.thumbnail(thumb);
+        }
     }
 
     embed
