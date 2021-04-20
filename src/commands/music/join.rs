@@ -42,7 +42,7 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
     log::debug!("Joining channel {} for guild {}", channel_id, guild.id);
-    MusicPlayer::join(ctx, guild.id, channel_id).await?;
+    MusicPlayer::join(ctx, guild.id, channel_id, msg.channel_id).await?;
     EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
         m.content("🎤 Joined the Voice Channel")
     })

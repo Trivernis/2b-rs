@@ -40,10 +40,12 @@ pub(crate) async fn song_to_youtube_video(song: &Song) -> BotResult<Option<Video
             {
                 return Ok(Some(video));
             }
+            log::debug!("Video title is not similar enough to song name.");
             last_result = Some(video);
         }
     }
 
+    log::debug!("Returning last result");
     Ok(last_result)
 }
 

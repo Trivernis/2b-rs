@@ -30,7 +30,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     if player.is_none() {
         log::debug!("Not in a channel. Joining authors channel...");
         let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
-        let music_player = MusicPlayer::join(ctx, guild.id, channel_id).await?;
+        let music_player = MusicPlayer::join(ctx, guild.id, channel_id, msg.channel_id).await?;
         player = Some(music_player);
     }
 

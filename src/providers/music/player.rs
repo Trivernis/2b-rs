@@ -4,7 +4,8 @@ use crate::providers::music::lyrics::get_lyrics;
 use crate::providers::music::queue::MusicQueue;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::error::BotResult;
-use bot_serenityutils::core::MessageHandle;
+use bot_serenityutils::core::{MessageHandle, SHORT_TIMEOUT};
+use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use lavalink_rs::LavalinkClient;
 use serenity::prelude::TypeMap;
 use serenity::{
@@ -24,18 +25,25 @@ pub struct MusicPlayer {
     queue: MusicQueue,
     guild_id: GuildId,
     now_playing_msg: Option<Arc<RwLock<MessageHandle>>>,
+    msg_channel: ChannelId,
     leave_flag: bool,
     paused: bool,
 }
 
 impl MusicPlayer {
     /// Creates a new music player
-    pub fn new(client: Arc<LavalinkClient>, http: Arc<Http>, guild_id: GuildId) -> Self {
+    pub fn new(
+        client: Arc<LavalinkClient>,
+        http: Arc<Http>,
+        guild_id: GuildId,
+        msg_channel: ChannelId,
+    ) -> Self {
         Self {
             client,
             http,
             guild_id,
             queue: MusicQueue::new(),
+            msg_channel,
             now_playing_msg: None,
             leave_flag: false,
             paused: false,
@@ -47,6 +55,7 @@ impl MusicPlayer {
         ctx: &Context,
         guild_id: GuildId,
         voice_channel_id: ChannelId,
+        msg_channel_id: ChannelId,
     ) -> BotResult<Arc<Mutex<MusicPlayer>>> {
         let manager = songbird::get(ctx).await.unwrap();
         let (_, connection) = manager.join_gateway(guild_id, voice_channel_id).await;
@@ -56,7 +65,12 @@ impl MusicPlayer {
             let mut data = ctx.data.write().await;
             let client = data.get::<Lavalink>().unwrap();
             client.create_session(&connection).await?;
-            let player = MusicPlayer::new(Arc::clone(client), Arc::clone(&ctx.http), guild_id);
+            let player = MusicPlayer::new(
+                Arc::clone(client),
+                Arc::clone(&ctx.http),
+                guild_id,
+                msg_channel_id,
+            );
             let player = Arc::new(Mutex::new(player));
             let players = data.get_mut::<MusicPlayers>().unwrap();
             players.insert(guild_id.0, Arc::clone(&player));
@@ -113,6 +127,7 @@ impl MusicPlayer {
     /// Tries to play the next song
     pub async fn try_play_next(&mut self) -> BotResult<bool> {
         let mut next = if let Some(n) = self.queue.next() {
+            log::trace!("Next is {:?}", n);
             n
         } else {
             return Ok(true);
@@ -120,12 +135,26 @@ impl MusicPlayer {
         let url = if let Some(url) = next.url().await {
             url
         } else {
+            self.send_error_message(format!(
+                "‼️ Could not find a video to play for '{}' by '{}'",
+                next.title(),
+                next.author()
+            ))
+            .await?;
+            log::debug!("Could not find playable candidate for song.");
             return Ok(false);
         };
         let query_information = match self.client.auto_search_tracks(url).await {
             Ok(i) => i,
             Err(e) => {
                 log::error!("Failed to search for song: {}", e);
+                self.send_error_message(format!(
+                    "‼️ Failed to retrieve information for song '{}' by '{}': {:?}",
+                    next.title(),
+                    next.author(),
+                    e
+                ))
+                .await?;
                 return Ok(false);
             }
         };
@@ -192,6 +221,16 @@ impl MusicPlayer {
     /// Sets the leave flag to the given value
     pub fn set_leave_flag(&mut self, flag: bool) {
         self.leave_flag = flag;
+    }
+
+    /// Sends a play error message to the players test channel
+    async fn send_error_message(&self, content: String) -> BotResult<()> {
+        EphemeralMessage::create(&self.http, self.msg_channel, SHORT_TIMEOUT, |m| {
+            m.content(content)
+        })
+        .await?;
+
+        Ok(())
     }
 }
 
