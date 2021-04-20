@@ -5,18 +5,16 @@ use std::sync::Arc;
 use bot_database::Database;
 use sauce_api::prelude::SauceNao;
 use serenity::client::Context;
-use serenity::model::id::GuildId;
 use serenity::prelude::TypeMapKey;
 use tokio::sync::Mutex;
 
-use crate::providers::music::queue::MusicQueue;
+use crate::providers::music::player::MusicPlayer;
 use crate::providers::music::spotify::SpotifyApi;
 
 pub struct Store;
 
 pub struct StoreData {
     pub minecraft_data_api: minecraft_data_rs::api::Api,
-    pub music_queues: HashMap<GuildId, Arc<Mutex<MusicQueue>>>,
     pub spotify_api: SpotifyApi,
     pub sauce_nao: SauceNao,
 }
@@ -31,7 +29,6 @@ impl StoreData {
             minecraft_data_api: minecraft_data_rs::api::Api::new(
                 minecraft_data_rs::api::versions::latest_stable().unwrap(),
             ),
-            music_queues: HashMap::new(),
             spotify_api: SpotifyApi::new(),
             sauce_nao,
         }
@@ -56,4 +53,10 @@ pub async fn get_database_from_context(ctx: &Context) -> Database {
         .expect("Invalid Context setup: Missing database");
 
     database.clone()
+}
+
+pub struct MusicPlayers;
+
+impl TypeMapKey for MusicPlayers {
+    type Value = HashMap<u64, Arc<Mutex<MusicPlayer>>>;
 }

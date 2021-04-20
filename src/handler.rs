@@ -8,7 +8,7 @@ use serenity::model::id::{ChannelId, GuildId, MessageId};
 use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
-use crate::commands::music::get_queue_for_guild;
+use crate::commands::music::get_music_player_for_guild;
 use crate::utils::delete_messages_from_database;
 use bot_serenityutils::menu::{
     handle_message_delete, handle_message_delete_bulk, handle_reaction_add, handle_reaction_remove,
@@ -120,10 +120,10 @@ impl EventHandler for Handler {
 
         if let Some(count) = member_count {
             log::debug!("{} Members in channel", count);
-            if let Ok(queue) = get_queue_for_guild(&ctx, &guild_id).await {
-                let mut queue_lock = queue.lock().await;
+            if let Some(player) = get_music_player_for_guild(&ctx, guild_id).await {
+                let mut player = player.lock().await;
                 log::debug!("Setting leave flag to {}", count == 0);
-                queue_lock.leave_flag = count == 0;
+                player.set_leave_flag(count == 0);
             }
         }
     }

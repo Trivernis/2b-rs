@@ -89,8 +89,10 @@ dependencies = [
  "futures-io",
  "futures-util",
  "log 0.4.14",
+ "native-tls",
  "pin-project-lite",
  "tokio",
+ "tokio-native-tls",
  "tokio-rustls",
  "tungstenite 0.13.0",
  "webpki-roots 0.21.1",
@@ -1078,6 +1080,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "lavalink-rs"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c63ca28d0378fa5e51d24a2cb6cc900a5f654d7931a53784ae01ff9a94b443e1"
+dependencies = [
+ "async-trait",
+ "async-tungstenite 0.13.1",
+ "dashmap",
+ "futures",
+ "http",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde-aux",
+ "serde_json",
+ "songbird",
+ "tokio",
+ "tokio-native-tls",
+ "tracing",
+ "tracing-log",
+ "typemap_rev",
+ "version_check",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2048,6 +2075,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-aux"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77eb8c83f6ebaedf5e8f970a8a44506b180b8e6268de03885c8547031ccaee00"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "serde_derive"
 version = "1.0.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2495,6 +2533,7 @@ dependencies = [
  "dotenv",
  "fern",
  "futures",
+ "lavalink-rs",
  "lazy_static",
  "log 0.4.14",
  "minecraft-data-rs",
@@ -2643,6 +2682,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-log"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6923477a48e41c1951f1999ef8bb5a3023eb723ceadafe78ffb65dc366761e3"
+dependencies = [
+ "lazy_static",
+ "log 0.4.14",
+ "tracing-core",
+]
+
+[[package]]
 name = "trigram"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2690,6 +2740,7 @@ dependencies = [
  "httparse",
  "input_buffer 0.4.0",
  "log 0.4.14",
+ "native-tls",
  "rand 0.8.3",
  "rustls",
  "sha-1",

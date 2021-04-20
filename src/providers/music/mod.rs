@@ -7,11 +7,13 @@ use regex::Regex;
 use responses::VideoInformation;
 use youtube_dl::search_video_information;
 
-pub(crate) mod lyrics;
-pub(crate) mod queue;
-pub(crate) mod responses;
-pub(crate) mod spotify;
-pub(crate) mod youtube_dl;
+pub mod lavalink;
+pub mod lyrics;
+pub mod player;
+pub mod queue;
+pub mod responses;
+pub mod spotify;
+pub mod youtube_dl;
 
 /// Searches for a youtube video for the specified song
 pub(crate) async fn song_to_youtube_video(song: &Song) -> BotResult<Option<VideoInformation>> {
@@ -38,10 +40,12 @@ pub(crate) async fn song_to_youtube_video(song: &Song) -> BotResult<Option<Video
             {
                 return Ok(Some(video));
             }
+            log::debug!("Video title is not similar enough to song name.");
             last_result = Some(video);
         }
     }
 
+    log::debug!("Returning last result");
     Ok(last_result)
 }
 

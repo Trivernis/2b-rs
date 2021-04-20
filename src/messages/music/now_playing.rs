@@ -3,13 +3,13 @@ use std::sync::Arc;
 use serenity::builder::CreateEmbed;
 use serenity::http::Http;
 use serenity::model::prelude::ChannelId;
-use songbird::input::Metadata;
 
-use crate::commands::music::{get_queue_for_guild, get_voice_manager, is_dj};
+use crate::commands::music::{get_music_player_for_guild, get_voice_manager, is_dj};
 use crate::messages::add_ephemeral_handle_to_database;
 use crate::providers::music::add_youtube_song_to_database;
-use crate::providers::music::queue::MusicQueue;
-use crate::utils::context_data::{DatabaseContainer, Store};
+use crate::providers::music::player::MusicPlayer;
+use crate::providers::music::queue::Song;
+use crate::utils::context_data::{DatabaseContainer, MusicPlayers, Store};
 use crate::utils::error::*;
 use bot_serenityutils::core::MessageHandle;
 use bot_serenityutils::error::SerenityUtilsResult;
@@ -30,7 +30,7 @@ static GOOD_PICK_BUTTON: &str = "👍";
 /// Creates a new now playing message and returns the embed for that message
 pub async fn create_now_playing_msg(
     ctx: &Context,
-    queue: Arc<Mutex<MusicQueue>>,
+    player: Arc<Mutex<MusicPlayer>>,
     channel_id: ChannelId,
 ) -> BotResult<Arc<RwLock<MessageHandle>>> {
     log::debug!("Creating now playing menu");
@@ -61,16 +61,20 @@ pub async fn create_now_playing_msg(
         )
         .show_help()
         .add_page(Page::new_builder(move || {
-            let queue = Arc::clone(&queue);
+            let player = Arc::clone(&player);
             Box::pin(async move {
                 log::debug!("Creating now playing embed for page");
-                let queue = queue.lock().await;
-                log::debug!("Queue locked");
+                let mut player = player.lock().await;
+                log::debug!("player locked");
                 let mut page = CreateMessage::default();
 
-                if let Some((current, _)) = queue.current() {
+                if let Some(mut current) = player.queue().current().clone() {
+                    let mut embed = CreateEmbed::default();
+                    create_now_playing_embed(&mut current, &mut embed, player.is_paused(), nsfw)
+                        .await;
                     page.embed(|e| {
-                        create_now_playing_embed(current.metadata(), e, queue.paused(), nsfw)
+                        e.0.clone_from(&embed.0);
+                        e
                     });
                 } else {
                     page.embed(|e| e.description("Queue is empty"));
@@ -94,7 +98,7 @@ pub async fn create_now_playing_msg(
 pub async fn update_now_playing_msg(
     http: &Arc<Http>,
     handle: &Arc<RwLock<MessageHandle>>,
-    meta: &Metadata,
+    song: &mut Song,
     paused: bool,
 ) -> BotResult<()> {
     log::debug!("Updating now playing message");
@@ -102,9 +106,14 @@ pub async fn update_now_playing_msg(
     let mut message = handle.get_message(http).await?;
     let nsfw = http.get_channel(handle.channel_id).await?.is_nsfw();
 
+    let mut embed = CreateEmbed::default();
+    create_now_playing_embed(song, &mut embed, paused, nsfw).await;
     message
         .edit(http, |m| {
-            m.embed(|e| create_now_playing_embed(meta, e, paused, nsfw))
+            m.embed(|e| {
+                e.0.clone_from(&embed.0);
+                e
+            })
         })
         .await?;
     log::debug!("Message updated.");
@@ -113,19 +122,20 @@ pub async fn update_now_playing_msg(
 }
 
 /// Creates the embed of the now playing message
-fn create_now_playing_embed<'a>(
-    meta: &Metadata,
+async fn create_now_playing_embed<'a>(
+    song: &mut Song,
     mut embed: &'a mut CreateEmbed,
     paused: bool,
     nsfw: bool,
 ) -> &'a mut CreateEmbed {
+    let url = song.url().await.unwrap();
     embed = embed
         .title(if paused { "Paused" } else { "Playing" })
         .description(format!(
             "[{}]({}) by {}",
-            meta.title.clone().unwrap(),
-            meta.source_url.clone().unwrap(),
-            meta.artist.clone().unwrap()
+            song.title().clone(),
+            url,
+            song.author().clone()
         ))
         .footer(|f| {
             f.text(format!(
@@ -135,7 +145,7 @@ fn create_now_playing_embed<'a>(
         });
 
     if nsfw {
-        if let Some(thumb) = meta.thumbnail.clone() {
+        if let Some(thumb) = song.thumbnail().clone() {
             embed = embed.thumbnail(thumb);
         }
     }
@@ -157,22 +167,22 @@ async fn play_pause_button_action(
         return Ok(());
     }
     {
-        let queue = get_queue_for_guild(ctx, &guild_id).await?;
+        let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
 
         let (current, message, paused) = {
             log::debug!("Queue is locked");
-            let mut queue = queue.lock().await;
-            queue.pause();
+            let mut player = player.lock().await;
+            player.toggle_paused().await?;
             (
-                queue.current().clone(),
-                queue.now_playing_msg.clone().unwrap(),
-                queue.paused(),
+                player.queue().current().clone(),
+                player.now_playing_message().clone().unwrap(),
+                player.is_paused(),
             )
         };
         log::debug!("Queue is unlocked");
 
-        if let Some((current, _)) = current {
-            update_now_playing_msg(&ctx.http, &message, current.metadata(), paused).await?;
+        if let Some(mut current) = current {
+            update_now_playing_msg(&ctx.http, &message, &mut current, paused).await?;
         }
     }
 
@@ -191,16 +201,11 @@ async fn skip_button_action(
     if !is_dj(ctx, guild_id, &user).await? {
         return Ok(());
     }
-    {
-        let current = {
-            let queue = get_queue_for_guild(ctx, &guild_id).await?;
-            let queue = queue.lock().await;
-            queue.current().clone()
-        };
 
-        if let Some((current, _)) = current {
-            let _ = current.stop();
-        }
+    {
+        let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
+        let mut player = player.lock().await;
+        player.skip().await?;
     }
 
     Ok(())
@@ -220,21 +225,24 @@ async fn stop_button_action(
     }
     {
         let manager = get_voice_manager(ctx).await;
-        let queue = get_queue_for_guild(ctx, &guild_id).await?;
-        let queue = queue.lock().await;
 
         let handler = manager.get(guild_id);
 
         if let Some(handler) = handler {
             let mut handler_lock = handler.lock().await;
-            handler_lock.remove_all_global_events();
-        }
-        if let Some(current) = queue.current() {
-            current.0.stop().map_err(BotError::from)?;
+            let _ = handler_lock.leave().await;
         }
 
         if manager.get(guild_id).is_some() {
             manager.remove(guild_id).await.map_err(BotError::from)?;
+            let mut data = ctx.data.write().await;
+            let players = data.get_mut::<MusicPlayers>().unwrap();
+
+            if let Some(player) = players.remove(&guild_id.0) {
+                let mut player = player.lock().await;
+                player.stop().await?;
+            }
+
             log::debug!("Left the voice channel");
         } else {
             log::debug!("Not in a voice channel");
@@ -257,10 +265,10 @@ async fn good_pick_action(
     reaction: Reaction,
 ) -> SerenityUtilsResult<()> {
     let guild_id = reaction.guild_id.unwrap();
-    let queue = get_queue_for_guild(ctx, &guild_id).await?;
-    let queue = queue.lock().await;
+    let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
+    let mut player = player.lock().await;
 
-    if let Some((_, song)) = queue.current() {
+    if let Some(song) = player.queue().current() {
         let data = ctx.data.read().await;
         let store = data.get::<Store>().unwrap();
         let database = data.get::<DatabaseContainer>().unwrap();
@@ -281,9 +289,9 @@ async fn delete_action(
         handle.clone()
     };
     {
-        let queue = get_queue_for_guild(ctx, &guild_id).await?;
-        let mut queue = queue.lock().await;
-        queue.now_playing_msg = None;
+        let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
+        let mut player = player.lock().await;
+        player.clear_now_playing();
     }
     ctx.http
         .delete_message(handle.channel_id, handle.message_id)

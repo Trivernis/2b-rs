@@ -1,4 +1,5 @@
 use bot_serenityutils::error::SerenityUtilsError;
+use lavalink_rs::error::LavalinkError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -43,6 +44,9 @@ pub enum BotError {
 
     #[error("YouTube Error: {0}")]
     YoutubeError(#[from] youtube_metadata::error::YoutubeError),
+
+    #[error("Lavalink Error: {0}")]
+    LavalinkError(#[from] LavalinkError),
 
     #[error("{0}")]
     Msg(String),

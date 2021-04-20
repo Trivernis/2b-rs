@@ -1,10 +1,11 @@
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{Args, CommandResult};
+use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::get_queue_for_guild;
+use crate::commands::music::get_music_player_for_guild;
+use crate::messages::music::no_voicechannel::create_no_voicechannel_message;
 use crate::messages::music::queue::create_queue_menu;
 use crate::providers::music::queue::Song;
 
@@ -23,13 +24,16 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .map(|s| s.unwrap().to_lowercase())
         .collect::<Vec<String>>();
 
-    let queue = forward_error!(
-        ctx,
-        msg.channel_id,
-        get_queue_for_guild(ctx, &guild.id).await
-    );
-    let queue_lock = queue.lock().await;
-    let songs: Vec<(usize, Song)> = queue_lock
+    let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
+        player
+    } else {
+        return create_no_voicechannel_message(&ctx.http, msg.channel_id)
+            .await
+            .map_err(CommandError::from);
+    };
+    let mut player = player.lock().await;
+    let songs: Vec<(usize, Song)> = player
+        .queue()
         .entries()
         .into_iter()
         .enumerate()

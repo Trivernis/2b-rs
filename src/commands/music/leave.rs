@@ -4,8 +4,8 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_voice_manager, DJ_CHECK};
-use crate::utils::context_data::Store;
+use crate::commands::music::DJ_CHECK;
+use crate::utils::context_data::MusicPlayers;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
@@ -20,40 +20,30 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Leave request received for guild {}", guild.id);
 
-    let manager = get_voice_manager(ctx).await;
-    let queue = {
-        let mut data = ctx.data.write().await;
-        let store = data.get_mut::<Store>().unwrap();
-        store
-            .music_queues
-            .remove(&guild.id)
-            .expect("No queue for guild.")
-    };
-    let queue_lock = queue.lock().await;
-    let handler = manager.get(guild.id);
-
-    if let Some(handler) = handler {
+    let manager = songbird::get(ctx).await.unwrap();
+    if let Some(handler) = manager.get(guild.id) {
         let mut handler_lock = handler.lock().await;
-        handler_lock.remove_all_global_events();
+        let _ = handler_lock.leave().await;
     }
 
-    if manager.get(guild.id).is_some() {
-        if let Some((current, _)) = queue_lock.current() {
-            current.stop()?;
+    let mut data = ctx.data.write().await;
+    let players = data.get_mut::<MusicPlayers>().unwrap();
+
+    match players.remove(&guild.id.0) {
+        None => {
+            EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
+                m.content("‼️ I'm not in a Voice Channel")
+            })
+            .await?;
         }
-        manager.remove(guild.id).await?;
-        EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
-            m.content("👋 Left the Voice Channel")
-        })
-        .await?;
-        log::debug!("Left the voice channel");
-    } else {
-        EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
-            m.content("‼️ I'm not in a Voice Channel")
-        })
-        .await?;
-        log::debug!("Not in a voice channel");
+        Some(player) => {
+            let mut player = player.lock().await;
+            player.stop().await?;
+            player.delete_now_playing().await?;
+        }
     }
+    manager.remove(guild.id).await?;
+
     handle_autodelete(ctx, msg).await?;
 
     Ok(())
