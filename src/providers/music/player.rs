@@ -6,11 +6,16 @@ use crate::utils::context_data::MusicPlayers;
 use crate::utils::error::BotResult;
 use bot_serenityutils::core::MessageHandle;
 use lavalink_rs::LavalinkClient;
-use serenity::client::Context;
-use serenity::http::Http;
-use serenity::model::id::{ChannelId, GuildId};
+use serenity::prelude::TypeMap;
+use serenity::{
+    client::Context,
+    http::Http,
+    model::id::{ChannelId, GuildId},
+};
+use songbird::Songbird;
 use std::mem;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::{Mutex, RwLock};
 
 pub struct MusicPlayer {
@@ -57,6 +62,13 @@ impl MusicPlayer {
             players.insert(guild_id.0, Arc::clone(&player));
             player
         };
+
+        wait_for_disconnect(
+            Arc::clone(&ctx.data),
+            Arc::clone(&player),
+            manager,
+            guild_id,
+        );
 
         Ok(player)
     }
@@ -118,6 +130,9 @@ impl MusicPlayer {
             }
         };
 
+        if query_information.tracks.len() == 0 {
+            return Ok(false);
+        }
         let track = query_information.tracks[0].clone();
         self.client.play(self.guild_id.0, track).start().await?;
         self.queue.set_current(next);
@@ -178,4 +193,49 @@ impl MusicPlayer {
     pub fn set_leave_flag(&mut self, flag: bool) {
         self.leave_flag = flag;
     }
+}
+
+/// Stats a tokio coroutine to check for player disconnect conditions
+fn wait_for_disconnect(
+    data: Arc<RwLock<TypeMap>>,
+    player: Arc<Mutex<MusicPlayer>>,
+    manager: Arc<Songbird>,
+    guild_id: GuildId,
+) {
+    let mut leave_in: i32 = 5;
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(Duration::from_secs(60)).await;
+            if manager.get(guild_id).is_none() {
+                return; // leave when there's no connection to handle
+            }
+            let mut player_lock = player.lock().await;
+
+            if player_lock.leave_flag {
+                log::debug!("Waiting to leave");
+
+                if leave_in <= 0 {
+                    log::debug!("Leaving voice channel");
+
+                    if let Some(handler) = manager.get(guild_id) {
+                        let mut handler_lock = handler.lock().await;
+                        let _ = handler_lock.leave().await;
+                    }
+
+                    let _ = manager.remove(guild_id).await;
+                    let mut data = data.write().await;
+                    let players = data.get_mut::<MusicPlayers>().unwrap();
+                    players.remove(&guild_id.0);
+                    let _ = player_lock.stop().await;
+                    let _ = player_lock.delete_now_playing().await;
+                    log::debug!("Left the voice channel");
+                    return;
+                }
+                leave_in -= 1;
+            } else {
+                log::debug!("Resetting leave value");
+                leave_in = 5
+            }
+        }
+    });
 }

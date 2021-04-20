@@ -40,8 +40,13 @@ pub async fn get_client() -> BotResult<Client> {
 
     let lava_client = LavalinkClient::builder(current_application.id.0)
         .set_host(env::var("LAVALINK_HOST").unwrap_or("172.0.0.1".to_string()))
-        .set_password(env::var("LAVALINK_PORT").expect("Missing lavalink port"))
         .set_password(env::var("LAVALINK_PASSWORD").expect("Missing lavalink password"))
+        .set_port(
+            env::var("LAVALINK_PORT")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .expect("Missing lavalink port"),
+        )
         .build(LavalinkHandler { data })
         .await?;
     {

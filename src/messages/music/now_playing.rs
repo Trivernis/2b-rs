@@ -9,7 +9,7 @@ use crate::messages::add_ephemeral_handle_to_database;
 use crate::providers::music::add_youtube_song_to_database;
 use crate::providers::music::player::MusicPlayer;
 use crate::providers::music::queue::Song;
-use crate::utils::context_data::{DatabaseContainer, Store};
+use crate::utils::context_data::{DatabaseContainer, MusicPlayers, Store};
 use crate::utils::error::*;
 use bot_serenityutils::core::MessageHandle;
 use bot_serenityutils::error::SerenityUtilsResult;
@@ -230,14 +230,19 @@ async fn stop_button_action(
 
         if let Some(handler) = handler {
             let mut handler_lock = handler.lock().await;
-            handler_lock.remove_all_global_events();
+            let _ = handler_lock.leave().await;
         }
 
         if manager.get(guild_id).is_some() {
             manager.remove(guild_id).await.map_err(BotError::from)?;
-            let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
-            let mut player = player.lock().await;
-            player.stop().await?;
+            let mut data = ctx.data.write().await;
+            let players = data.get_mut::<MusicPlayers>().unwrap();
+
+            if let Some(player) = players.remove(&guild_id.0) {
+                let mut player = player.lock().await;
+                player.stop().await?;
+            }
+
             log::debug!("Left the voice channel");
         } else {
             log::debug!("Not in a voice channel");

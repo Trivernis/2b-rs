@@ -20,8 +20,15 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Leave request received for guild {}", guild.id);
 
+    let manager = songbird::get(ctx).await.unwrap();
+    if let Some(handler) = manager.get(guild.id) {
+        let mut handler_lock = handler.lock().await;
+        let _ = handler_lock.leave().await;
+    }
+
     let mut data = ctx.data.write().await;
     let players = data.get_mut::<MusicPlayers>().unwrap();
+
     match players.remove(&guild.id.0) {
         None => {
             EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
@@ -32,8 +39,10 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
         Some(player) => {
             let mut player = player.lock().await;
             player.stop().await?;
+            player.delete_now_playing().await?;
         }
     }
+    manager.remove(guild.id).await?;
 
     handle_autodelete(ctx, msg).await?;
 
