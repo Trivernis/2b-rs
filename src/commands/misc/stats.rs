@@ -9,9 +9,7 @@ use serenity::prelude::*;
 use sysinfo::{ProcessExt, SystemExt};
 
 use crate::commands::common::handle_autodelete;
-use crate::providers::music::queue::MusicQueue;
-use crate::utils::context_data::{get_database_from_context, Store};
-use std::sync::Arc;
+use crate::utils::context_data::{get_database_from_context, MusicPlayers};
 
 #[command]
 #[description("Shows some statistics about the bot")]
@@ -94,23 +92,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
 /// Returns the total number of queues that are not
 /// flagged to leave
 async fn get_queue_count(ctx: &Context) -> usize {
-    let queues: Vec<Arc<Mutex<MusicQueue>>> = {
-        let data = ctx.data.read().await;
-        let store = data.get::<Store>().unwrap();
-
-        store
-            .music_queues
-            .iter()
-            .map(|(_, q)| Arc::clone(q))
-            .collect()
-    };
-    let mut count = 0;
-    for queue in queues {
-        let queue = queue.lock().await;
-        if !queue.leave_flag {
-            count += 1;
-        }
-    }
-
-    count
+    let data = ctx.data.read().await;
+    let players = data.get::<MusicPlayers>().unwrap();
+    players.len()
 }

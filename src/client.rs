@@ -13,7 +13,9 @@ use songbird::SerenityInit;
 use crate::commands::*;
 use crate::handler::Handler;
 use crate::providers::music::lavalink::{Lavalink, LavalinkHandler};
-use crate::utils::context_data::{get_database_from_context, DatabaseContainer, Store, StoreData};
+use crate::utils::context_data::{
+    get_database_from_context, DatabaseContainer, MusicPlayers, Store, StoreData,
+};
 use crate::utils::error::{BotError, BotResult};
 use bot_serenityutils::menu::EventDrivenMessageContainer;
 use lavalink_rs::LavalinkClient;
@@ -35,19 +37,20 @@ pub async fn get_client() -> BotResult<Client> {
         .register_songbird()
         .await?;
     let data = client.data.clone();
-    let http = client.cache_and_http.http.clone();
+
     let lava_client = LavalinkClient::builder(current_application.id.0)
         .set_host(env::var("LAVALINK_HOST").unwrap_or("172.0.0.1".to_string()))
         .set_password(env::var("LAVALINK_PORT").expect("Missing lavalink port"))
         .set_password(env::var("LAVALINK_PASSWORD").expect("Missing lavalink password"))
-        .build(LavalinkHandler { data, http })
+        .build(LavalinkHandler { data })
         .await?;
     {
         let mut data = client.data.write().await;
         data.insert::<Store>(StoreData::new());
         data.insert::<DatabaseContainer>(database);
         data.insert::<EventDrivenMessageContainer>(Arc::new(Mutex::new(HashMap::new())));
-        data.insert::<Lavalink>(lava_client);
+        data.insert::<MusicPlayers>(HashMap::new());
+        data.insert::<Lavalink>(Arc::new(lava_client));
     }
 
     Ok(client)

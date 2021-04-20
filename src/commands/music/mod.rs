@@ -1,21 +1,14 @@
-use std::mem;
-use std::sync::atomic::{AtomicIsize, AtomicUsize, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 
 use aspotify::Track;
 use regex::Regex;
-use serenity::async_trait;
 use serenity::client::Context;
 use serenity::framework::standard::macros::{check, group};
-use serenity::http::Http;
 use serenity::model::channel::Message;
 use serenity::model::guild::Guild;
 use serenity::model::id::{ChannelId, GuildId, UserId};
 use serenity::model::user::User;
-use songbird::{
-    Call, Event, EventContext, EventHandler as VoiceEventHandler, Songbird, TrackEvent,
-};
+use songbird::Songbird;
 use tokio::sync::Mutex;
 
 use clear_queue::CLEAR_QUEUE_COMMAND;
@@ -34,19 +27,16 @@ use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
-use crate::messages::music::now_playing::update_now_playing_msg;
-use crate::providers::music::lavalink::Lavalink;
-use crate::providers::music::queue::{MusicQueue, Song};
+use crate::providers::music::player::MusicPlayer;
+use crate::providers::music::queue::Song;
 use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
 use crate::providers::settings::{get_setting, Setting};
-use crate::utils::context_data::{DatabaseContainer, Store};
+use crate::utils::context_data::{DatabaseContainer, MusicPlayers, Store};
 use crate::utils::error::{BotError, BotResult};
 use bot_database::Database;
 use futures::future::BoxFuture;
 use futures::FutureExt;
-use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::{Args, CommandOptions, Reason};
-use serenity::prelude::{RwLock, TypeMap};
 use youtube_metadata::get_video_information;
 
 mod clear_queue;
@@ -85,131 +75,12 @@ mod skip;
 )]
 pub struct Music;
 
-struct SongEndNotifier {
-    channel_id: ChannelId,
-    guild_id: GuildId,
-    http: Arc<Http>,
-    queue: Arc<Mutex<MusicQueue>>,
-    data: Arc<RwLock<TypeMap>>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for SongEndNotifier {
-    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        log::debug!("Song ended in {}. Playing next one", self.channel_id);
-        let data = self.data.read().await;
-        let player = data.get::<Lavalink>().unwrap();
-        while !play_next_in_queue(
-            &self.http,
-            &self.channel_id,
-            &self.guild_id,
-            &self.queue,
-            player,
-        )
-        .await
-        {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        }
-
-        None
-    }
-}
-
-struct ChannelDurationNotifier {
-    channel_id: ChannelId,
-    guild_id: GuildId,
-    count: Arc<AtomicUsize>,
-    queue: Arc<Mutex<MusicQueue>>,
-    leave_in: Arc<AtomicIsize>,
-    handler: Arc<Mutex<Call>>,
-    manager: Arc<Songbird>,
-}
-
-#[async_trait]
-impl VoiceEventHandler for ChannelDurationNotifier {
-    async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
-        let count_before = self.count.fetch_add(1, Ordering::Relaxed);
-        log::debug!(
-            "Playing in channel {} for {} minutes",
-            self.channel_id,
-            count_before
-        );
-        let queue_lock = self.queue.lock().await;
-        if queue_lock.leave_flag {
-            log::debug!("Waiting to leave");
-            if self.leave_in.fetch_sub(1, Ordering::Relaxed) <= 0 {
-                log::debug!("Leaving voice channel");
-                {
-                    let mut handler_lock = self.handler.lock().await;
-                    handler_lock.remove_all_global_events();
-                }
-                let _ = self.manager.remove(self.guild_id).await;
-                log::debug!("Left the voice channel");
-            }
-        } else {
-            log::debug!("Resetting leave value");
-            self.leave_in.store(5, Ordering::Relaxed)
-        }
-
-        None
-    }
-}
-
-/// Joins a voice channel
-async fn join_channel(ctx: &Context, channel_id: ChannelId, guild_id: GuildId) -> Arc<Mutex<Call>> {
-    log::debug!(
-        "Attempting to join channel {} in guild {}",
-        channel_id,
-        guild_id
-    );
-    let manager = songbird::get(ctx)
+/// Returns the voice manager from the context
+pub async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
+    songbird::get(ctx)
         .await
         .expect("Songbird Voice client placed in at initialisation.")
-        .clone();
-
-    let (handler, connection) = manager.join_gateway(guild_id, channel_id).await;
-    let connection = connection.expect("Failed to join gateway");
-    let mut data = ctx.data.write().await;
-    let lava_client = data.get::<Lavalink>().unwrap();
-    lava_client
-        .create_session(&connection)
-        .await
-        .expect("Failed to create lava session");
-    let store = data.get_mut::<Store>().unwrap();
-    log::debug!("Creating new queue");
-    let queue = Arc::new(Mutex::new(MusicQueue::new(channel_id)));
-
-    store.music_queues.insert(guild_id, queue.clone());
-    {
-        let mut handler_lock = handler.lock().await;
-
-        log::debug!("Registering track end handler");
-        handler_lock.add_global_event(
-            Event::Track(TrackEvent::End),
-            SongEndNotifier {
-                channel_id,
-                guild_id,
-                http: ctx.http.clone(),
-                queue: Arc::clone(&queue),
-                data: ctx.data.clone(),
-            },
-        );
-
-        handler_lock.add_global_event(
-            Event::Periodic(Duration::from_secs(60), None),
-            ChannelDurationNotifier {
-                channel_id,
-                guild_id,
-                count: Default::default(),
-                queue: Arc::clone(&queue),
-                handler: handler.clone(),
-                leave_in: Arc::new(AtomicIsize::new(5)),
-                manager: manager.clone(),
-            },
-        );
-    }
-
-    handler
+        .clone()
 }
 
 /// Returns the voice channel the author is in
@@ -221,93 +92,15 @@ fn get_channel_for_author(author_id: &UserId, guild: &Guild) -> BotResult<Channe
         .ok_or(BotError::from("You're not in a Voice Channel"))
 }
 
-/// Returns the voice manager from the context
-pub async fn get_voice_manager(ctx: &Context) -> Arc<Songbird> {
-    songbird::get(ctx)
-        .await
-        .expect("Songbird Voice client placed in at initialisation.")
-        .clone()
-}
-
-/// Returns a reference to a guilds music queue
-pub(crate) async fn get_queue_for_guild(
+/// Returns the music player for a given guild
+pub async fn get_music_player_for_guild(
     ctx: &Context,
-    guild_id: &GuildId,
-) -> BotResult<Arc<Mutex<MusicQueue>>> {
+    guild_id: GuildId,
+) -> Option<Arc<Mutex<MusicPlayer>>> {
     let data = ctx.data.read().await;
-    let store = data.get::<Store>().unwrap();
+    let players = data.get::<MusicPlayers>().unwrap();
 
-    let queue = store
-        .music_queues
-        .get(guild_id)
-        .ok_or(BotError::from("I'm not in a Voice Channel"))?
-        .clone();
-    Ok(queue)
-}
-
-/// Plays the next song in the queue
-pub async fn play_next_in_queue(
-    http: &Arc<Http>,
-    channel_id: &ChannelId,
-    guild_id: &GuildId,
-    queue: &Arc<Mutex<MusicQueue>>,
-    player: &LavalinkClient,
-) -> bool {
-    let mut queue_lock = queue.lock().await;
-
-    if let Some(mut next) = queue_lock.next() {
-        let url = match next.url().await {
-            Some(url) => url,
-            None => {
-                let _ = channel_id
-                    .say(&http, format!("'{}' not found", next.title()))
-                    .await;
-                return false;
-            }
-        };
-        log::debug!("Getting source for song '{}'", url);
-
-        let query_information = match player.auto_search_tracks(url).await {
-            Ok(s) => s,
-            Err(e) => {
-                let _ = channel_id
-                    .say(
-                        &http,
-                        format!("Failed to enqueue {}: {:?}", next.title(), e),
-                    )
-                    .await;
-                return false;
-            }
-        };
-        if let Err(e) = player
-            .play(guild_id.0, query_information.tracks[0].clone())
-            .start()
-            .await
-        {
-            log::error!("Failed to play song: {:?}", e);
-        }
-        log::trace!("Track is {:?}", query_information.tracks[0]);
-
-        if queue_lock.paused() {
-            let _ = player.pause(guild_id.0).await;
-        }
-
-        if let Some(np) = &queue_lock.now_playing_msg {
-            if let Err(e) = update_now_playing_msg(http, np, &mut next, queue_lock.paused()).await {
-                log::error!("Failed to update now playing message: {:?}", e);
-            }
-        }
-        queue_lock.set_current(next);
-    } else {
-        if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
-            let np = np.read().await;
-            if let Ok(message) = np.get_message(http).await {
-                let _ = message.delete(http).await;
-            }
-        }
-        queue_lock.clear_current();
-    }
-    true
+    players.get(&guild_id.0).cloned()
 }
 
 /// Returns the list of songs for a given url

@@ -7,30 +7,20 @@ use bot_coreutils::shuffle::Shuffle;
 use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::song_to_youtube_video;
 use bot_database::models::YoutubeSong;
-use bot_serenityutils::core::MessageHandle;
-use serenity::model::id::ChannelId;
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<Song>,
-    paused: bool,
-    pub now_playing_msg: Option<Arc<RwLock<MessageHandle>>>,
     pub leave_flag: bool,
-    channel_id: ChannelId,
 }
 
 impl MusicQueue {
-    pub fn new(channel_id: ChannelId) -> Self {
+    pub fn new() -> Self {
         Self {
             inner: VecDeque::new(),
             current: None,
-            paused: false,
             leave_flag: false,
-            now_playing_msg: None,
-            channel_id,
         }
     }
 
@@ -64,24 +54,9 @@ impl MusicQueue {
         self.current = Some(song)
     }
 
-    /// Clears the currently playing song
-    pub fn clear_current(&mut self) {
-        self.current = None;
-    }
-
     /// Returns the reference to the currently playing song
     pub fn current(&self) -> &Option<Song> {
         &self.current
-    }
-
-    /// Returns if the queue is paused
-    pub fn paused(&self) -> bool {
-        self.paused
-    }
-
-    /// Sets if the queue is paused
-    pub fn set_paused(&mut self, paused: bool) {
-        self.paused = paused;
     }
 
     /// Clears the queue
@@ -99,11 +74,6 @@ impl MusicQueue {
     /// Removes a song from the queue
     pub fn remove(&mut self, index: usize) {
         self.inner.remove(index);
-    }
-
-    /// The channel id where the music messages should be sent to
-    pub fn channel_id(&self) -> ChannelId {
-        self.channel_id
     }
 }
 
