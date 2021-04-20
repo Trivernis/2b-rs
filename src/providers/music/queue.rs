@@ -85,11 +85,11 @@ pub enum SongSource {
 
 #[derive(Clone, Debug)]
 pub struct Song {
-    url: Option<String>,
-    title: String,
-    author: String,
-    thumbnail: Option<String>,
-    source: SongSource,
+    pub(crate) url: Option<String>,
+    pub(crate) title: String,
+    pub(crate) author: String,
+    pub(crate) thumbnail: Option<String>,
+    pub(crate) source: SongSource,
 }
 
 impl Song {

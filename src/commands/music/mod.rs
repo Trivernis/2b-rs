@@ -289,16 +289,18 @@ async fn get_youtube_song_for_track(database: &Database, track: Track) -> BotRes
     if let Some(id) = track.id {
         let entry = database.get_song(&id).await?;
 
-        if let Some(song) = &entry {
+        if let Some(song) = entry {
             // check if the video is still available
-            if get_video_information(&song.url).await.is_err() {
+            log::trace!("Found entry is {:?}", song);
+            if let Ok(info) = get_video_information(&song.url).await {
+                return Ok(Some(info.into()));
+            } else {
                 log::debug!("Video '{}' is not available. Deleting entry", song.url);
                 database.delete_song(song.id).await?;
                 return Ok(None);
             }
         }
-        log::trace!("Found entry is {:?}", entry);
-        Ok(entry.map(Song::from))
+        Ok(None)
     } else {
         log::debug!("Track has no ID");
         Ok(None)
