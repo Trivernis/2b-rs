@@ -6,6 +6,7 @@ use serenity::prelude::*;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_queue_for_guild, DJ_CHECK};
 use crate::messages::music::now_playing::update_now_playing_msg;
+use crate::providers::music::lavalink::Lavalink;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
@@ -27,17 +28,21 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let mut queue_lock = queue.lock().await;
 
     if let Some(_) = queue_lock.current() {
-        queue_lock.pause();
-        if queue_lock.paused() {
+        let is_paused = {
+            let data = ctx.data.read().await;
+            let player = data.get::<Lavalink>().unwrap();
+            player.set_pause(guild.id.0, !queue_lock.paused()).await?;
+            !queue_lock.paused()
+        };
+        queue_lock.set_paused(is_paused);
+        if is_paused {
             log::debug!("Paused");
             EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
                 m.content("⏸️ Paused playback️")
             })
             .await?;
-            if let (Some(menu), Some((current, _))) =
-                (&queue_lock.now_playing_msg, queue_lock.current())
-            {
-                update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
+            if let (Some(menu), Some(song)) = (&queue_lock.now_playing_msg, queue_lock.current()) {
+                update_now_playing_msg(&ctx.http, menu, &mut song.clone(), true).await?;
             }
         } else {
             log::debug!("Resumed");
@@ -45,10 +50,8 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
                 m.content("▶ Resumed playback️")
             })
             .await?;
-            if let (Some(menu), Some((current, _))) =
-                (&queue_lock.now_playing_msg, queue_lock.current())
-            {
-                update_now_playing_msg(&ctx.http, menu, current.metadata(), true).await?;
+            if let (Some(menu), Some(song)) = (&queue_lock.now_playing_msg, queue_lock.current()) {
+                update_now_playing_msg(&ctx.http, menu, &mut song.clone(), true).await?;
             }
         }
     } else {

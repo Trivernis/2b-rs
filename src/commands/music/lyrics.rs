@@ -23,11 +23,10 @@ async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
     );
     let queue_lock = queue.lock().await;
 
-    if let Some((current, _)) = queue_lock.current() {
+    if let Some(song) = queue_lock.current() {
         log::debug!("Playing music. Fetching lyrics for currently playing song...");
-        let metadata = current.metadata();
-        let title = metadata.title.clone().unwrap();
-        let author = metadata.artist.clone().unwrap();
+        let title = song.title().clone();
+        let author = song.author().clone();
 
         if let Some(lyrics) = get_lyrics(&*author, &*title).await? {
             log::trace!("Lyrics for '{}' are {}", title, lyrics);

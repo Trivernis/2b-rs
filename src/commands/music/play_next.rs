@@ -1,6 +1,6 @@
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{Args, CommandError, CommandResult};
+use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
@@ -9,6 +9,7 @@ use crate::commands::music::{
     join_channel, play_next_in_queue, DJ_CHECK,
 };
 use crate::messages::music::now_playing::create_now_playing_msg;
+use crate::providers::music::lavalink::Lavalink;
 
 #[command]
 #[only_in(guilds)]
@@ -24,20 +25,14 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Playing song as next song for guild {}", guild.id);
     let manager = get_voice_manager(ctx).await;
-    let mut handler = manager.get(guild.id);
+    let handler = manager.get(guild.id);
 
     if handler.is_none() {
         log::debug!("Not in a voice channel. Joining authors channel");
         msg.guild(&ctx.cache).await.unwrap();
         let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
-        handler = Some(join_channel(ctx, channel_id, guild.id).await);
+        join_channel(ctx, channel_id, guild.id).await;
     }
-
-    let handler = forward_error!(
-        ctx,
-        msg.channel_id,
-        handler.ok_or(CommandError::from("I'm not in a voice channel"))
-    );
 
     let mut songs = get_songs_for_query(&ctx, msg, query).await?;
 
@@ -57,7 +52,9 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     if play_first {
-        while !play_next_in_queue(&ctx.http, &msg.channel_id, &queue, &handler).await {}
+        let data = ctx.data.read().await;
+        let player = data.get::<Lavalink>().unwrap();
+        while !play_next_in_queue(&ctx.http, &msg.channel_id, &guild.id, &queue, &player).await {}
     }
     if create_now_playing {
         let handle = create_now_playing_msg(ctx, queue.clone(), msg.channel_id).await?;

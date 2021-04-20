@@ -35,6 +35,7 @@ use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
 
 use crate::messages::music::now_playing::update_now_playing_msg;
+use crate::providers::music::lavalink::Lavalink;
 use crate::providers::music::queue::{MusicQueue, Song};
 use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
 use crate::providers::settings::{get_setting, Setting};
@@ -43,7 +44,9 @@ use crate::utils::error::{BotError, BotResult};
 use bot_database::Database;
 use futures::future::BoxFuture;
 use futures::FutureExt;
+use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::{Args, CommandOptions, Reason};
+use serenity::prelude::{RwLock, TypeMap};
 use youtube_metadata::get_video_information;
 
 mod clear_queue;
@@ -84,16 +87,27 @@ pub struct Music;
 
 struct SongEndNotifier {
     channel_id: ChannelId,
+    guild_id: GuildId,
     http: Arc<Http>,
     queue: Arc<Mutex<MusicQueue>>,
-    handler: Arc<Mutex<Call>>,
+    data: Arc<RwLock<TypeMap>>,
 }
 
 #[async_trait]
 impl VoiceEventHandler for SongEndNotifier {
     async fn act(&self, _ctx: &EventContext<'_>) -> Option<Event> {
         log::debug!("Song ended in {}. Playing next one", self.channel_id);
-        while !play_next_in_queue(&self.http, &self.channel_id, &self.queue, &self.handler).await {
+        let data = self.data.read().await;
+        let player = data.get::<Lavalink>().unwrap();
+        while !play_next_in_queue(
+            &self.http,
+            &self.channel_id,
+            &self.guild_id,
+            &self.queue,
+            player,
+        )
+        .await
+        {
             tokio::time::sleep(Duration::from_millis(100)).await;
         }
 
@@ -129,9 +143,6 @@ impl VoiceEventHandler for ChannelDurationNotifier {
                     let mut handler_lock = self.handler.lock().await;
                     handler_lock.remove_all_global_events();
                 }
-                if let Some((current, _)) = queue_lock.current() {
-                    let _ = current.stop();
-                }
                 let _ = self.manager.remove(self.guild_id).await;
                 log::debug!("Left the voice channel");
             }
@@ -156,11 +167,17 @@ async fn join_channel(ctx: &Context, channel_id: ChannelId, guild_id: GuildId) -
         .expect("Songbird Voice client placed in at initialisation.")
         .clone();
 
-    let (handler, _) = manager.join(guild_id, channel_id).await;
+    let (handler, connection) = manager.join_gateway(guild_id, channel_id).await;
+    let connection = connection.expect("Failed to join gateway");
     let mut data = ctx.data.write().await;
+    let lava_client = data.get::<Lavalink>().unwrap();
+    lava_client
+        .create_session(&connection)
+        .await
+        .expect("Failed to create lava session");
     let store = data.get_mut::<Store>().unwrap();
     log::debug!("Creating new queue");
-    let queue = Arc::new(Mutex::new(MusicQueue::new()));
+    let queue = Arc::new(Mutex::new(MusicQueue::new(channel_id)));
 
     store.music_queues.insert(guild_id, queue.clone());
     {
@@ -170,10 +187,11 @@ async fn join_channel(ctx: &Context, channel_id: ChannelId, guild_id: GuildId) -
         handler_lock.add_global_event(
             Event::Track(TrackEvent::End),
             SongEndNotifier {
-                channel_id: channel_id.clone(),
+                channel_id,
+                guild_id,
                 http: ctx.http.clone(),
                 queue: Arc::clone(&queue),
-                handler: handler.clone(),
+                data: ctx.data.clone(),
             },
         );
 
@@ -228,11 +246,12 @@ pub(crate) async fn get_queue_for_guild(
 }
 
 /// Plays the next song in the queue
-async fn play_next_in_queue(
+pub async fn play_next_in_queue(
     http: &Arc<Http>,
     channel_id: &ChannelId,
+    guild_id: &GuildId,
     queue: &Arc<Mutex<MusicQueue>>,
-    handler: &Arc<Mutex<Call>>,
+    player: &LavalinkClient,
 ) -> bool {
     let mut queue_lock = queue.lock().await;
 
@@ -247,7 +266,8 @@ async fn play_next_in_queue(
             }
         };
         log::debug!("Getting source for song '{}'", url);
-        let source = match songbird::ytdl(&url).await {
+
+        let query_information = match player.auto_search_tracks(url).await {
             Ok(s) => s,
             Err(e) => {
                 let _ = channel_id
@@ -259,22 +279,25 @@ async fn play_next_in_queue(
                 return false;
             }
         };
-        let mut handler_lock = handler.lock().await;
-        let track = handler_lock.play_only_source(source);
-        log::trace!("Track is {:?}", track);
+        if let Err(e) = player
+            .play(guild_id.0, query_information.tracks[0].clone())
+            .start()
+            .await
+        {
+            log::error!("Failed to play song: {:?}", e);
+        }
+        log::trace!("Track is {:?}", query_information.tracks[0]);
 
         if queue_lock.paused() {
-            let _ = track.pause();
+            let _ = player.pause(guild_id.0).await;
         }
 
         if let Some(np) = &queue_lock.now_playing_msg {
-            if let Err(e) =
-                update_now_playing_msg(http, np, track.metadata(), queue_lock.paused()).await
-            {
+            if let Err(e) = update_now_playing_msg(http, np, &mut next, queue_lock.paused()).await {
                 log::error!("Failed to update now playing message: {:?}", e);
             }
         }
-        queue_lock.set_current(track, next);
+        queue_lock.set_current(next);
     } else {
         if let Some(np) = mem::take(&mut queue_lock.now_playing_msg) {
             let np = np.read().await;

@@ -12,28 +12,42 @@ use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::handler::Handler;
+use crate::providers::music::lavalink::{Lavalink, LavalinkHandler};
 use crate::utils::context_data::{get_database_from_context, DatabaseContainer, Store, StoreData};
 use crate::utils::error::{BotError, BotResult};
 use bot_serenityutils::menu::EventDrivenMessageContainer;
+use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::buckets::LimitedFor;
+use serenity::http::Http;
+use std::env;
 use std::sync::Arc;
 use std::time::SystemTime;
 use tokio::sync::Mutex;
 
 pub async fn get_client() -> BotResult<Client> {
-    let token = dotenv::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
+    let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
     let database = get_database()?;
-
+    let http = Http::new_with_token(&token);
+    let current_application = http.get_current_application_info().await?;
     let client = Client::builder(token)
         .event_handler(Handler)
         .framework(get_framework().await)
         .register_songbird()
+        .await?;
+    let data = client.data.clone();
+    let http = client.cache_and_http.http.clone();
+    let lava_client = LavalinkClient::builder(current_application.id.0)
+        .set_host(env::var("LAVALINK_HOST").unwrap_or("172.0.0.1".to_string()))
+        .set_password(env::var("LAVALINK_PORT").expect("Missing lavalink port"))
+        .set_password(env::var("LAVALINK_PASSWORD").expect("Missing lavalink password"))
+        .build(LavalinkHandler { data, http })
         .await?;
     {
         let mut data = client.data.write().await;
         data.insert::<Store>(StoreData::new());
         data.insert::<DatabaseContainer>(database);
         data.insert::<EventDrivenMessageContainer>(Arc::new(Mutex::new(HashMap::new())));
+        data.insert::<Lavalink>(lava_client);
     }
 
     Ok(client)

@@ -5,7 +5,7 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_voice_manager, DJ_CHECK};
-use crate::utils::context_data::Store;
+use crate::providers::music::lavalink::Lavalink;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
@@ -21,15 +21,6 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     log::debug!("Leave request received for guild {}", guild.id);
 
     let manager = get_voice_manager(ctx).await;
-    let queue = {
-        let mut data = ctx.data.write().await;
-        let store = data.get_mut::<Store>().unwrap();
-        store
-            .music_queues
-            .remove(&guild.id)
-            .expect("No queue for guild.")
-    };
-    let queue_lock = queue.lock().await;
     let handler = manager.get(guild.id);
 
     if let Some(handler) = handler {
@@ -38,10 +29,10 @@ async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     }
 
     if manager.get(guild.id).is_some() {
-        if let Some((current, _)) = queue_lock.current() {
-            current.stop()?;
-        }
         manager.remove(guild.id).await?;
+        let data = ctx.data.read().await;
+        let player = data.get::<Lavalink>().unwrap();
+        player.destroy(guild.id.0).await?;
         EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
             m.content("👋 Left the Voice Channel")
         })

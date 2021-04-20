@@ -4,7 +4,8 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
-use crate::commands::music::{get_queue_for_guild, DJ_CHECK};
+use crate::commands::music::DJ_CHECK;
+use crate::providers::music::lavalink::Lavalink;
 use bot_serenityutils::core::SHORT_TIMEOUT;
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 
@@ -18,15 +19,11 @@ use bot_serenityutils::ephemeral_message::EphemeralMessage;
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
     log::debug!("Skipping song for guild {}", guild.id);
-    let queue = forward_error!(
-        ctx,
-        msg.channel_id,
-        get_queue_for_guild(ctx, &guild.id).await
-    );
-    let queue_lock = queue.lock().await;
 
-    if let Some((current, _)) = queue_lock.current() {
-        current.stop()?;
+    {
+        let data = ctx.data.read().await;
+        let player = data.get::<Lavalink>().unwrap();
+        player.stop(guild.id.0).await?;
     }
 
     EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {

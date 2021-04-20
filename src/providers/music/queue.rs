@@ -1,7 +1,6 @@
 use std::collections::VecDeque;
 
 use aspotify::Track;
-use songbird::tracks::TrackHandle;
 
 use bot_coreutils::shuffle::Shuffle;
 
@@ -9,26 +8,29 @@ use crate::providers::music::responses::{PlaylistEntry, VideoInformation};
 use crate::providers::music::song_to_youtube_video;
 use bot_database::models::YoutubeSong;
 use bot_serenityutils::core::MessageHandle;
+use serenity::model::id::ChannelId;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub struct MusicQueue {
     inner: VecDeque<Song>,
-    current: Option<(TrackHandle, Song)>,
+    current: Option<Song>,
     paused: bool,
     pub now_playing_msg: Option<Arc<RwLock<MessageHandle>>>,
     pub leave_flag: bool,
+    channel_id: ChannelId,
 }
 
 impl MusicQueue {
-    pub fn new() -> Self {
+    pub fn new(channel_id: ChannelId) -> Self {
         Self {
             inner: VecDeque::new(),
             current: None,
             paused: false,
             leave_flag: false,
             now_playing_msg: None,
+            channel_id,
         }
     }
 
@@ -58,8 +60,8 @@ impl MusicQueue {
     }
 
     /// Sets the currently playing song
-    pub fn set_current(&mut self, handle: TrackHandle, song: Song) {
-        self.current = Some((handle, song))
+    pub fn set_current(&mut self, song: Song) {
+        self.current = Some(song)
     }
 
     /// Clears the currently playing song
@@ -68,8 +70,18 @@ impl MusicQueue {
     }
 
     /// Returns the reference to the currently playing song
-    pub fn current(&self) -> &Option<(TrackHandle, Song)> {
+    pub fn current(&self) -> &Option<Song> {
         &self.current
+    }
+
+    /// Returns if the queue is paused
+    pub fn paused(&self) -> bool {
+        self.paused
+    }
+
+    /// Sets if the queue is paused
+    pub fn set_paused(&mut self, paused: bool) {
+        self.paused = paused;
     }
 
     /// Clears the queue
@@ -89,24 +101,9 @@ impl MusicQueue {
         self.inner.remove(index);
     }
 
-    /// Toggles pause
-    pub fn pause(&mut self) {
-        if let Some(current) = &self.current {
-            if self.paused {
-                let _ = current.0.play();
-            } else {
-                let _ = current.0.pause();
-            }
-
-            self.paused = !self.paused;
-        } else {
-            self.paused = false;
-        }
-    }
-
-    /// Returns if the queue is paused
-    pub fn paused(&self) -> bool {
-        self.paused
+    /// The channel id where the music messages should be sent to
+    pub fn channel_id(&self) -> ChannelId {
+        self.channel_id
     }
 }
 

@@ -7,6 +7,7 @@ use regex::Regex;
 use responses::VideoInformation;
 use youtube_dl::search_video_information;
 
+pub(crate) mod lavalink;
 pub(crate) mod lyrics;
 pub(crate) mod queue;
 pub(crate) mod responses;
