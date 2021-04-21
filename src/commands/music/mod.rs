@@ -11,22 +11,6 @@ use serenity::model::user::User;
 use songbird::Songbird;
 use tokio::sync::Mutex;
 
-use clear_queue::CLEAR_QUEUE_COMMAND;
-use current::CURRENT_COMMAND;
-use join::JOIN_COMMAND;
-use leave::LEAVE_COMMAND;
-use lyrics::LYRICS_COMMAND;
-use move_song::MOVE_SONG_COMMAND;
-use pause::PAUSE_COMMAND;
-use play::PLAY_COMMAND;
-use play_next::PLAY_NEXT_COMMAND;
-use playlists::PLAYLISTS_COMMAND;
-use queue::QUEUE_COMMAND;
-use remove_song::REMOVE_SONG_COMMAND;
-use save_playlist::SAVE_PLAYLIST_COMMAND;
-use shuffle::SHUFFLE_COMMAND;
-use skip::SKIP_COMMAND;
-
 use crate::providers::music::player::MusicPlayer;
 use crate::providers::music::queue::Song;
 use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
@@ -41,6 +25,8 @@ use youtube_metadata::get_video_information;
 
 mod clear_queue;
 mod current;
+mod equalize;
+mod equalizer;
 mod join;
 mod leave;
 mod lyrics;
@@ -54,6 +40,24 @@ mod remove_song;
 mod save_playlist;
 mod shuffle;
 mod skip;
+
+use clear_queue::CLEAR_QUEUE_COMMAND;
+use current::CURRENT_COMMAND;
+use equalize::EQUALIZE_COMMAND;
+use equalizer::EQUALIZER_COMMAND;
+use join::JOIN_COMMAND;
+use leave::LEAVE_COMMAND;
+use lyrics::LYRICS_COMMAND;
+use move_song::MOVE_SONG_COMMAND;
+use pause::PAUSE_COMMAND;
+use play::PLAY_COMMAND;
+use play_next::PLAY_NEXT_COMMAND;
+use playlists::PLAYLISTS_COMMAND;
+use queue::QUEUE_COMMAND;
+use remove_song::REMOVE_SONG_COMMAND;
+use save_playlist::SAVE_PLAYLIST_COMMAND;
+use shuffle::SHUFFLE_COMMAND;
+use skip::SKIP_COMMAND;
 
 #[group]
 #[commands(
@@ -71,7 +75,9 @@ mod skip;
     playlists,
     lyrics,
     move_song,
-    remove_song
+    remove_song,
+    equalizer,
+    equalize
 )]
 pub struct Music;
 

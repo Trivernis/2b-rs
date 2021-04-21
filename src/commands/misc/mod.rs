@@ -1,9 +1,9 @@
 use serenity::framework::standard::macros::group;
 
 use about::ABOUT_COMMAND;
-use add_gif::ADD_GIF_COMMAND;
+use add_media::ADD_MEDIA_COMMAND;
 use clear::CLEAR_COMMAND;
-use gifs::GIFS_COMMAND;
+use media::MEDIA_COMMAND;
 use pain::PAIN_COMMAND;
 use ping::PING_COMMAND;
 use qalc::QALC_COMMAND;
@@ -13,10 +13,10 @@ use time::TIME_COMMAND;
 use timezones::TIMEZONES_COMMAND;
 
 mod about;
-mod add_gif;
+mod add_media;
 mod clear;
-mod gifs;
 pub(crate) mod help;
+mod media;
 mod pain;
 mod ping;
 mod qalc;
@@ -27,6 +27,6 @@ mod timezones;
 
 #[group]
 #[commands(
-    ping, stats, shutdown, time, timezones, qalc, about, add_gif, gifs, pain, clear
+    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear
 )]
 pub struct Misc;

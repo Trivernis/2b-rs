@@ -1,16 +1,16 @@
 pub use ephemeral_messages::*;
-pub use gifs::*;
 pub use guild_playlists::*;
 pub use guild_playlists::*;
+pub use media::*;
 pub use statistics::*;
 pub use youtube_songs::*;
 
 use crate::PoolConnection;
 
 mod ephemeral_messages;
-mod gifs;
 mod guild_playlists;
 mod guild_settings;
+mod media;
 mod statistics;
 mod youtube_songs;
 

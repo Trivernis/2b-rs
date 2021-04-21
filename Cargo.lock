@@ -195,7 +195,7 @@ dependencies = [
 
 [[package]]
 name = "bot-database"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "diesel",
@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "bot-serenityutils"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "futures",
  "log 0.4.14",
@@ -1095,6 +1095,7 @@ dependencies = [
  "serde",
  "serde-aux",
  "serde_json",
+ "serenity",
  "songbird",
  "tokio",
  "tokio-native-tls",
@@ -2521,7 +2522,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tobi-rs"
-version = "0.7.0"
+version = "0.7.1"
 dependencies = [
  "aspotify",
  "bot-coreutils",

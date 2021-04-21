@@ -20,23 +20,23 @@ async fn pain(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     log::debug!("Got pain command");
     let pain_type = args.message().to_lowercase();
     let database = get_database_from_context(ctx).await;
-    let mut gifs = database
-        .get_gifs_by_category(format!("{}{}", CATEGORY_PREFIX, pain_type).as_str())
+    let mut media = database
+        .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, pain_type).as_str())
         .await?;
 
-    if gifs.is_empty() {
-        log::debug!("No gif found for pain {}. Using 404", pain_type);
-        gifs = database
-            .get_gifs_by_category(format!("{}{}", CATEGORY_PREFIX, NOT_FOUND_PAIN).as_str())
+    if media.is_empty() {
+        log::debug!("No media found for pain {}. Using 404", pain_type);
+        media = database
+            .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, NOT_FOUND_PAIN).as_str())
             .await?;
     }
 
-    let gif = gifs
+    let entry = media
         .into_iter()
         .choose(&mut rand::thread_rng())
         .ok_or(BotError::from("No gifs found."))?;
-    log::trace!("Gif for pain is {:?}", gif);
-    msg.reply(ctx, gif.url).await?;
+    log::trace!("Gif for pain is {:?}", entry);
+    msg.reply(ctx, entry.url).await?;
 
     Ok(())
 }

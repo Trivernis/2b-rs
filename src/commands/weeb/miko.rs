@@ -5,9 +5,10 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 #[command]
-#[description("Posts a random matsuri gif")]
+#[description("Posts a random miko")]
 #[usage("")]
+#[aliases("faq", "elite")]
 #[bucket("general")]
-async fn matsuri(ctx: &Context, msg: &Message) -> CommandResult {
-    post_random_media(ctx, msg, "matsuri").await
+async fn miko(ctx: &Context, msg: &Message) -> CommandResult {
+    post_random_media(ctx, msg, "miko").await
 }

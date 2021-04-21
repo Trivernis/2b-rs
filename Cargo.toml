@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -39,4 +39,4 @@ rustc_version_runtime = "0.2.0"
 trigram = "0.4.4"
 typemap_rev = "0.1.5"
 youtube-metadata = "0.1.1"
-lavalink-rs = {version="0.7.1", features=["native"]}
+lavalink-rs = {version="0.7.1", features=["native", "serenity"]}
