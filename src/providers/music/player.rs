@@ -122,6 +122,9 @@ impl MusicPlayer {
     /// Plays the next song in the queue
     pub async fn play_next(&mut self) -> BotResult<()> {
         while !self.try_play_next().await? {}
+        if self.paused {
+            self.client.pause(self.guild_id).await?;
+        }
 
         Ok(())
     }
