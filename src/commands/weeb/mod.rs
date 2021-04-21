@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::group;
 mod korone;
 mod matsuri;
 mod pekofy;
+mod rushia;
 mod sauce;
 
 use crate::utils::context_data::get_database_from_context;
@@ -15,10 +16,11 @@ use serenity::model::channel::Message;
 use korone::KORONE_COMMAND;
 use matsuri::MATSURI_COMMAND;
 use pekofy::PEKOFY_COMMAND;
+use rushia::RUSHIA_COMMAND;
 use sauce::SAUCE_COMMAND;
 
 #[group]
-#[commands(pekofy, sauce, matsuri, korone)]
+#[commands(pekofy, sauce, matsuri, korone, rushia)]
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
