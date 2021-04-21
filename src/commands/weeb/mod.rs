@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::group;
 mod fubuki;
 mod korone;
 mod matsuri;
+mod miko;
 mod pekofy;
 mod rushia;
 mod sauce;
@@ -17,12 +18,13 @@ use serenity::model::channel::Message;
 use fubuki::FUBUKI_COMMAND;
 use korone::KORONE_COMMAND;
 use matsuri::MATSURI_COMMAND;
+use miko::MIKO_COMMAND;
 use pekofy::PEKOFY_COMMAND;
 use rushia::RUSHIA_COMMAND;
 use sauce::SAUCE_COMMAND;
 
 #[group]
-#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki)]
+#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki, miko)]
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
