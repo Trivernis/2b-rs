@@ -1,5 +1,5 @@
 use crate::utils::error::BotResult;
-use bot_database::models::Gif;
+use bot_database::models::Media;
 use bot_serenityutils::menu::{MenuBuilder, Page};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
@@ -7,16 +7,16 @@ use serenity::model::id::ChannelId;
 use std::time::Duration;
 
 /// Creates a new gifs embed
-pub async fn create_gifs_menu(
+pub async fn create_media_menu(
     ctx: &Context,
     channel_id: ChannelId,
-    gifs: Vec<Gif>,
+    media: Vec<Media>,
 ) -> BotResult<()> {
-    let total_pages = (gifs.len() as f32 / 10.0).ceil() as usize;
-    let pages: Vec<Page> = gifs
+    let total_pages = (media.len() as f32 / 10.0).ceil() as usize;
+    let pages: Vec<Page> = media
         .chunks(10)
         .enumerate()
-        .map(|(page, gifs)| create_gifs_page(page + 1, total_pages, gifs.to_vec()))
+        .map(|(page, media)| create_media_page(page + 1, total_pages, media.to_vec()))
         .collect();
 
     MenuBuilder::new_paginator()
@@ -30,21 +30,21 @@ pub async fn create_gifs_menu(
 }
 
 /// Creates a new gif page
-pub fn create_gifs_page(page: usize, total_pages: usize, gifs: Vec<Gif>) -> Page<'static> {
+pub fn create_media_page(page: usize, total_pages: usize, media: Vec<Media>) -> Page<'static> {
     let mut message = CreateMessage::default();
-    let description_lines: Vec<String> = gifs
+    let description_lines: Vec<String> = media
         .into_iter()
-        .map(|g| {
+        .map(|m| {
             format!(
                 "{} - {} - [Source]({})",
-                g.category.unwrap_or("*N/A*".to_string()),
-                g.name.unwrap_or("*N/A*".to_string()),
-                g.url
+                m.category.unwrap_or("*N/A*".to_string()),
+                m.name.unwrap_or("*N/A*".to_string()),
+                m.url
             )
         })
         .collect();
     message.embed(|e| {
-        e.title("Gifs")
+        e.title("Media")
             .description(description_lines.join("\n"))
             .footer(|f| f.text(format!("Page {} of {}", page, total_pages)))
     });

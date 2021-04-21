@@ -6,7 +6,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
-static GIF_CATEGORY: &str = "matsuri";
+static MEDIA_CATEGORY: &str = "matsuri";
 
 #[command]
 #[description("Posts a random matsuri gif")]
@@ -14,8 +14,8 @@ static GIF_CATEGORY: &str = "matsuri";
 #[bucket("general")]
 async fn matsuri(ctx: &Context, msg: &Message) -> CommandResult {
     let database = get_database_from_context(ctx).await;
-    let gifs = database.get_gifs_by_category(GIF_CATEGORY).await?;
-    let gif = gifs
+    let media = database.get_media_by_category(MEDIA_CATEGORY).await?;
+    let gif = media
         .into_iter()
         .choose(&mut rand::thread_rng())
         .ok_or(BotError::from("No gifs found."))?;

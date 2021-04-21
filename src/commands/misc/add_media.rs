@@ -8,14 +8,14 @@ use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 
 #[command]
-#[description("Simple ping test command")]
+#[description("Adds media to the database")]
 #[usage("<url> [<category>] [<name>]")]
 #[bucket("general")]
-#[aliases("add-gif", "addgif")]
+#[aliases("add_gif", "add-gif", "addgif", "add-media", "addmedia")]
 #[min_args(1)]
 #[max_args(3)]
 #[owners_only]
-async fn add_gif(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn add_media(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let url = args.single::<String>()?;
 
     if !url::is_valid(&url) {
@@ -26,10 +26,10 @@ async fn add_gif(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult 
     let name = args.single_quoted::<String>().ok();
     let database = get_database_from_context(&ctx).await;
 
-    database.add_gif(&url, category, name).await?;
+    database.add_media(&url, category, name).await?;
     EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |c| {
         c.reference_message(msg)
-            .content("Gif added to the database.")
+            .content("Media entry added to the database.")
     })
     .await?;
 
