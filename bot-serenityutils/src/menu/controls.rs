@@ -124,7 +124,7 @@ pub async fn toggle_help(
 }
 
 /// Displays the menu page
-async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult<()> {
+pub async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsResult<()> {
     log::debug!("Displaying page {}", menu.current_page);
     let page = menu
         .pages

@@ -3,7 +3,7 @@ use crate::providers::music::lavalink::Lavalink;
 use crate::providers::music::lyrics::get_lyrics;
 use crate::providers::music::queue::MusicQueue;
 use crate::utils::context_data::MusicPlayers;
-use crate::utils::error::BotResult;
+use crate::utils::error::{BotError, BotResult};
 use bot_serenityutils::core::{MessageHandle, SHORT_TIMEOUT};
 use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use lavalink_rs::LavalinkClient;
@@ -28,6 +28,7 @@ pub struct MusicPlayer {
     msg_channel: ChannelId,
     leave_flag: bool,
     paused: bool,
+    equalizer: [f64; 15],
 }
 
 impl MusicPlayer {
@@ -47,6 +48,7 @@ impl MusicPlayer {
             now_playing_msg: None,
             leave_flag: false,
             paused: false,
+            equalizer: [0f64; 15],
         }
     }
 
@@ -229,6 +231,27 @@ impl MusicPlayer {
             m.content(content)
         })
         .await?;
+
+        Ok(())
+    }
+
+    /// Returns the equalizer
+    pub fn get_equalizer(&self) -> &[f64; 15] {
+        &self.equalizer
+    }
+
+    /// Equalizes a specified band
+    pub async fn equalize(&mut self, band: u8, value: f64) -> BotResult<()> {
+        if band > 15 {
+            return Err(BotError::from("Invalid Equalizer band"));
+        }
+        if value < -0.25 || value > 0.25 {
+            return Err(BotError::from("Invalid Equalizer value"));
+        }
+        self.equalizer[band as usize] = value;
+        self.client
+            .equalize_all(self.guild_id, self.equalizer)
+            .await?;
 
         Ok(())
     }

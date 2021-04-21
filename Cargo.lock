@@ -209,7 +209,7 @@ dependencies = [
 
 [[package]]
 name = "bot-serenityutils"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "futures",
  "log 0.4.14",
@@ -1095,6 +1095,7 @@ dependencies = [
  "serde",
  "serde-aux",
  "serde_json",
+ "serenity",
  "songbird",
  "tokio",
  "tokio-native-tls",
