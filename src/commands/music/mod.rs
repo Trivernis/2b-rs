@@ -25,6 +25,7 @@ use youtube_metadata::get_video_information;
 
 mod clear_queue;
 mod current;
+mod equalize;
 mod equalizer;
 mod join;
 mod leave;
@@ -42,6 +43,7 @@ mod skip;
 
 use clear_queue::CLEAR_QUEUE_COMMAND;
 use current::CURRENT_COMMAND;
+use equalize::EQUALIZE_COMMAND;
 use equalizer::EQUALIZER_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
@@ -74,7 +76,8 @@ use skip::SKIP_COMMAND;
     lyrics,
     move_song,
     remove_song,
-    equalizer
+    equalizer,
+    equalize
 )]
 pub struct Music;
 

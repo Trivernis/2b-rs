@@ -255,6 +255,16 @@ impl MusicPlayer {
 
         Ok(())
     }
+
+    /// Equalizes all bands at the same time
+    pub async fn equalize_all(&mut self, bands: [f64; 15]) -> BotResult<()> {
+        self.equalizer = bands;
+        self.client
+            .equalize_all(self.guild_id, self.equalizer)
+            .await?;
+
+        Ok(())
+    }
 }
 
 /// Stats a tokio coroutine to check for player disconnect conditions
