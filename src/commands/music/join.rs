@@ -6,9 +6,9 @@ use serenity::model::channel::Message;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_channel_for_author, get_music_player_for_guild, is_dj};
 use crate::providers::music::player::MusicPlayer;
-use bot_serenityutils::core::SHORT_TIMEOUT;
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::model::id::ChannelId;
+use serenity_rich_interaction::core::SHORT_TIMEOUT;
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]
@@ -21,14 +21,14 @@ async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         if is_dj(ctx, guild.id, &msg.author).await? {
             ChannelId(arg)
         } else {
-            forward_error!(
+            crate::forward_error!(
                 ctx,
                 msg.channel_id,
                 get_channel_for_author(&msg.author.id, &guild)
             )
         }
     } else {
-        forward_error!(
+        crate::forward_error!(
             ctx,
             msg.channel_id,
             get_channel_for_author(&msg.author.id, &guild)

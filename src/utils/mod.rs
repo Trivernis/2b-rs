@@ -12,6 +12,19 @@ pub(crate) mod context_data;
 pub(crate) mod error;
 pub(crate) mod logging;
 
+#[macro_export]
+macro_rules! forward_error {
+    ($ctx:expr,$channel_id:expr,$result:expr) => {
+        match $result {
+            Err(e) => {
+                $channel_id.say($ctx, format!("‼️ {}", e)).await?;
+                return Ok(());
+            }
+            Ok(v) => v,
+        }
+    };
+}
+
 /// Returns the message the given message is a reply to or the message sent before that
 pub async fn get_previous_message_or_reply(
     ctx: &Context,

@@ -1,5 +1,5 @@
-use bot_serenityutils::error::SerenityUtilsError;
 use lavalink_rs::error::LavalinkError;
+use serenity_rich_interaction::Error as SerenityUtilsError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -34,7 +34,7 @@ pub enum BotError {
     CliInject,
 
     #[error("Serenity Utils Error: {0}")]
-    SerenityUtils(#[from] bot_serenityutils::error::SerenityUtilsError),
+    SerenityUtils(#[from] serenity_rich_interaction::Error),
 
     #[error("Track Error: {0}")]
     TrackError(#[from] songbird::error::TrackError),

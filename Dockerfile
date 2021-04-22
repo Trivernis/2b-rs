@@ -9,7 +9,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY bot-coreutils ./bot-coreutils
 COPY bot-database ./bot-database
-COPY bot-serenityutils ./bot-serenityutils
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=target \
     cargo build --release

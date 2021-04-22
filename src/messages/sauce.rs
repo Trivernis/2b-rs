@@ -7,8 +7,8 @@ use serenity::{model::channel::Message, prelude::*};
 use bot_coreutils::url::get_domain_for_url;
 
 use crate::utils::error::BotResult;
-use bot_serenityutils::menu::{MenuBuilder, Page};
 use rand::prelude::SliceRandom;
+use serenity_rich_interaction::menu::{MenuBuilder, Page};
 use std::time::Duration;
 
 static MAX_RESULTS: usize = 6;

@@ -6,8 +6,8 @@ use serenity::model::channel::Message;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::DJ_CHECK;
 use crate::utils::context_data::MusicPlayers;
-use bot_serenityutils::core::SHORT_TIMEOUT;
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
+use serenity_rich_interaction::core::SHORT_TIMEOUT;
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]

@@ -17,13 +17,13 @@ async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let second_timezone = args.single::<String>().ok();
 
     let from_timezone: Tz = if let Some(first) = &first_timezone {
-        forward_error!(ctx, msg.channel_id, first.parse::<Tz>())
+        crate::forward_error!(ctx, msg.channel_id, first.parse::<Tz>())
     } else {
         Tz::UTC
     };
 
     let to_timezone = if let Some(second) = &second_timezone {
-        forward_error!(ctx, msg.channel_id, second.parse::<Tz>())
+        crate::forward_error!(ctx, msg.channel_id, second.parse::<Tz>())
     } else {
         Tz::UTC
     };
@@ -33,7 +33,7 @@ async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     } else {
         let now = Utc::now();
         if second_timezone.is_some() {
-            forward_error!(
+            crate::forward_error!(
                 ctx,
                 msg.channel_id,
                 from_timezone.datetime_from_str(
@@ -43,7 +43,7 @@ async fn time(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             )
         } else {
             let timezone: Tz = "UTC".parse().unwrap();
-            forward_error!(
+            crate::forward_error!(
                 ctx,
                 msg.channel_id,
                 timezone.datetime_from_str(

@@ -1,13 +1,13 @@
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
-use serenity::framework::standard::{CommandResult, CommandError};
+use serenity::framework::standard::{CommandError, CommandResult};
 use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_music_player_for_guild, DJ_CHECK};
-use bot_serenityutils::core::SHORT_TIMEOUT;
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use crate::messages::music::no_voicechannel::create_no_voicechannel_message;
+use serenity_rich_interaction::core::SHORT_TIMEOUT;
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]

@@ -1,11 +1,11 @@
 use crate::utils::context_data::get_database_from_context;
 use bot_coreutils::url;
-use bot_serenityutils::core::SHORT_TIMEOUT;
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
+use serenity_rich_interaction::core::SHORT_TIMEOUT;
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[description("Adds media to the database")]

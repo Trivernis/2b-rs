@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.7.1"
+version = "0.8.0"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -12,7 +12,7 @@ panic = 'abort'
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
-bot-serenityutils = {path="./bot-serenityutils"}
+serenity-rich-interaction = "0.2.2"
 serenity = "0.10.5"
 dotenv = "0.15.0"
 tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }

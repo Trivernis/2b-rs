@@ -1,13 +1,13 @@
 use crate::commands::music::is_dj;
 use crate::providers::music::player::MusicPlayer;
 use crate::utils::error::BotResult;
-use bot_serenityutils::core::EXTRA_LONG_TIMEOUT;
-use bot_serenityutils::error::SerenityUtilsResult;
-use bot_serenityutils::menu::{display_page, Menu, MenuBuilder, Page};
 use serenity::builder::{CreateEmbed, CreateMessage};
 use serenity::client::Context;
 use serenity::model::channel::Reaction;
 use serenity::model::id::ChannelId;
+use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
+use serenity_rich_interaction::menu::{display_page, Menu, MenuBuilder, Page};
+use serenity_rich_interaction::Result as SerenityUtilsResult;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
