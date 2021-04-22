@@ -11,7 +11,7 @@ use serenity::Client;
 use songbird::SerenityInit;
 
 use crate::commands::*;
-use crate::handler::Handler;
+use crate::handler::{get_raw_event_handler, Handler};
 use crate::providers::music::lavalink::{Lavalink, LavalinkHandler};
 use crate::utils::context_data::{
     get_database_from_context, DatabaseContainer, MusicPlayers, Store, StoreData,
@@ -20,6 +20,7 @@ use crate::utils::error::{BotError, BotResult};
 use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::buckets::LimitedFor;
 use serenity_rich_interaction::menu::EventDrivenMessageContainer;
+use serenity_rich_interaction::RegisterRichInteractions;
 use std::env;
 use std::sync::Arc;
 use std::time::SystemTime;
@@ -29,13 +30,13 @@ pub async fn get_client() -> BotResult<Client> {
     let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
     let database = get_database()?;
     let client = Client::builder(token)
+        .register_rich_interactions_with(get_raw_event_handler())
         .event_handler(Handler)
         .framework(get_framework().await)
         .register_songbird()
         .type_map_insert::<Store>(StoreData::new())
         .type_map_insert::<DatabaseContainer>(database)
         .type_map_insert::<MusicPlayers>(HashMap::new())
-        .type_map_insert::<EventDrivenMessageContainer>(Arc::new(Mutex::new(HashMap::new())))
         .await?;
     let data = client.data.clone();
 

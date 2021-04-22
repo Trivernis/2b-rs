@@ -2159,9 +2159,9 @@ dependencies = [
 
 [[package]]
 name = "serenity-rich-interaction"
-version = "0.1.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad2b54df630adf74eff98bb2bde23f82a55dad86927aff4dbfaa79ecb4baeb7e"
+checksum = "38f160ea25bd4cb331165ee7c0d0c34ea975a3d31230c251bb23f988ffc1b25e"
 dependencies = [
  "futures",
  "log 0.4.14",
@@ -2526,7 +2526,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tobi-rs"
-version = "0.7.1"
+version = "0.8.0"
 dependencies = [
  "aspotify",
  "bot-coreutils",

@@ -1,96 +1,48 @@
 use serenity::async_trait;
 use serenity::client::Context;
-use serenity::model::channel::{GuildChannel, Reaction};
+use serenity::model::channel::GuildChannel;
 use serenity::model::event::ResumedEvent;
 use serenity::model::gateway::{Activity, Ready};
 use serenity::model::guild::Member;
-use serenity::model::id::{ChannelId, GuildId, MessageId};
+use serenity::model::id::{ChannelId, GuildId};
 use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
 use crate::commands::music::get_music_player_for_guild;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::delete_messages_from_database;
-use serenity_rich_interaction::event_handlers::{
-    handle_message_delete, handle_message_delete_bulk, handle_reaction_add, handle_reaction_remove,
-    start_update_loop,
-};
+use serenity::model::event;
+use serenity_rich_interaction::events::RichEventHandler;
+use serenity_rich_interaction::Result;
+
+/// Returns the raw event handler built from a rich event handler
+pub fn get_raw_event_handler() -> RichEventHandler {
+    let mut handler = RichEventHandler::default();
+    handler
+        .add_event(|ctx, e: &event::ReadyEvent| Box::pin(ready(ctx, &e.ready)))
+        .add_event(|_ctx, _: &event::ResumedEvent| {
+            Box::pin(async {
+                log::info!("Reconnected to Gateway");
+                Ok(())
+            })
+        });
+
+    handler
+}
+
+async fn ready(ctx: &Context, _: &Ready) -> Result<()> {
+    log::info!("Ready");
+    delete_messages_from_database(&ctx).await?;
+    let prefix = std::env::var("BOT_PREFIX").unwrap_or("~!".to_string());
+    ctx.set_activity(Activity::listening(format!("{}help", prefix).as_str()))
+        .await;
+    Ok(())
+}
 
 pub(crate) struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn cache_ready(&self, ctx: Context, _: Vec<GuildId>) {
-        log::info!("Cache Ready");
-        start_update_loop(&ctx).await;
-        if let Err(e) = delete_messages_from_database(&ctx).await {
-            log::error!("Failed to delete expired messages {:?}", e);
-        }
-    }
-
-    /// Fired when a message was deleted
-    async fn message_delete(
-        &self,
-        ctx: Context,
-        channel_id: ChannelId,
-        message_id: MessageId,
-        _: Option<GuildId>,
-    ) {
-        tokio::spawn(async move {
-            log::trace!("Handling message delete event");
-            if let Err(e) = handle_message_delete(&ctx, channel_id, message_id).await {
-                log::error!("Failed to handle event: {:?}", e);
-            }
-            log::trace!("Message delete event handled");
-        });
-    }
-
-    /// Fired when multiple messages were deleted
-    async fn message_delete_bulk(
-        &self,
-        ctx: Context,
-        channel_id: ChannelId,
-        message_ids: Vec<MessageId>,
-        _: Option<GuildId>,
-    ) {
-        tokio::spawn(async move {
-            log::trace!("Handling message delete bulk event");
-            if let Err(e) = handle_message_delete_bulk(&ctx, channel_id, &message_ids).await {
-                log::error!("Failed to handle event: {:?}", e);
-            }
-            log::debug!("Message delte bulk event handled");
-        });
-    }
-
-    /// Fired when a reaction was added to a message
-    async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
-        tokio::spawn(async move {
-            log::trace!("Handling reaction add event...");
-            if let Err(e) = handle_reaction_add(&ctx, &reaction).await {
-                log::error!("Failed to handle event: {:?}", e);
-            }
-            log::trace!("Reaction add event handled");
-        });
-    }
-
-    /// Fired when a reaction was added to a message
-    async fn reaction_remove(&self, ctx: Context, reaction: Reaction) {
-        tokio::spawn(async move {
-            log::trace!("Handling reaction remove event");
-            if let Err(e) = handle_reaction_remove(&ctx, &reaction).await {
-                log::error!("Failed to handle event: {:?}", e);
-            }
-            log::trace!("Reaction remove event handled");
-        });
-    }
-
-    async fn ready(&self, ctx: Context, ready: Ready) {
-        log::info!("Connected as {}", ready.user.name);
-        let prefix = dotenv::var("BOT_PREFIX").unwrap_or("~!".to_string());
-        ctx.set_activity(Activity::listening(format!("{}help", prefix).as_str()))
-            .await;
-    }
-
     async fn resume(&self, _: Context, _: ResumedEvent) {
         log::info!("Reconnected to gateway")
     }
