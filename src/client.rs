@@ -19,12 +19,10 @@ use crate::utils::context_data::{
 use crate::utils::error::{BotError, BotResult};
 use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::buckets::LimitedFor;
-use serenity_rich_interaction::menu::EventDrivenMessageContainer;
 use serenity_rich_interaction::RegisterRichInteractions;
 use std::env;
 use std::sync::Arc;
 use std::time::SystemTime;
-use tokio::sync::Mutex;
 
 pub async fn get_client() -> BotResult<Client> {
     let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
