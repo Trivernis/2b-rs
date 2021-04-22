@@ -11,7 +11,7 @@ use serenity::prelude::*;
 use crate::commands::music::get_music_player_for_guild;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::delete_messages_from_database;
-use bot_serenityutils::menu::{
+use serenity_rich_interaction::event_handlers::{
     handle_message_delete, handle_message_delete_bulk, handle_reaction_add, handle_reaction_remove,
     start_update_loop,
 };

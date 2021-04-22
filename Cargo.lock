@@ -73,8 +73,10 @@ dependencies = [
  "futures-io",
  "futures-util",
  "log 0.4.14",
+ "native-tls",
  "pin-project",
  "tokio",
+ "tokio-native-tls",
  "tokio-rustls",
  "tungstenite 0.11.1",
  "webpki-roots 0.20.0",
@@ -205,18 +207,6 @@ dependencies = [
  "r2d2",
  "thiserror",
  "tokio-diesel",
-]
-
-[[package]]
-name = "bot-serenityutils"
-version = "0.2.5"
-dependencies = [
- "futures",
- "log 0.4.14",
- "serde_json",
- "serenity",
- "thiserror",
- "tokio",
 ]
 
 [[package]]
@@ -2168,6 +2158,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "serenity-rich-interaction"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad2b54df630adf74eff98bb2bde23f82a55dad86927aff4dbfaa79ecb4baeb7e"
+dependencies = [
+ "futures",
+ "log 0.4.14",
+ "serde_json",
+ "serenity",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "serenity-voice-model"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2527,7 +2531,6 @@ dependencies = [
  "aspotify",
  "bot-coreutils",
  "bot-database",
- "bot-serenityutils",
  "chrono",
  "chrono-tz",
  "colored",
@@ -2547,6 +2550,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "serenity",
+ "serenity-rich-interaction",
  "songbird",
  "sysinfo",
  "thiserror",
@@ -2722,6 +2726,7 @@ dependencies = [
  "httparse",
  "input_buffer 0.3.1",
  "log 0.4.14",
+ "native-tls",
  "rand 0.7.3",
  "sha-1",
  "url",

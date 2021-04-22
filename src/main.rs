@@ -1,14 +1,12 @@
 use crate::client::get_client;
 use crate::utils::logging::init_logger;
 
-#[macro_use]
-extern crate bot_serenityutils;
-
 mod client;
 mod commands;
 mod handler;
 mod messages;
 mod providers;
+#[macro_use]
 mod utils;
 
 pub static VERSION: &str = env!("CARGO_PKG_VERSION");

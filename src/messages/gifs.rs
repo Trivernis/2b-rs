@@ -1,9 +1,9 @@
 use crate::utils::error::BotResult;
 use bot_database::models::Media;
-use bot_serenityutils::menu::{MenuBuilder, Page};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::id::ChannelId;
+use serenity_rich_interaction::menu::{MenuBuilder, Page};
 use std::time::Duration;
 
 /// Creates a new gifs embed

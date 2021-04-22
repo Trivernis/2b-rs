@@ -1,8 +1,8 @@
 use crate::utils::error::BotResult;
-use bot_serenityutils::core::SHORT_TIMEOUT;
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use serenity::http::Http;
 use serenity::model::prelude::ChannelId;
+use serenity_rich_interaction::core::SHORT_TIMEOUT;
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 use std::sync::Arc;
 
 /// Creates a not in a voicechannel message

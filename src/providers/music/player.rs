@@ -4,8 +4,6 @@ use crate::providers::music::lyrics::get_lyrics;
 use crate::providers::music::queue::MusicQueue;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::error::{BotError, BotResult};
-use bot_serenityutils::core::{MessageHandle, SHORT_TIMEOUT};
-use bot_serenityutils::ephemeral_message::EphemeralMessage;
 use lavalink_rs::LavalinkClient;
 use serenity::prelude::TypeMap;
 use serenity::{
@@ -13,6 +11,8 @@ use serenity::{
     http::Http,
     model::id::{ChannelId, GuildId},
 };
+use serenity_rich_interaction::core::{MessageHandle, SHORT_TIMEOUT};
+use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 use songbird::Songbird;
 use std::mem;
 use std::sync::Arc;

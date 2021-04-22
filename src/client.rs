@@ -17,9 +17,9 @@ use crate::utils::context_data::{
     get_database_from_context, DatabaseContainer, MusicPlayers, Store, StoreData,
 };
 use crate::utils::error::{BotError, BotResult};
-use bot_serenityutils::menu::EventDrivenMessageContainer;
 use lavalink_rs::LavalinkClient;
 use serenity::framework::standard::buckets::LimitedFor;
+use serenity_rich_interaction::menu::EventDrivenMessageContainer;
 use std::env;
 use std::sync::Arc;
 use std::time::SystemTime;
