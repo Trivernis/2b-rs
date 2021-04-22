@@ -3055,9 +3055,9 @@ dependencies = [
 
 [[package]]
 name = "xkcd-search"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b456f115f18547c3a1185788837a000201bc29893dd5b70a12437f11d2ded190"
+checksum = "c6d2beb79a4f0a6ab8831083a39cbb6888641befe388e558f3999fe7b3cf9839"
 dependencies = [
  "lazy_static",
  "reqwest",
