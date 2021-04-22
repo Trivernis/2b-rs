@@ -135,7 +135,7 @@ pub async fn display_page(ctx: &Context, menu: &mut Menu<'_>) -> SerenityUtilsRe
     let mut msg = menu.get_message(ctx.http()).await?;
 
     msg.edit(ctx, |e| {
-        e.0.clone_from(&mut page.0.clone());
+        e.0.clone_from(&page.0);
         e
     })
     .await?;

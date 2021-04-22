@@ -60,8 +60,13 @@ impl MusicPlayer {
         msg_channel_id: ChannelId,
     ) -> BotResult<Arc<Mutex<MusicPlayer>>> {
         let manager = songbird::get(ctx).await.unwrap();
-        let (_, connection) = manager.join_gateway(guild_id, voice_channel_id).await;
+        let (handler, connection) = manager.join_gateway(guild_id, voice_channel_id).await;
         let connection = connection?;
+
+        {
+            let mut handler = handler.lock().await;
+            handler.deafen(true).await?;
+        }
 
         let player = {
             let mut data = ctx.data.write().await;
