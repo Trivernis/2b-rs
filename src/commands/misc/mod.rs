@@ -11,6 +11,7 @@ use shutdown::SHUTDOWN_COMMAND;
 use stats::STATS_COMMAND;
 use time::TIME_COMMAND;
 use timezones::TIMEZONES_COMMAND;
+use xkcd::XKCD_COMMAND;
 
 mod about;
 mod add_media;
@@ -24,9 +25,10 @@ mod shutdown;
 mod stats;
 mod time;
 mod timezones;
+mod xkcd;
 
 #[group]
 #[commands(
-    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear
+    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear, xkcd
 )]
 pub struct Misc;

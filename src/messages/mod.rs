@@ -8,6 +8,7 @@ pub mod gifs;
 pub mod minecraft;
 pub mod music;
 pub mod sauce;
+pub mod xkcd;
 
 /// Adds an ephemeral message to the database
 pub async fn add_ephemeral_handle_to_database(
