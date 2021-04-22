@@ -1,6 +1,6 @@
 use crate::utils::context_data::MusicPlayers;
 use lavalink_rs::gateway::LavalinkEventHandler;
-use lavalink_rs::model::{TrackFinish, TrackStart};
+use lavalink_rs::model::{PlayerUpdate, Stats, TrackFinish, TrackStart};
 use lavalink_rs::LavalinkClient;
 use serenity::async_trait;
 use serenity::prelude::TypeMapKey;
@@ -17,6 +17,7 @@ impl LavalinkEventHandler for LavalinkHandler {
     async fn track_start(&self, _client: LavalinkClient, event: TrackStart) {
         log::info!("Track started!\nGuild: {}", event.guild_id);
     }
+
     async fn track_finish(&self, _: LavalinkClient, event: TrackFinish) {
         log::info!("Track finished!\nGuild: {}", event.guild_id);
         let player = {
@@ -34,6 +35,14 @@ impl LavalinkEventHandler for LavalinkHandler {
                 log::error!("Failed to update now playing embed: {:?}", e);
             }
         }
+    }
+
+    async fn player_update(&self, _: LavalinkClient, event: PlayerUpdate) {
+        log::debug!("Received player update event: {:?}", event);
+    }
+
+    async fn stats(&self, _: LavalinkClient, event: Stats) {
+        log::debug!("Received stats event: {:?}", event);
     }
 }
 
