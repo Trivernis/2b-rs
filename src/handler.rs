@@ -127,6 +127,7 @@ impl EventHandler for Handler {
                 player.set_leave_flag(count == 0);
             }
         }
+        // handle disconnects
         if let (Some(state), None) = (old_state, new_state.channel_id) {
             let current_user = ctx.cache.current_user().await;
 
