@@ -8,6 +8,7 @@ pub mod gifs;
 pub mod minecraft;
 pub mod music;
 pub mod sauce;
+pub mod theme;
 pub mod xkcd;
 
 /// Adds an ephemeral message to the database

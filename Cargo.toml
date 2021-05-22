@@ -41,3 +41,4 @@ typemap_rev = "0.1.5"
 youtube-metadata = "0.1.1"
 xkcd-search = "0.1.1"
 lavalink-rs = {version="0.7.1", features=["native", "serenity"]}
+animethemes-rs = "0.2.1"

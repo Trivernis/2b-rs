@@ -7,6 +7,7 @@ mod miko;
 mod pekofy;
 mod rushia;
 mod sauce;
+mod theme;
 
 use crate::utils::context_data::get_database_from_context;
 use crate::utils::error::BotError;
@@ -22,9 +23,10 @@ use miko::MIKO_COMMAND;
 use pekofy::PEKOFY_COMMAND;
 use rushia::RUSHIA_COMMAND;
 use sauce::SAUCE_COMMAND;
+use theme::THEME_COMMAND;
 
 #[group]
-#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki, miko)]
+#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme)]
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
