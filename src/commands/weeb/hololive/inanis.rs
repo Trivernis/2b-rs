@@ -5,10 +5,10 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 #[command]
-#[description("Posts a random watame")]
+#[description("Posts a random ina")]
 #[usage("")]
-#[aliases("wataoji", "wata-oji", "watamelon")]
+#[aliases("ina", "ina'nis", "tako")]
 #[bucket("general")]
-async fn watame(ctx: &Context, msg: &Message) -> CommandResult {
-    post_random_media(ctx, msg, "watame").await
+async fn inanis(ctx: &Context, msg: &Message) -> CommandResult {
+    post_random_media(ctx, msg, "inanis").await
 }

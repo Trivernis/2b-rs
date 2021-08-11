@@ -1,4 +1,5 @@
 pub mod fubuki;
+pub mod inanis;
 pub mod korone;
 pub mod matsuri;
 pub mod miko;

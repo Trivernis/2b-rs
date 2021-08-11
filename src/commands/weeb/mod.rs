@@ -5,6 +5,7 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 use hololive::fubuki::FUBUKI_COMMAND;
+use hololive::inanis::INANIS_COMMAND;
 use hololive::korone::KORONE_COMMAND;
 use hololive::matsuri::MATSURI_COMMAND;
 use hololive::miko::MIKO_COMMAND;
@@ -22,7 +23,9 @@ mod sauce;
 mod theme;
 
 #[group]
-#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame)]
+#[commands(
+    pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame, inanis
+)]
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
