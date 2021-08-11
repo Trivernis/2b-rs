@@ -1,32 +1,37 @@
-use serenity::framework::standard::macros::group;
-
-mod fubuki;
-mod korone;
-mod matsuri;
-mod miko;
-mod pekofy;
-mod rushia;
-mod sauce;
-mod theme;
-
-use crate::utils::context_data::get_database_from_context;
-use crate::utils::error::BotError;
 use rand::prelude::IteratorRandom;
 use serenity::client::Context;
+use serenity::framework::standard::macros::group;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
-use fubuki::FUBUKI_COMMAND;
-use korone::KORONE_COMMAND;
-use matsuri::MATSURI_COMMAND;
-use miko::MIKO_COMMAND;
-use pekofy::PEKOFY_COMMAND;
-use rushia::RUSHIA_COMMAND;
+use hololive::amelia::AMELIA_COMMAND;
+use hololive::fubuki::FUBUKI_COMMAND;
+use hololive::gura::GURA_COMMAND;
+use hololive::haachama::HAACHAMA_COMMAND;
+use hololive::inanis::INANIS_COMMAND;
+use hololive::korone::KORONE_COMMAND;
+use hololive::matsuri::MATSURI_COMMAND;
+use hololive::miko::MIKO_COMMAND;
+use hololive::nene::NENE_COMMAND;
+use hololive::pekofy::PEKOFY_COMMAND;
+use hololive::polka::POLKA_COMMAND;
+use hololive::rushia::RUSHIA_COMMAND;
+use hololive::watame::WATAME_COMMAND;
 use sauce::SAUCE_COMMAND;
 use theme::THEME_COMMAND;
 
+use crate::utils::context_data::get_database_from_context;
+use crate::utils::error::BotError;
+
+mod hololive;
+mod sauce;
+mod theme;
+
 #[group]
-#[commands(pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme)]
+#[commands(
+    pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame, inanis, gura, amelia,
+    haachama, polka, nene
+)]
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
