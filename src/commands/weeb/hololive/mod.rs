@@ -1,6 +1,7 @@
 pub mod amelia;
 pub mod fubuki;
 pub mod gura;
+pub mod haachama;
 pub mod inanis;
 pub mod korone;
 pub mod matsuri;

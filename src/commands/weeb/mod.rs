@@ -7,6 +7,7 @@ use serenity::model::channel::Message;
 use hololive::amelia::AMELIA_COMMAND;
 use hololive::fubuki::FUBUKI_COMMAND;
 use hololive::gura::GURA_COMMAND;
+use hololive::haachama::HAACHAMA_COMMAND;
 use hololive::inanis::INANIS_COMMAND;
 use hololive::korone::KORONE_COMMAND;
 use hololive::matsuri::MATSURI_COMMAND;
@@ -26,7 +27,8 @@ mod theme;
 
 #[group]
 #[commands(
-    pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame, inanis, gura, amelia
+    pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame, inanis, gura, amelia,
+    haachama
 )]
 pub struct Weeb;
 
