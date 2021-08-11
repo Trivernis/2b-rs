@@ -37,7 +37,7 @@ pub async fn create_theme_menu(
                         false
                     }
                 })
-                .map(|e| create_theme_page(e, nsfw)),
+                .map(create_theme_page),
         )
         .timeout(EXTRA_LONG_TIMEOUT)
         .build(ctx, channel_id)
@@ -47,7 +47,7 @@ pub async fn create_theme_menu(
 }
 
 /// Creates a new anime theme page
-fn create_theme_page(entry: ThemeEntry, nsfw: bool) -> Page<'static> {
+fn create_theme_page(entry: ThemeEntry) -> Page<'static> {
     let mut message = CreateMessage::default();
     let videos = entry.videos.unwrap();
     let theme = entry.theme.unwrap();

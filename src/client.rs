@@ -112,6 +112,13 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
     let mut error_msg = None;
     if let Err(why) = error {
         error_msg = Some(why.to_string());
+        if let Some(e) = why.downcast_ref::<BotError>() {
+            match e {
+                _ => {
+                    println!("Got a bot error")
+                }
+            }
+        }
         let _ = msg
             .channel_id
             .send_message(ctx, |m| {
