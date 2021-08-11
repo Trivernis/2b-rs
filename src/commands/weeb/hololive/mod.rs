@@ -1,3 +1,4 @@
+pub mod amelia;
 pub mod fubuki;
 pub mod gura;
 pub mod inanis;
