@@ -12,6 +12,7 @@ use hololive::inanis::INANIS_COMMAND;
 use hololive::korone::KORONE_COMMAND;
 use hololive::matsuri::MATSURI_COMMAND;
 use hololive::miko::MIKO_COMMAND;
+use hololive::nene::NENE_COMMAND;
 use hololive::pekofy::PEKOFY_COMMAND;
 use hololive::polka::POLKA_COMMAND;
 use hololive::rushia::RUSHIA_COMMAND;
@@ -29,7 +30,7 @@ mod theme;
 #[group]
 #[commands(
     pekofy, sauce, matsuri, korone, rushia, fubuki, miko, theme, watame, inanis, gura, amelia,
-    haachama, polka
+    haachama, polka, nene
 )]
 pub struct Weeb;
 

@@ -6,6 +6,7 @@ pub mod inanis;
 pub mod korone;
 pub mod matsuri;
 pub mod miko;
+pub mod nene;
 pub mod pekofy;
 pub mod polka;
 pub mod rushia;
