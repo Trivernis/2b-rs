@@ -6,7 +6,7 @@ use serenity::model::id::UserId;
 
 #[command]
 #[description("Fuck this person in particular")]
-#[usage("[<amount>] [<verbosity>]")]
+#[usage("<person> [<amount>] [<verbosity>]")]
 #[min_args(1)]
 #[max_args(3)]
 #[bucket("general")]

@@ -6,6 +6,7 @@ use clear::CLEAR_COMMAND;
 use fuck::FUCK_COMMAND;
 use media::MEDIA_COMMAND;
 use pain::PAIN_COMMAND;
+use party::PARTY_COMMAND;
 use ping::PING_COMMAND;
 use qalc::QALC_COMMAND;
 use shutdown::SHUTDOWN_COMMAND;
@@ -21,6 +22,7 @@ mod fuck;
 pub(crate) mod help;
 mod media;
 mod pain;
+mod party;
 mod ping;
 mod qalc;
 mod shutdown;
@@ -31,6 +33,7 @@ mod xkcd;
 
 #[group]
 #[commands(
-    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear, xkcd, fuck
+    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear, xkcd, fuck,
+    party
 )]
 pub struct Misc;
