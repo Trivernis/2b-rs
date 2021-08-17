@@ -8,6 +8,7 @@ pub use youtube_songs::*;
 use crate::PoolConnection;
 
 mod ephemeral_messages;
+mod events;
 mod guild_playlists;
 mod guild_settings;
 mod media;

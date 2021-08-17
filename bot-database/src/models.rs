@@ -92,3 +92,25 @@ pub struct EphemeralMessageInsert {
     pub message_id: i64,
     pub timeout: SystemTime,
 }
+
+#[derive(Queryable, Debug, Clone)]
+pub struct Event {
+    pub id: i32,
+    pub guild_id: i64,
+    pub channel_id: i64,
+    pub name: String,
+    pub description: String,
+    pub event_start: SystemTime,
+    pub event_end: Option<SystemTime>,
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "events"]
+pub struct EventInsert {
+    pub guild_id: i64,
+    pub channel_id: i64,
+    pub name: String,
+    pub description: String,
+    pub event_start: SystemTime,
+    pub event_end: Option<SystemTime>,
+}

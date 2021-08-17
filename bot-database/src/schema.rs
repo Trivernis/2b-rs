@@ -7,6 +7,18 @@ table! {
 }
 
 table! {
+    events (id) {
+        id -> Int4,
+        guild_id -> Int8,
+        channel_id -> Int8,
+        name -> Varchar,
+        description -> Varchar,
+        event_start -> Timestamp,
+        event_end -> Nullable<Timestamp>,
+    }
+}
+
+table! {
     guild_playlists (guild_id, name) {
         guild_id -> Int8,
         name -> Varchar,
@@ -56,6 +68,7 @@ table! {
 
 allow_tables_to_appear_in_same_query!(
     ephemeral_messages,
+    events,
     guild_playlists,
     guild_settings,
     media,
