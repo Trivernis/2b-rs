@@ -4,6 +4,7 @@ use about::ABOUT_COMMAND;
 use add_media::ADD_MEDIA_COMMAND;
 use clear::CLEAR_COMMAND;
 use fuck::FUCK_COMMAND;
+use inspirobot::INSPIROBOT_COMMAND;
 use media::MEDIA_COMMAND;
 use pain::PAIN_COMMAND;
 use party::PARTY_COMMAND;
@@ -20,6 +21,7 @@ mod add_media;
 mod clear;
 mod fuck;
 pub(crate) mod help;
+mod inspirobot;
 mod media;
 mod pain;
 mod party;
@@ -34,6 +36,6 @@ mod xkcd;
 #[group]
 #[commands(
     ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear, xkcd, fuck,
-    party
+    party, inspirobot
 )]
 pub struct Misc;

@@ -10,6 +10,7 @@ pub mod music;
 pub mod sauce;
 pub mod theme;
 pub mod xkcd;
+pub mod inspirobot;
 
 /// Adds an ephemeral message to the database
 pub async fn add_ephemeral_handle_to_database(

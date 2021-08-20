@@ -7,6 +7,7 @@ use regex::Regex;
 use responses::VideoInformation;
 use youtube_dl::search_video_information;
 
+pub mod inspirobot;
 pub mod lavalink;
 pub mod lyrics;
 pub mod player;
