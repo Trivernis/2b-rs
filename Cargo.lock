@@ -28,9 +28,9 @@ dependencies = [
 
 [[package]]
 name = "animethemes-rs"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f85ae35b6d7efdd387a743cbf2d2bd1b8e9545d2c3e5abc85a1aa0e5ca99e5af"
+checksum = "b717f29f786445f30818874943f9c7c6ad370804cc7a345d3f0bae3c85163d17"
 dependencies = [
  "reqwest",
  "serde",
@@ -2208,9 +2208,9 @@ dependencies = [
 
 [[package]]
 name = "serenity-rich-interaction"
-version = "0.2.3"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8151b0ce52fdbcc8834a0b6788ff67baf83dea37a4050462c2b5ae2621b87821"
+checksum = "9e29c534ec1387d4a0849587494e03acfb9780335468d9936f19af00f5fd0178"
 dependencies = [
  "futures",
  "log 0.4.14",
@@ -2575,7 +2575,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tobi-rs"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "animethemes-rs",
  "aspotify",

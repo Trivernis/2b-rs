@@ -1,8 +1,8 @@
 use crate::utils::error::BotResult;
-use animethemes_rs::models::{ThemeEntry, ThemeType};
+use animethemes_rs::models::{Anime, ThemeEntry, ThemeType};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
-use serenity::model::id::ChannelId;
+use serenity::model::id::{ChannelId, UserId};
 use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
 use serenity_rich_interaction::menu::{MenuBuilder, Page};
 
@@ -10,11 +10,12 @@ use serenity_rich_interaction::menu::{MenuBuilder, Page};
 pub async fn create_theme_menu(
     ctx: &Context,
     channel_id: ChannelId,
-    mut entries: Vec<ThemeEntry>,
+    mut anime_entries: Vec<Anime>,
+    owner: UserId,
 ) -> BotResult<()> {
     let nsfw = ctx.http.get_channel(channel_id.0).await?.is_nsfw();
-    entries.sort_by_key(|t| {
-        if let Some(theme) = &t.theme {
+    anime_entries.sort_by_key(|a| {
+        if let Some(theme) = a.themes.as_ref().and_then(|t| t.first()) {
             match &theme.theme_type {
                 ThemeType::OP => theme.sequence.unwrap_or(1),
                 ThemeType::ED => theme.sequence.unwrap_or(1) * 100,
@@ -23,36 +24,52 @@ pub async fn create_theme_menu(
             10000
         }
     });
+    let pages = create_theme_pages(anime_entries, nsfw);
     MenuBuilder::new_paginator()
-        .add_pages(
-            entries
-                .into_iter()
-                .filter(|e| {
-                    if !nsfw && e.nsfw {
-                        return false;
-                    }
-                    if let Some(videos) = &e.videos {
-                        !videos.is_empty()
-                    } else {
-                        false
-                    }
-                })
-                .map(create_theme_page),
-        )
+        .add_pages(pages)
         .timeout(EXTRA_LONG_TIMEOUT)
+        .owner(owner)
         .build(ctx, channel_id)
         .await?;
 
     Ok(())
 }
 
+fn create_theme_pages(anime_entries: Vec<Anime>, nsfw: bool) -> Vec<Page<'static>> {
+    let mut pages = Vec::new();
+    for anime in anime_entries {
+        if anime.themes.is_none() {
+            continue;
+        }
+        for theme in anime.themes.unwrap() {
+            if theme.entries.is_none() {
+                continue;
+            }
+            let sequence = theme.sequence.clone().unwrap_or(1);
+            for entry in theme.entries.unwrap() {
+                if entry.nsfw && !nsfw {
+                    continue;
+                }
+                let page = create_theme_page(&anime.name, &theme.theme_type, sequence, entry);
+                pages.push(page);
+            }
+        }
+    }
+
+    pages
+}
+
 /// Creates a new anime theme page
-fn create_theme_page(entry: ThemeEntry) -> Page<'static> {
+fn create_theme_page(
+    anime_name: &str,
+    theme_type: &ThemeType,
+    theme_sequence: u16,
+    entry: ThemeEntry,
+) -> Page<'static> {
     let mut message = CreateMessage::default();
     let videos = entry.videos.unwrap();
-    let theme = entry.theme.unwrap();
-    let anime = theme.anime.unwrap();
-    let theme_type = match theme.theme_type {
+
+    let theme_type = match theme_type {
         ThemeType::OP => "Opening",
         ThemeType::ED => "Ending",
     };
@@ -60,8 +77,8 @@ fn create_theme_page(entry: ThemeEntry) -> Page<'static> {
     message.content(format!(
         "**{} {}** of **{}**\nhttps://animethemes.moe/video/{}",
         theme_type,
-        theme.sequence.unwrap_or(1),
-        anime.name,
+        theme_sequence,
+        anime_name,
         videos.first().unwrap().basename
     ));
 

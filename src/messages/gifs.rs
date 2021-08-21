@@ -2,7 +2,7 @@ use crate::utils::error::BotResult;
 use bot_database::models::Media;
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
-use serenity::model::id::ChannelId;
+use serenity::model::id::{ChannelId, UserId};
 use serenity_rich_interaction::menu::{MenuBuilder, Page};
 use std::time::Duration;
 
@@ -11,6 +11,7 @@ pub async fn create_media_menu(
     ctx: &Context,
     channel_id: ChannelId,
     media: Vec<Media>,
+    owner: UserId,
 ) -> BotResult<()> {
     let total_pages = (media.len() as f32 / 10.0).ceil() as usize;
     let pages: Vec<Page> = media
@@ -23,6 +24,7 @@ pub async fn create_media_menu(
         .timeout(Duration::from_secs(120))
         .add_pages(pages)
         .show_help()
+        .owner(owner)
         .build(ctx, channel_id)
         .await?;
 

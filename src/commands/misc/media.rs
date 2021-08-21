@@ -12,7 +12,7 @@ use serenity::model::channel::Message;
 async fn media(ctx: &Context, msg: &Message) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let gifs = database.get_all_media().await?;
-    create_media_menu(ctx, msg.channel_id, gifs).await?;
+    create_media_menu(ctx, msg.channel_id, gifs, msg.author.id).await?;
 
     Ok(())
 }

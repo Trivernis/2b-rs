@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.9.3"
+version = "0.9.4"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -12,7 +12,7 @@ panic = 'abort'
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
-serenity-rich-interaction = "0.2.2"
+serenity-rich-interaction = "0.2.5"
 serenity = "0.10.5"
 dotenv = "0.15.0"
 tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
@@ -41,4 +41,4 @@ typemap_rev = "0.1.5"
 youtube-metadata = "0.1.1"
 xkcd-search = "0.1.1"
 lavalink-rs = {version="0.7.1", features=["native", "serenity"]}
-animethemes-rs = "0.2.1"
+animethemes-rs = "0.3.0"
