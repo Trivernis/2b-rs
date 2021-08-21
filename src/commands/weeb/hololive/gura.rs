@@ -7,7 +7,7 @@ use serenity::model::channel::Message;
 #[command]
 #[description("Posts a random gura")]
 #[usage("")]
-#[aliases("shark", "city-pop-shark", "same")]
+#[aliases("a", "shark", "city-pop-shark", "same")]
 #[bucket("general")]
 async fn gura(ctx: &Context, msg: &Message) -> CommandResult {
     post_random_media(ctx, msg, "gura").await
