@@ -29,7 +29,7 @@ async fn xkcd(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         vec![xkcd_search::get_latest_comic().await?]
     };
 
-    create_xkcd_menu(ctx, msg.channel_id, comics).await?;
+    create_xkcd_menu(ctx, msg.channel_id, comics, msg.author.id).await?;
 
     Ok(())
 }

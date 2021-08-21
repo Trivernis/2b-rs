@@ -2,7 +2,7 @@ use crate::utils::error::BotResult;
 use animethemes_rs::models::{ThemeEntry, ThemeType};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
-use serenity::model::id::ChannelId;
+use serenity::model::id::{ChannelId, UserId};
 use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
 use serenity_rich_interaction::menu::{MenuBuilder, Page};
 
@@ -11,6 +11,7 @@ pub async fn create_theme_menu(
     ctx: &Context,
     channel_id: ChannelId,
     mut entries: Vec<ThemeEntry>,
+    owner: UserId,
 ) -> BotResult<()> {
     let nsfw = ctx.http.get_channel(channel_id.0).await?.is_nsfw();
     entries.sort_by_key(|t| {
@@ -40,6 +41,7 @@ pub async fn create_theme_menu(
                 .map(create_theme_page),
         )
         .timeout(EXTRA_LONG_TIMEOUT)
+        .owner(owner)
         .build(ctx, channel_id)
         .await?;
 

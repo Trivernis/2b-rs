@@ -12,7 +12,7 @@ panic = 'abort'
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
-serenity-rich-interaction = "0.2.2"
+serenity-rich-interaction = "0.2.5"
 serenity = "0.10.5"
 dotenv = "0.15.0"
 tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }

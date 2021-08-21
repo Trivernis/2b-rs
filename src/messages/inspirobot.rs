@@ -2,7 +2,7 @@ use crate::providers::music::inspirobot::get_inspirobot_image;
 use crate::utils::error::BotResult;
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
-use serenity::model::id::ChannelId;
+use serenity::model::id::{ChannelId, UserId};
 use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
 use serenity_rich_interaction::menu::{
     close_menu, display_page, MenuBuilder, Page, CLOSE_MENU_EMOJI,
@@ -10,7 +10,11 @@ use serenity_rich_interaction::menu::{
 
 static REFRESH_EMOJI: &str = "🔄";
 
-pub async fn create_inspirobot_menu(ctx: &Context, channel_id: ChannelId) -> BotResult<()> {
+pub async fn create_inspirobot_menu(
+    ctx: &Context,
+    channel_id: ChannelId,
+    owner: UserId,
+) -> BotResult<()> {
     MenuBuilder::default()
         .add_control(0, REFRESH_EMOJI, |ctx, menu, _r| {
             Box::pin(async move {
@@ -30,6 +34,7 @@ pub async fn create_inspirobot_menu(ctx: &Context, channel_id: ChannelId) -> Bot
                 Ok(message)
             })
         }))
+        .owner(owner)
         .timeout(EXTRA_LONG_TIMEOUT)
         .build(ctx, channel_id)
         .await?;

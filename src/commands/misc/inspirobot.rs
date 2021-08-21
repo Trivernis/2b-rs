@@ -10,7 +10,7 @@ use serenity::model::channel::Message;
 #[aliases("inspireme", "inspire-me", "inspiro")]
 #[bucket("general")]
 async fn inspirobot(ctx: &Context, msg: &Message) -> CommandResult {
-    create_inspirobot_menu(ctx, msg.channel_id).await?;
+    create_inspirobot_menu(ctx, msg.channel_id, msg.author.id).await?;
 
     Ok(())
 }

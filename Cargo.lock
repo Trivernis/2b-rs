@@ -2208,9 +2208,9 @@ dependencies = [
 
 [[package]]
 name = "serenity-rich-interaction"
-version = "0.2.3"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8151b0ce52fdbcc8834a0b6788ff67baf83dea37a4050462c2b5ae2621b87821"
+checksum = "9e29c534ec1387d4a0849587494e03acfb9780335468d9936f19af00f5fd0178"
 dependencies = [
  "futures",
  "log 0.4.14",

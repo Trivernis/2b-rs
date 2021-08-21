@@ -25,7 +25,7 @@ async fn theme(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             })
             .await?;
         } else {
-            create_theme_menu(ctx, msg.channel_id, entries).await?;
+            create_theme_menu(ctx, msg.channel_id, entries, msg.author.id).await?;
         }
     } else {
         EphemeralMessage::create(&ctx.http, msg.channel_id, MEDIUM_TIMEOUT, |c| {
