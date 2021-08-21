@@ -1,5 +1,6 @@
 use crate::messages::theme::create_theme_menu;
 use animethemes_rs::client::AnimeThemesClient;
+use animethemes_rs::includes;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
@@ -10,22 +11,31 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[command]
 #[description("Query for the opening/ending/insert song of an anime")]
 #[usage("<query..>")]
+#[min_args(1)]
 #[aliases("animetheme", "anime-theme", "opening", "ending", "ost")]
 #[bucket("general")]
 async fn theme(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
     let client = AnimeThemesClient::default();
-    let themes = client
-        .search(query, &["entries"], &["theme", "theme.anime", "videos"])
+    let search_results = client
+        .search(
+            query,
+            &[includes::ANIME],
+            &[
+                "animethemes",
+                "animethemes.animethemeentries",
+                "animethemes.animethemeentries.videos",
+            ],
+        )
         .await?;
-    if let Some(entries) = themes.entries {
-        if entries.is_empty() {
+    if let Some(anime) = search_results.anime {
+        if anime.is_empty() {
             EphemeralMessage::create(&ctx.http, msg.channel_id, MEDIUM_TIMEOUT, |c| {
                 c.reference_message(msg).content("No themes found")
             })
             .await?;
         } else {
-            create_theme_menu(ctx, msg.channel_id, entries, msg.author.id).await?;
+            create_theme_menu(ctx, msg.channel_id, anime, msg.author.id).await?;
         }
     } else {
         EphemeralMessage::create(&ctx.http, msg.channel_id, MEDIUM_TIMEOUT, |c| {
