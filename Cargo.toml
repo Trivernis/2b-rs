@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.9.3"
+version = "0.9.4"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
