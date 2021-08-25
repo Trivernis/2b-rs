@@ -7,6 +7,7 @@ pub mod korone;
 pub mod kronii;
 pub mod matsuri;
 pub mod miko;
+pub mod mumei;
 pub mod nene;
 pub mod pekofy;
 pub mod polka;

@@ -5,10 +5,10 @@ use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 
 #[command]
-#[description("Posts a random kronii gif")]
+#[description("Posts a random mumei gif")]
 #[usage("")]
-#[aliases("ouro", "kroniicopter", "fan", "timelord")]
+#[aliases("mumei", "forgowl", "owl", "nanashi")]
 #[bucket("general")]
-async fn kronii(ctx: &Context, msg: &Message) -> CommandResult {
-    post_random_media(ctx, msg, "kronii").await
+async fn mumei(ctx: &Context, msg: &Message) -> CommandResult {
+    post_random_media(ctx, msg, "mumei").await
 }
