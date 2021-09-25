@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.0-experimental
 FROM rust:slim-bullseye  AS builder
 RUN apt-get update
-RUN apt-get install -y build-essential libssl-dev libopus-dev libpq-dev
+RUN apt-get install -y build-essential libssl-dev libopus-dev libpq-dev pkg-config
 WORKDIR /usr/src
 RUN USER=root cargo new tobi
 WORKDIR /usr/src/tobi
@@ -25,7 +25,7 @@ RUN cp qalculate-3.18.0/* /tmp/qalculate
 
 FROM bitnami/minideb:bullseye
 RUN apt update
-RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 -y
+RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 pkg-config -y
 COPY --from=qalculate-builder /tmp/qalculate/* /usr/bin/
 COPY --from=builder /tmp/tobi/tobi-rs .
 RUN pip3 install youtube-dl
