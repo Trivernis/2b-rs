@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.0-experimental
-FROM rust:latest  AS builder
+FROM rust:slim-bullseye  AS builder
 RUN apt-get update
 RUN apt-get install -y build-essential libssl-dev libopus-dev libpq-dev
 WORKDIR /usr/src
@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 RUN mkdir /tmp/tobi
 RUN --mount=type=cache,target=target cp target/release/tobi-rs /tmp/tobi/
 
-FROM bitnami/minideb:latest AS qalculate-builder
+FROM bitnami/minideb:bullseye AS qalculate-builder
 RUN mkdir /tmp/qalculate
 WORKDIR /tmp/qalculate
 RUN install_packages ca-certificates wget xz-utils
@@ -23,8 +23,9 @@ RUN wget https://github.com/Qalculate/qalculate-gtk/releases/download/v3.18.0/qa
 RUN tar xf qalculate.tar.xz
 RUN cp qalculate-3.18.0/* /tmp/qalculate
 
-FROM bitnami/minideb:latest
-RUN install_packages openssl libopus0 ffmpeg python3 python3-pip libpq5
+FROM bitnami/minideb:bullseye
+RUN apt update
+RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 -y
 COPY --from=qalculate-builder /tmp/qalculate/* /usr/bin/
 COPY --from=builder /tmp/tobi/tobi-rs .
 RUN pip3 install youtube-dl
