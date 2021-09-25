@@ -5,7 +5,6 @@ use serenity::model::channel::Message;
 
 use crate::commands::common::handle_autodelete;
 use crate::providers::music::lavalink::Lavalink;
-use crate::utils::context_data::MusicPlayers;
 use crate::utils::initialize_lavalink;
 use serenity_rich_interaction::core::SHORT_TIMEOUT;
 use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
