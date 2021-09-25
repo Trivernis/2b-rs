@@ -24,7 +24,7 @@ impl LavalinkEventHandler for LavalinkHandler {
             let data = self.data.read().await;
             let players = data.get::<MusicPlayers>().unwrap();
 
-            players.get(&event.guild_id).cloned()
+            players.get(&event.guild_id.0).cloned()
         };
         if let Some(player) = player {
             let mut player = player.lock().await;

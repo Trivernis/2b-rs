@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.9.6"
+version = "0.9.7"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -15,12 +15,11 @@ bot-coreutils = {path="./bot-coreutils"}
 serenity-rich-interaction = "0.2.5"
 serenity = "0.10.5"
 dotenv = "0.15.0"
-tokio = { version = "1.4.0", features = ["macros", "rt-multi-thread"] }
 serde_derive = "1.0.125"
 serde = "1.0.125"
 thiserror = "1.0.24"
 minecraft-data-rs = "0.3.0"
-songbird =  "0.1.5"
+songbird =  "0.2.0"
 serde_json = "1.0.64"
 rand = "0.8.3"
 regex = "1.4.5"
@@ -40,5 +39,14 @@ trigram = "0.4.4"
 typemap_rev = "0.1.5"
 youtube-metadata = "0.1.1"
 xkcd-search = "0.1.1"
-lavalink-rs = {version="0.8.0", features=["native", "serenity"]}
 animethemes-rs = "0.3.0"
+
+[dependencies.tokio]
+version = "1.12.0"
+features = ["macros", "rt-multi-thread"]
+
+[dependencies.lavalink-rs]
+git = "https://gitlab.com/vicky5124/lavalink-rs/"
+rev = "b90539bd"
+features=["native", "serenity", "songbird", "normal-log"]
+default-features = false
