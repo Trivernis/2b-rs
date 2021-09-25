@@ -71,7 +71,7 @@ impl MusicPlayer {
         let player = {
             let mut data = ctx.data.write().await;
             let client = data.get::<Lavalink>().unwrap();
-            client.create_session(&connection).await?;
+            client.create_session_with_songbird(&connection).await?;
             let player = MusicPlayer::new(
                 Arc::clone(client),
                 Arc::clone(&ctx.http),
