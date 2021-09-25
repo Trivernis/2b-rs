@@ -1,45 +1,20 @@
 use std::sync::Arc;
 
 use aspotify::Track;
+use bot_database::Database;
+use futures::future::BoxFuture;
+use futures::FutureExt;
 use regex::Regex;
 use serenity::client::Context;
 use serenity::framework::standard::macros::{check, group};
+use serenity::framework::standard::{Args, CommandOptions, Reason};
 use serenity::model::channel::Message;
 use serenity::model::guild::Guild;
 use serenity::model::id::{ChannelId, GuildId, UserId};
 use serenity::model::user::User;
 use songbird::Songbird;
 use tokio::sync::Mutex;
-
-use crate::providers::music::player::MusicPlayer;
-use crate::providers::music::queue::Song;
-use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
-use crate::providers::settings::{get_setting, Setting};
-use crate::utils::context_data::{DatabaseContainer, MusicPlayers, Store};
-use crate::utils::error::{BotError, BotResult};
-use bot_database::Database;
-use futures::future::BoxFuture;
-use futures::FutureExt;
-use serenity::framework::standard::{Args, CommandOptions, Reason};
 use youtube_metadata::get_video_information;
-
-mod clear_queue;
-mod current;
-mod equalize;
-mod equalizer;
-mod join;
-mod leave;
-mod lyrics;
-mod move_song;
-mod pause;
-mod play;
-mod play_next;
-mod playlists;
-mod queue;
-mod remove_song;
-mod save_playlist;
-mod shuffle;
-mod skip;
 
 use clear_queue::CLEAR_QUEUE_COMMAND;
 use current::CURRENT_COMMAND;
@@ -58,6 +33,31 @@ use remove_song::REMOVE_SONG_COMMAND;
 use save_playlist::SAVE_PLAYLIST_COMMAND;
 use shuffle::SHUFFLE_COMMAND;
 use skip::SKIP_COMMAND;
+
+use crate::providers::music::player::MusicPlayer;
+use crate::providers::music::queue::Song;
+use crate::providers::music::{add_youtube_song_to_database, youtube_dl};
+use crate::providers::settings::{get_setting, Setting};
+use crate::utils::context_data::{DatabaseContainer, MusicPlayers, Store};
+use crate::utils::error::{BotError, BotResult};
+
+mod clear_queue;
+mod current;
+mod equalize;
+mod equalizer;
+mod join;
+mod leave;
+mod lyrics;
+mod move_song;
+mod pause;
+mod play;
+mod play_next;
+mod playlists;
+mod queue;
+mod remove_song;
+mod save_playlist;
+mod shuffle;
+mod skip;
 
 #[group]
 #[commands(

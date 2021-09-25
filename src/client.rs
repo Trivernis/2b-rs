@@ -1,28 +1,26 @@
 use std::collections::{HashMap, HashSet};
+use std::env;
+use std::time::SystemTime;
 
 use bot_database::get_database;
 use serenity::client::Context;
+use serenity::framework::standard::buckets::LimitedFor;
 use serenity::framework::standard::macros::hook;
 use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
 use serenity::Client;
+use serenity_rich_interaction::RegisterRichInteractions;
 use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::handler::{get_raw_event_handler, Handler};
-use crate::providers::music::lavalink::{Lavalink, LavalinkHandler};
+use crate::utils;
 use crate::utils::context_data::{
     get_database_from_context, DatabaseContainer, MusicPlayers, Store, StoreData,
 };
 use crate::utils::error::{BotError, BotResult};
-use lavalink_rs::LavalinkClient;
-use serenity::framework::standard::buckets::LimitedFor;
-use serenity_rich_interaction::RegisterRichInteractions;
-use std::env;
-use std::sync::Arc;
-use std::time::SystemTime;
 
 pub async fn get_client() -> BotResult<Client> {
     let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
@@ -44,21 +42,7 @@ pub async fn get_client() -> BotResult<Client> {
         .get_current_application_info()
         .await?;
 
-    let lava_client = LavalinkClient::builder(current_application.id.0)
-        .set_host(env::var("LAVALINK_HOST").unwrap_or("172.0.0.1".to_string()))
-        .set_password(env::var("LAVALINK_PASSWORD").expect("Missing lavalink password"))
-        .set_port(
-            env::var("LAVALINK_PORT")
-                .ok()
-                .and_then(|s| s.parse().ok())
-                .expect("Missing lavalink port"),
-        )
-        .build(LavalinkHandler { data })
-        .await?;
-    {
-        let mut data = client.data.write().await;
-        data.insert::<Lavalink>(Arc::new(lava_client));
-    }
+    utils::initialize_lavalink(data, current_application).await?;
 
     Ok(client)
 }
@@ -112,13 +96,6 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
     let mut error_msg = None;
     if let Err(why) = error {
         error_msg = Some(why.to_string());
-        if let Some(e) = why.downcast_ref::<BotError>() {
-            match e {
-                _ => {
-                    println!("Got a bot error")
-                }
-            }
-        }
         let _ = msg
             .channel_id
             .send_message(ctx, |m| {
