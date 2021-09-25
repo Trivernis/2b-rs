@@ -1,6 +1,6 @@
 [package]
 name = "tobi-rs"
-version = "0.9.5"
+version = "0.9.6"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -40,5 +40,5 @@ trigram = "0.4.4"
 typemap_rev = "0.1.5"
 youtube-metadata = "0.1.1"
 xkcd-search = "0.1.1"
-lavalink-rs = {version="0.7.1", features=["native", "serenity"]}
+lavalink-rs = {version="0.8.0", features=["native", "serenity"]}
 animethemes-rs = "0.3.0"
