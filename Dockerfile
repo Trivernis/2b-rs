@@ -1,5 +1,9 @@
 # syntax=docker/dockerfile:1.0-experimental
-FROM rust:slim-bullseye  AS builder
+
+ARG QALCULATE_VERSION=3.22.0
+ARG DEBIAN_RELEASE=bullseye
+
+FROM rust:slim-${DEBIAN_RELEASE}  AS builder
 RUN apt-get update
 RUN apt-get install -y build-essential libssl-dev libopus-dev libpq-dev pkg-config
 WORKDIR /usr/src
@@ -15,15 +19,16 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 RUN mkdir /tmp/tobi
 RUN --mount=type=cache,target=target cp target/release/tobi-rs /tmp/tobi/
 
-FROM bitnami/minideb:bullseye AS qalculate-builder
+FROM bitnami/minideb:${DEBIAN_RELEASE} AS qalculate-builder
+ARG QALCULATE_VERSION
 RUN mkdir /tmp/qalculate
 WORKDIR /tmp/qalculate
 RUN install_packages ca-certificates wget xz-utils
-RUN wget https://github.com/Qalculate/qalculate-gtk/releases/download/v3.18.0/qalculate-3.18.0-x86_64.tar.xz -O qalculate.tar.xz
+RUN wget https://github.com/Qalculate/qalculate-gtk/releases/download/v${QALCULATE_VERSION}/qalculate-${QALCULATE_VERSION}-x86_64.tar.xz -O qalculate.tar.xz
 RUN tar xf qalculate.tar.xz
-RUN cp qalculate-3.18.0/* /tmp/qalculate
+RUN cp qalculate-${QALCULATE_VERSION}/* /tmp/qalculate
 
-FROM bitnami/minideb:bullseye
+FROM bitnami/minideb:${DEBIAN_RELEASE}
 RUN apt update
 RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 pkg-config -y
 COPY --from=qalculate-builder /tmp/qalculate/* /usr/bin/

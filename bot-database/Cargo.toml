@@ -9,8 +9,8 @@ edition = "2018"
 [dependencies]
 dotenv = "0.15.0"
 chrono = "0.4.19"
-thiserror = "1.0.24"
-diesel = {version="1.4.6", features=["postgres", "r2d2", "chrono"]}
+thiserror = "1.0.30"
+diesel = {version="1.4.8", features=["postgres", "r2d2", "chrono"]}
 log = "0.4.14"
 diesel_migrations = "1.4.0"
 r2d2 = "0.8.9"

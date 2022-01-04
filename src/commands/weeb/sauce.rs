@@ -59,7 +59,10 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
     );
     let data = ctx.data.read().await;
     let store_data = data.get::<Store>().unwrap();
-    let sources = store_data.sauce_nao.check_sauces(attachment_urls).await?;
+    let sources = store_data
+        .sauce_nao
+        .check_sauces(&attachment_urls[..])
+        .await?;
     log::trace!("Sources are {:?}", sources);
 
     log::debug!("Creating menu...");

@@ -43,7 +43,7 @@ pub enum BotError {
     JoinError(#[from] songbird::error::JoinError),
 
     #[error("YouTube Error: {0}")]
-    YoutubeError(#[from] youtube_metadata::error::YoutubeError),
+    YoutubeError(#[from] youtube_metadata::error::Error),
 
     #[error("Lavalink Error: {0}")]
     LavalinkError(#[from] LavalinkError),
