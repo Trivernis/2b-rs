@@ -16,7 +16,7 @@ pub struct Store;
 pub struct StoreData {
     pub minecraft_data_api: minecraft_data_rs::api::Api,
     pub spotify_api: SpotifyApi,
-    pub sauce_nao: SauceNao,
+    pub sauce_nao: SauceNao<'static>,
 }
 
 impl StoreData {

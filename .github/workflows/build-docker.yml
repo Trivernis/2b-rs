@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [ main, actions ]
+  schedule:
+    # daily builds to always include patches in the docker image
+    - cron: '0 4 * * *'
 
 env:
   CARGO_TERM_COLOR: always

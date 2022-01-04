@@ -21,8 +21,8 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
 
-    let kernel_version = system.get_kernel_version().unwrap_or("n/a".to_string());
-    let own_process = system.get_process(process::id() as i32).unwrap();
+    let kernel_version = system.kernel_version().unwrap_or("n/a".to_string());
+    let own_process = system.process(process::id() as i32).unwrap();
     let memory_usage = own_process.memory();
     let cpu_usage = own_process.cpu_usage();
     let thread_count = own_process.tasks.len();

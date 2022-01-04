@@ -1,6 +1,9 @@
+[workspace]
+members=["bot-coreutils", "bot-database", "."]
+
 [package]
 name = "tobi-rs"
-version = "0.9.8"
+version = "0.9.9"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -12,41 +15,41 @@ panic = 'abort'
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
-serenity-rich-interaction = "0.2.5"
-serenity = "0.10.5"
+serenity-rich-interaction = "0.2.6"
+serenity = "0.10.9"
 dotenv = "0.15.0"
-serde_derive = "1.0.125"
-serde = "1.0.125"
-thiserror = "1.0.24"
-minecraft-data-rs = "0.3.0"
+serde_derive = "1.0.133"
+serde = "1.0.133"
+thiserror = "1.0.30"
+minecraft-data-rs = "0.4.1"
 songbird =  "0.2.0"
-serde_json = "1.0.64"
-rand = "0.8.3"
-regex = "1.4.5"
-aspotify = "0.7.0"
+serde_json = "1.0.74"
+rand = "0.8.4"
+regex = "1.5.4"
+aspotify = "0.7.1"
 lazy_static = "1.4.0"
-futures = "0.3.13"
+futures = "0.3.19"
 log = "0.4.14"
 fern = "0.6.0"
 chrono = "0.4.19"
 colored = "2.0.0"
-sysinfo = "0.16.5"
-reqwest = "0.11.2"
-chrono-tz = "0.5.3"
-sauce-api = "0.7.1"
-rustc_version_runtime = "0.2.0"
+sysinfo = "0.22.4"
+reqwest = "0.11.8"
+chrono-tz = "0.6.1"
+sauce-api = "0.9.1"
+rustc_version_runtime = "0.2.1"
 trigram = "0.4.4"
 typemap_rev = "0.1.5"
-youtube-metadata = "0.1.1"
-xkcd-search = "0.1.1"
+youtube-metadata = "0.2.0"
+xkcd-search = "0.1.2"
 animethemes-rs = "0.3.0"
 
 [dependencies.tokio]
-version = "1.12.0"
+version = "1.15.0"
 features = ["macros", "rt-multi-thread"]
 
 [dependencies.lavalink-rs]
 git = "https://gitlab.com/vicky5124/lavalink-rs/"
-rev = "b90539bd"
+rev = "61badd46"
 features=["native", "serenity", "songbird", "normal-log"]
 default-features = false
