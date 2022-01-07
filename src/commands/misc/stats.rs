@@ -22,6 +22,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     system.refresh_all();
 
     let kernel_version = system.kernel_version().unwrap_or("n/a".to_string());
+    //system.refresh_process(process::id() as i32);
     let own_process = system.process(process::id() as i32).unwrap();
     let memory_usage = own_process.memory();
     let cpu_usage = own_process.cpu_usage();
@@ -30,9 +31,8 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let guild_count: usize = current_user.guilds(ctx).await?.len();
     let bot_info = ctx.http.get_current_application_info().await?;
 
-    let current_time_seconds = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-    let uptime = current_time_seconds - Duration::from_secs(own_process.start_time());
-    let uptime = ChronoDuration::from_std(uptime).unwrap();
+    let uptime = own_process.run_time();
+    let uptime = ChronoDuration::from_std(Duration::from_secs(uptime)).unwrap();
     let total_commands_executed = database.get_total_commands_statistic().await?;
     let shard_count = ctx.cache.shard_count().await;
 
@@ -40,6 +40,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         r#"
     Version: {}
     Compiled with: rustc {}
+    Build at: {}
     Owner: <@{}>
     Guilds: {}
     Shards: {}
@@ -48,6 +49,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     "#,
         crate::VERSION,
         rustc_version_runtime::version(),
+        build_time::build_time_utc!("%Y-%m-%dT%H:%M:%S"),
         bot_info.owner.id,
         guild_count,
         shard_count,
