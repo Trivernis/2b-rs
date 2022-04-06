@@ -10,8 +10,8 @@ edition = "2018"
 dotenv = "0.15.0"
 chrono = "0.4.19"
 thiserror = "1.0.30"
-diesel = {version="1.4.8", features=["postgres", "r2d2", "chrono"]}
-log = "0.4.14"
+diesel = { version = "1.4.8", features = ["postgres", "r2d2", "chrono"] }
+log = "0.4.16"
 diesel_migrations = "1.4.0"
 r2d2 = "0.8.9"
 tokio-diesel = {git = "https://github.com/Trivernis/tokio-diesel"}
