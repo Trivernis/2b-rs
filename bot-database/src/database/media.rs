@@ -18,12 +18,15 @@ impl Database {
     }
 
     /// Returns a list of gifs by assigned category
-    pub async fn get_media_by_category(&self, category: &str) -> DatabaseResult<Vec<Media>> {
+    pub async fn get_media_by_category<S: AsRef<str> + 'static>(
+        &self,
+        category: S,
+    ) -> DatabaseResult<Vec<Media>> {
         use media::dsl;
-        log::debug!("Searching for gifs in category '{}'", category);
+        log::debug!("Searching for gifs in category '{}'", category.as_ref());
 
         let gifs: Vec<Media> = dsl::media
-            .filter(dsl::category.eq(category))
+            .filter(dsl::category.eq(category.as_ref()))
             .load_async::<Media>(&self.pool)
             .await?;
         Ok(gifs)

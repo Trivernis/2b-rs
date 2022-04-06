@@ -3,7 +3,7 @@ members=["bot-coreutils", "bot-database", "."]
 
 [package]
 name = "tobi-rs"
-version = "0.9.10"
+version = "0.9.11"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -16,27 +16,27 @@ panic = 'abort'
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
 serenity-rich-interaction = "0.2.6"
-serenity = "0.10.9"
+serenity = "0.10.10"
 dotenv = "0.15.0"
-serde_derive = "1.0.133"
-serde = "1.0.133"
+serde_derive = "1.0.136"
+serde = "1.0.136"
 thiserror = "1.0.30"
-minecraft-data-rs = "0.4.1"
-songbird =  "0.2.1"
-serde_json = "1.0.74"
-rand = "0.8.4"
-regex = "1.5.4"
+minecraft-data-rs = "0.4.5"
+songbird = "0.2.2"
+serde_json = "1.0.79"
+rand = "0.8.5"
+regex = "1.5.5"
 aspotify = "0.7.1"
 lazy_static = "1.4.0"
-futures = "0.3.19"
-log = "0.4.14"
+futures = "0.3.21"
+log = "0.4.16"
 fern = "0.6.0"
 chrono = "0.4.19"
 colored = "2.0.0"
-sysinfo = "0.22.5"
-reqwest = "0.11.8"
+sysinfo = "0.23.8"
+reqwest = "0.11.10"
 chrono-tz = "0.6.1"
-sauce-api = "0.9.1"
+sauce-api = "0.9.3"
 rustc_version_runtime = "0.2.1"
 trigram = "0.4.4"
 typemap_rev = "0.1.5"
@@ -46,11 +46,11 @@ animethemes-rs = "0.3.0"
 build-time = "0.1.1"
 
 [dependencies.tokio]
-version = "1.15.0"
+version = "1.17.0"
 features = ["macros", "rt-multi-thread"]
 
 [dependencies.lavalink-rs]
 git = "https://gitlab.com/vicky5124/lavalink-rs/"
-rev = "61badd46"
+rev = "2487c295"
 features=["native", "serenity", "songbird", "normal-log"]
 default-features = false

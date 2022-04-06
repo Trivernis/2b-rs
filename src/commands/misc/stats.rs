@@ -1,12 +1,12 @@
 use std::process;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 
 use chrono::Duration as ChronoDuration;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
 use serenity::prelude::*;
-use sysinfo::{ProcessExt, SystemExt};
+use sysinfo::{Pid, PidExt, ProcessExt, SystemExt};
 
 use crate::commands::common::handle_autodelete;
 use crate::utils::context_data::{get_database_from_context, MusicPlayers};
@@ -22,8 +22,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     system.refresh_all();
 
     let kernel_version = system.kernel_version().unwrap_or("n/a".to_string());
-    //system.refresh_process(process::id() as i32);
-    let own_process = system.process(process::id() as i32).unwrap();
+    let own_process = system.process(Pid::from_u32(process::id())).unwrap();
     let memory_usage = own_process.memory();
     let cpu_usage = own_process.cpu_usage();
     let thread_count = own_process.tasks.len();

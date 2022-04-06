@@ -21,13 +21,13 @@ async fn pain(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let pain_type = args.message().to_lowercase();
     let database = get_database_from_context(ctx).await;
     let mut media = database
-        .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, pain_type).as_str())
+        .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, pain_type))
         .await?;
 
     if media.is_empty() {
         log::debug!("No media found for pain {}. Using 404", pain_type);
         media = database
-            .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, NOT_FOUND_PAIN).as_str())
+            .get_media_by_category(format!("{}{}", CATEGORY_PREFIX, NOT_FOUND_PAIN))
             .await?;
     }
 

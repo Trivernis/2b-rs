@@ -37,7 +37,11 @@ mod theme;
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
-async fn post_random_media(ctx: &Context, msg: &Message, category: &str) -> CommandResult {
+async fn post_random_media<S: AsRef<str> + 'static>(
+    ctx: &Context,
+    msg: &Message,
+    category: S,
+) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let media = database.get_media_by_category(category).await?;
     let gif = media

@@ -26,9 +26,7 @@ impl StoreData {
             env::var("SAUCENAO_API_KEY").expect("No SAUCENAO_API_KEY key in environment."),
         );
         Self {
-            minecraft_data_api: minecraft_data_rs::api::Api::new(
-                minecraft_data_rs::api::versions::latest_stable().unwrap(),
-            ),
+            minecraft_data_api: minecraft_data_rs::api::Api::latest().unwrap(),
             spotify_api: SpotifyApi::new(),
             sauce_nao,
         }

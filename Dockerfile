@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.0-experimental
 
-ARG QALCULATE_VERSION=3.22.0
+ARG QALCULATE_VERSION=4.1.1
 ARG DEBIAN_RELEASE=bullseye
 
 FROM rust:slim-${DEBIAN_RELEASE}  AS builder
@@ -34,5 +34,5 @@ RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 pkg-config -y
 COPY --from=qalculate-builder /tmp/qalculate/* /usr/bin/
 COPY --from=builder /tmp/tobi/tobi-rs .
 RUN pip3 install youtube-dl
-RUN rm -rf /var/lib/{apt,dpkg,cache,log}/
+RUN rm -rf /var/lib/{apt,dpkg,cache,log}/ /var/cache
 ENTRYPOINT ["/tobi-rs"]
