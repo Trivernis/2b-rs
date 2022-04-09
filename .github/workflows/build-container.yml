@@ -1,4 +1,4 @@
-name: Build Docker Container
+name: Build Container
 
 on:
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
           layers: true
           containerfiles: ./Containerfile
           platforms: ${{github.event.inputs.platforms}}
-          image: trivernis/tobi:latest
+          image: trivernis/tobi
       - name: Login to DockerHub
         uses: redhat-actions/podman-login@v1
         with:
