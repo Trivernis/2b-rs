@@ -1,36 +1,52 @@
 ARG QALCULATE_VERSION=4.1.1
-ARG DEBIAN_RELEASE=bullseye
+ARG BASE_IMAGE=docker.io/alpine:latest
 
-FROM docker.io/rust:slim-${DEBIAN_RELEASE}  AS builder
-RUN apt-get update
-RUN apt-get install -y build-essential libssl-dev libopus-dev libpq-dev pkg-config
+FROM ${BASE_IMAGE} AS build_base
+RUN apk update
+RUN apk add --no-cache --force-overwrite \
+    build-base \
+    openssl3-dev \
+    libopusenc-dev \
+    libpq-dev \
+    curl \
+    bash
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rm -rf /var/lib/{cache,log}/ /var/cache
+
+FROM build_base AS builder
+ENV RUSTFLAGS="-C target-feature=-crt-static"
 WORKDIR /usr/src
-RUN USER=root cargo new tobi
+RUN cargo new tobi
 WORKDIR /usr/src/tobi
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY bot-coreutils ./bot-coreutils
 COPY bot-database ./bot-database
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/src/tobi/target \
-    cargo build --release
+RUN cargo build --release --verbose
 RUN mkdir /tmp/tobi
-RUN --mount=type=cache,target=/usr/src/tobi/target cp target/release/tobi-rs /tmp/tobi/
+RUN cp target/release/tobi-rs /tmp/tobi/
 
-FROM docker.io/bitnami/minideb:${DEBIAN_RELEASE} AS runtime-base
-RUN apt update
-RUN apt install openssl libopus0 ffmpeg python3 python3-pip libpq5 pkg-config -y
-RUN pip3 install youtube-dl
-RUN rm -rf /var/lib/{apt,dpkg,cache,log}/ /var/cache
-
-FROM docker.io/bitnami/minideb:${DEBIAN_RELEASE} AS qalculate-builder
+FROM build_base AS qalculate-builder
 ARG QALCULATE_VERSION
 RUN mkdir /tmp/qalculate
 WORKDIR /tmp/qalculate
-RUN install_packages ca-certificates wget xz-utils
+RUN apk add --no-cache wget xz ca-certificates
 RUN wget https://github.com/Qalculate/qalculate-gtk/releases/download/v${QALCULATE_VERSION}/qalculate-${QALCULATE_VERSION}-x86_64.tar.xz -O qalculate.tar.xz
 RUN tar xf qalculate.tar.xz
 RUN cp qalculate-${QALCULATE_VERSION}/* /tmp/qalculate
+
+FROM ${BASE_IMAGE} AS runtime-base
+RUN apk update
+RUN apk add --no-cache --force-overwrite \
+    openssl3 \
+    libopusenc \
+    libpq \
+    python3 \
+    py3-pip \
+    bash
+RUN pip3 install youtube-dl
+RUN rm -rf /var/lib/{cache,log}/ /var/cache
 
 FROM runtime-base
 COPY --from=qalculate-builder /tmp/qalculate/* /usr/bin/
