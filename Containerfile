@@ -11,11 +11,9 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY bot-coreutils ./bot-coreutils
 COPY bot-database ./bot-database
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/usr/src/tobi/target \
-    cargo build --release
+RUN cargo build --release
 RUN mkdir /tmp/tobi
-RUN --mount=type=cache,target=/usr/src/tobi/target cp target/release/tobi-rs /tmp/tobi/
+RUN cp target/release/tobi-rs /tmp/tobi/
 
 FROM docker.io/bitnami/minideb:${DEBIAN_RELEASE} AS runtime-base
 RUN apt update
