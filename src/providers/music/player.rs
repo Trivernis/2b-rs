@@ -137,7 +137,7 @@ impl MusicPlayer {
     /// Tries to play the next song
     pub async fn try_play_next(&mut self) -> BotResult<bool> {
         let mut next = if let Some(n) = self.queue.next() {
-            log::trace!("Next is {:?}", n);
+            tracing::trace!("Next is {:?}", n);
             n
         } else {
             return Ok(true);
@@ -151,13 +151,13 @@ impl MusicPlayer {
                 next.author()
             ))
             .await?;
-            log::debug!("Could not find playable candidate for song.");
+            tracing::debug!("Could not find playable candidate for song.");
             return Ok(false);
         };
         let query_information = match self.client.auto_search_tracks(url).await {
             Ok(i) => i,
             Err(e) => {
-                log::error!("Failed to search for song: {}", e);
+                tracing::error!("Failed to search for song: {}", e);
                 self.send_error_message(format!(
                     "‼️ Failed to retrieve information for song '{}' by '{}': {:?}",
                     next.title(),
@@ -292,10 +292,10 @@ fn wait_for_disconnect(
             let mut player_lock = player.lock().await;
 
             if player_lock.leave_flag {
-                log::debug!("Waiting to leave");
+                tracing::debug!("Waiting to leave");
 
                 if leave_in <= 0 {
-                    log::debug!("Leaving voice channel");
+                    tracing::debug!("Leaving voice channel");
 
                     if let Some(handler) = manager.get(guild_id) {
                         let mut handler_lock = handler.lock().await;
@@ -308,12 +308,12 @@ fn wait_for_disconnect(
                     players.remove(&guild_id.0);
                     let _ = player_lock.stop().await;
                     let _ = player_lock.delete_now_playing().await;
-                    log::debug!("Left the voice channel");
+                    tracing::debug!("Left the voice channel");
                     return;
                 }
                 leave_in -= 1;
             } else {
-                log::debug!("Resetting leave value");
+                tracing::debug!("Resetting leave value");
                 leave_in = 5
             }
         }

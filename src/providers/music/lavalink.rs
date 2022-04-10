@@ -15,11 +15,11 @@ pub struct LavalinkHandler {
 #[async_trait]
 impl LavalinkEventHandler for LavalinkHandler {
     async fn track_start(&self, _client: LavalinkClient, event: TrackStart) {
-        log::info!("Track started!\nGuild: {}", event.guild_id);
+        tracing::info!("Track started!\nGuild: {}", event.guild_id);
     }
 
     async fn track_finish(&self, _: LavalinkClient, event: TrackFinish) {
-        log::info!("Track finished!\nGuild: {}", event.guild_id);
+        tracing::info!("Track finished!\nGuild: {}", event.guild_id);
         let player = {
             let data = self.data.read().await;
             let players = data.get::<MusicPlayers>().unwrap();
@@ -29,20 +29,20 @@ impl LavalinkEventHandler for LavalinkHandler {
         if let Some(player) = player {
             let mut player = player.lock().await;
             if let Err(e) = player.play_next().await {
-                log::error!("Failed to play next song: {:?}", e);
+                tracing::error!("Failed to play next song: {:?}", e);
             }
             if let Err(e) = player.update_now_playing().await {
-                log::error!("Failed to update now playing embed: {:?}", e);
+                tracing::error!("Failed to update now playing embed: {:?}", e);
             }
         }
     }
 
     async fn player_update(&self, _: LavalinkClient, event: PlayerUpdate) {
-        log::debug!("Received player update event: {:?}", event);
+        tracing::debug!("Received player update event: {:?}", event);
     }
 
     async fn stats(&self, _: LavalinkClient, event: Stats) {
-        log::debug!("Received stats event: {:?}", event);
+        tracing::debug!("Received stats event: {:?}", event);
     }
 }
 

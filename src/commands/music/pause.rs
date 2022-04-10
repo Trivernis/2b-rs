@@ -17,7 +17,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Pausing playback for guild {}", guild.id);
+    tracing::debug!("Pausing playback for guild {}", guild.id);
 
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
         player
@@ -33,14 +33,14 @@ async fn pause(ctx: &Context, msg: &Message) -> CommandResult {
         let is_paused = player.is_paused();
 
         if is_paused {
-            log::debug!("Paused");
+            tracing::debug!("Paused");
             EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
                 m.content("⏸️ Paused playback️")
             })
             .await?;
             player.update_now_playing().await?;
         } else {
-            log::debug!("Resumed");
+            tracing::debug!("Resumed");
             EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |m| {
                 m.content("▶ Resumed playback️")
             })

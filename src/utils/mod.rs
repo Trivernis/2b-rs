@@ -56,7 +56,7 @@ pub async fn delete_messages_from_database(ctx: &Context) -> BotResult<()> {
 
     for message in messages {
         if message.timeout <= SystemTime::now() {
-            log::debug!("Deleting message {:?}", message);
+            tracing::debug!("Deleting message {:?}", message);
             let _ = ctx
                 .http
                 .delete_message(message.channel_id as u64, message.message_id as u64)
@@ -67,7 +67,7 @@ pub async fn delete_messages_from_database(ctx: &Context) -> BotResult<()> {
         } else {
             let http = Arc::clone(&ctx.http);
             let database = database.clone();
-            log::debug!(
+            tracing::debug!(
                 "Creating future to delete ephemeral message {:?} later",
                 message
             );
@@ -77,7 +77,7 @@ pub async fn delete_messages_from_database(ctx: &Context) -> BotResult<()> {
                     Instant::now().add(message.timeout.duration_since(SystemTime::now()).unwrap()),
                 )
                 .await;
-                log::debug!("Deleting message {:?}", message);
+                tracing::debug!("Deleting message {:?}", message);
                 let _ = http
                     .delete_message(message.channel_id as u64, message.message_id as u64)
                     .await;

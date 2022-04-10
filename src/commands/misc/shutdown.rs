@@ -15,7 +15,7 @@ use crate::commands::common::handle_autodelete;
 #[owners_only]
 async fn shutdown(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let code = args.single::<i32>().unwrap_or(0);
-    log::info!("Shutting down with code {}...", code);
+    tracing::info!("Shutting down with code {}...", code);
     msg.channel_id
         .say(
             ctx,

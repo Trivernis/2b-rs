@@ -17,7 +17,7 @@ use crate::providers::music::queue::Song;
 #[bucket("general")]
 async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::trace!("Displaying queue for guild {}", guild.id);
+    tracing::trace!("Displaying queue for guild {}", guild.id);
 
     let query = args
         .iter::<String>()
@@ -53,7 +53,7 @@ async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         })
         .map(|(i, s)| (i, s.clone()))
         .collect();
-    log::trace!("Songs are {:?}", songs);
+    tracing::trace!("Songs are {:?}", songs);
 
     if songs.len() == 0 {
         msg.channel_id

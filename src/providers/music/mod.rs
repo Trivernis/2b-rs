@@ -41,12 +41,12 @@ pub(crate) async fn song_to_youtube_video(song: &Song) -> BotResult<Option<Video
             {
                 return Ok(Some(video));
             }
-            log::debug!("Video title is not similar enough to song name.");
+            tracing::debug!("Video title is not similar enough to song name.");
             last_result = Some(video);
         }
     }
 
-    log::debug!("Returning last result");
+    tracing::debug!("Returning last result");
     Ok(last_result)
 }
 
@@ -61,13 +61,13 @@ pub async fn add_youtube_song_to_database(
         SongSource::YouTube(_) => match search_for_song_variations(store, song).await {
             Ok(Some(track)) => track,
             Err(e) => {
-                log::error!("Failed to search for song on spotify {:?}", e);
+                tracing::error!("Failed to search for song on spotify {:?}", e);
                 return Ok(());
             }
             _ => return Ok(()),
         },
     };
-    log::debug!("Song found on spotify. Inserting metadata");
+    tracing::debug!("Song found on spotify. Inserting metadata");
     let artists = artists_to_string(track.artists);
     let url = song.url().await.unwrap();
 
@@ -93,7 +93,7 @@ async fn search_for_song_variations(
     let mut query = COMMON_ADDITIONS.replace_all(song.title(), " ").to_string();
     query = query.replace(|c| c != ' ' && !char::is_alphanumeric(c), "");
 
-    log::debug!("Searching for youtube song");
+    tracing::debug!("Searching for youtube song");
     if let Some(track) = store.spotify_api.search_for_song(&query).await? {
         let similarity = trigram::similarity(
             &format!(
@@ -104,12 +104,12 @@ async fn search_for_song_variations(
             &query,
         );
         if similarity > 0.3 {
-            log::debug!("Result is similar enough ({}). Returning track", similarity);
+            tracing::debug!("Result is similar enough ({}). Returning track", similarity);
             return Ok(Some(track));
         }
-        log::debug!("Result is not similar enough");
+        tracing::debug!("Result is not similar enough");
     }
-    log::debug!("No result found");
+    tracing::debug!("No result found");
 
     Ok(None)
 }

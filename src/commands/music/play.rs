@@ -23,12 +23,12 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Play request received for guild {}", guild.id);
+    tracing::debug!("Play request received for guild {}", guild.id);
 
     let mut player = get_music_player_for_guild(ctx, guild.id).await;
 
     if player.is_none() {
-        log::debug!("Not in a channel. Joining authors channel...");
+        tracing::debug!("Not in a channel. Joining authors channel...");
         let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
         let music_player = MusicPlayer::join(ctx, guild.id, channel_id, msg.channel_id).await?;
         player = Some(music_player);
@@ -37,7 +37,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let songs = get_songs_for_query(&ctx, msg, query).await?;
 
     let (play_first, create_now_playing) = {
-        log::debug!("Adding song to queue");
+        tracing::debug!("Adding song to queue");
         let mut player_lock = player.lock().await;
         for song in songs {
             player_lock.queue().add(song);
@@ -47,7 +47,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
             .unwrap_or(false);
 
         if autoshuffle {
-            log::debug!("Autoshuffeling");
+            tracing::debug!("Autoshuffeling");
             player_lock.queue().shuffle();
         }
         (
@@ -57,7 +57,7 @@ async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     };
 
     if play_first {
-        log::debug!("Playing first song in queue");
+        tracing::debug!("Playing first song in queue");
         let mut player_lock = player.lock().await;
         player_lock.play_next().await?;
     }

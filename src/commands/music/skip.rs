@@ -18,7 +18,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn skip(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Skipping song for guild {}", guild.id);
+    tracing::debug!("Skipping song for guild {}", guild.id);
 
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
         player

@@ -102,7 +102,7 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
                 m.embed(|e| e.title("Error occurred").description(format!("{}", why)))
             })
             .await;
-        log::warn!("Error in {}: {:?}", cmd_name, why);
+        tracing::warn!("Error in {}: {:?}", cmd_name, why);
     }
     let database = get_database_from_context(ctx).await;
     let _ = database
@@ -118,7 +118,7 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
 
 #[hook]
 async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
-    log::trace!("Got command message {}", msg.content);
+    tracing::trace!("Got command message {}", msg.content);
     let _ = msg.channel_id.broadcast_typing(ctx).await;
     true
 }

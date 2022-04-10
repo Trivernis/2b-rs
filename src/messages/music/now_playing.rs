@@ -33,7 +33,7 @@ pub async fn create_now_playing_msg(
     player: Arc<Mutex<MusicPlayer>>,
     channel_id: ChannelId,
 ) -> BotResult<Arc<RwLock<MessageHandle>>> {
-    log::debug!("Creating now playing menu");
+    tracing::debug!("Creating now playing menu");
     let nsfw = channel_id.to_channel(ctx).await?.is_nsfw();
     let handle = MenuBuilder::default()
         .add_control(-1, DELETE_BUTTON, |c, m, r| {
@@ -63,9 +63,9 @@ pub async fn create_now_playing_msg(
         .add_page(Page::new_builder(move || {
             let player = Arc::clone(&player);
             Box::pin(async move {
-                log::debug!("Creating now playing embed for page");
+                tracing::debug!("Creating now playing embed for page");
                 let mut player = player.lock().await;
-                log::debug!("player locked");
+                tracing::debug!("player locked");
                 let mut page = CreateMessage::default();
 
                 if let Some(mut current) = player.queue().current().clone() {
@@ -79,7 +79,7 @@ pub async fn create_now_playing_msg(
                 } else {
                     page.embed(|e| e.description("Queue is empty"));
                 }
-                log::debug!("Embed created");
+                tracing::debug!("Embed created");
 
                 Ok(page)
             })
@@ -101,7 +101,7 @@ pub async fn update_now_playing_msg(
     song: &mut Song,
     paused: bool,
 ) -> BotResult<()> {
-    log::debug!("Updating now playing message");
+    tracing::debug!("Updating now playing message");
     let handle = handle.read().await;
     let mut message = handle.get_message(http).await?;
     let nsfw = http.get_channel(handle.channel_id).await?.is_nsfw();
@@ -116,7 +116,7 @@ pub async fn update_now_playing_msg(
             })
         })
         .await?;
-    log::debug!("Message updated.");
+    tracing::debug!("Message updated.");
 
     Ok(())
 }
@@ -159,7 +159,7 @@ async fn play_pause_button_action(
     _: &mut Menu<'_>,
     reaction: Reaction,
 ) -> SerenityUtilsResult<()> {
-    log::debug!("Play/Pause button pressed");
+    tracing::debug!("Play/Pause button pressed");
     let guild_id = reaction.guild_id.unwrap();
     let user = reaction.user(&ctx).await?;
 
@@ -170,7 +170,7 @@ async fn play_pause_button_action(
         let player = get_music_player_for_guild(ctx, guild_id).await.unwrap();
 
         let (current, message, paused) = {
-            log::debug!("Queue is locked");
+            tracing::debug!("Queue is locked");
             let mut player = player.lock().await;
             player.toggle_paused().await?;
             (
@@ -179,7 +179,7 @@ async fn play_pause_button_action(
                 player.is_paused(),
             )
         };
-        log::debug!("Queue is unlocked");
+        tracing::debug!("Queue is unlocked");
 
         if let Some(mut current) = current {
             update_now_playing_msg(&ctx.http, &message, &mut current, paused).await?;
@@ -243,9 +243,9 @@ async fn stop_button_action(
                 player.stop().await?;
             }
 
-            log::debug!("Left the voice channel");
+            tracing::debug!("Left the voice channel");
         } else {
-            log::debug!("Not in a voice channel");
+            tracing::debug!("Not in a voice channel");
         }
     }
     {

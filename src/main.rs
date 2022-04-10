@@ -17,11 +17,11 @@ async fn main() {
     init_logger();
     let mut client = get_client()
         .await
-        .map_err(|e| log::error!("Failed to get client: {:?}", e))
+        .map_err(|e| tracing::error!("Failed to get client: {:?}", e))
         .expect("Failed to get client");
 
     // start listening for events by starting a single shard
     if let Err(why) = client.start_autosharded().await {
-        log::error!("An error occurred while running the client: {:?}", why);
+        tracing::error!("An error occurred while running the client: {:?}", why);
     }
 }

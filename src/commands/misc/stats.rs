@@ -16,7 +16,7 @@ use crate::utils::context_data::{get_database_from_context, MusicPlayers};
 #[usage("")]
 #[bucket("general")]
 async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
-    log::debug!("Reading system stats");
+    tracing::debug!("Reading system stats");
     let database = get_database_from_context(ctx).await;
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
@@ -56,7 +56,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         total_commands_executed
     );
 
-    log::trace!("Discord info {}", discord_info);
+    tracing::trace!("Discord info {}", discord_info);
 
     let system_info = format!(
         r#"
@@ -74,7 +74,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
         uptime.num_hours() % 24,
         uptime.num_minutes() % 60
     );
-    log::trace!("System info {}", system_info);
+    tracing::trace!("System info {}", system_info);
 
     msg.channel_id
         .send_message(ctx, |m| {

@@ -14,7 +14,7 @@ use crate::messages::music::no_voicechannel::create_no_voicechannel_message;
 #[bucket("general")]
 async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Fetching lyrics for song playing in {}", guild.id);
+    tracing::debug!("Fetching lyrics for song playing in {}", guild.id);
 
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
         player
@@ -46,7 +46,7 @@ async fn lyrics(ctx: &Context, msg: &Message) -> CommandResult {
             })
             .await?;
     } else {
-        log::debug!("No lyrics found");
+        tracing::debug!("No lyrics found");
         msg.channel_id.say(ctx, "No lyrics found").await?;
     }
 

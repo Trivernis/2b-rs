@@ -19,9 +19,9 @@ pub(crate) async fn item(ctx: &Context, msg: &Message, args: Args) -> CommandRes
     let store = data.get::<Store>().expect("Failed to get store");
 
     let item_name = args.message().to_lowercase();
-    log::debug!("Searching for item '{}'", item_name);
+    tracing::debug!("Searching for item '{}'", item_name);
     let information = get_item_full_information(&item_name, &store.minecraft_data_api)?;
-    log::trace!("Item full information is {:?}", information);
+    tracing::trace!("Item full information is {:?}", information);
     create_item_message(ctx, msg.channel_id, information).await?;
 
     handle_autodelete(ctx, msg).await?;

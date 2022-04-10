@@ -20,7 +20,7 @@ async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandR
 
     let name: String = args.single().unwrap();
     let url: &str = args.remains().unwrap();
-    log::debug!(
+    tracing::debug!(
         "Adding playlist '{}' with url '{}' to guild {}",
         name,
         url,

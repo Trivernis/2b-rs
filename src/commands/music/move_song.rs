@@ -19,7 +19,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn move_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Moving song for guild {}", guild.id);
+    tracing::debug!("Moving song for guild {}", guild.id);
 
     let pos1 = args.single::<usize>()?;
     let pos2 = args.single::<usize>()?;
