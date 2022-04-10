@@ -19,7 +19,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn remove_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Moving song for guild {}", guild.id);
+    tracing::debug!("Moving song for guild {}", guild.id);
 
     let pos = args.single::<usize>()?;
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {

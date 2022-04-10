@@ -15,7 +15,6 @@ panic = 'abort'
 [dependencies]
 bot-database = {path="./bot-database"}
 bot-coreutils = {path="./bot-coreutils"}
-serenity-rich-interaction = "0.2.6"
 serenity = "0.10.10"
 dotenv = "0.15.0"
 serde_derive = "1.0.136"
@@ -29,10 +28,7 @@ regex = "1.5.5"
 aspotify = "0.7.1"
 lazy_static = "1.4.0"
 futures = "0.3.21"
-log = "0.4.16"
-fern = "0.6.0"
 chrono = "0.4.19"
-colored = "2.0.0"
 sysinfo = "0.23.8"
 reqwest = "0.11.10"
 chrono-tz = "0.6.1"
@@ -44,6 +40,11 @@ youtube-metadata = "0.2.0"
 xkcd-search = "0.1.2"
 animethemes-rs = "0.3.0"
 build-time = "0.1.1"
+tracing-subscriber = {version = "0.3.10", features = ["env-filter"] }
+tracing = "0.1.32"
+
+[dependencies.serenity-rich-interaction]
+version = "0.3.0"
 
 [dependencies.tokio]
 version = "1.17.0"
@@ -52,5 +53,5 @@ features = ["macros", "rt-multi-thread"]
 [dependencies.lavalink-rs]
 git = "https://gitlab.com/vicky5124/lavalink-rs/"
 rev = "2487c295"
-features=["native", "serenity", "songbird", "normal-log"]
+features=["native", "serenity", "songbird", "tracing-log"]
 default-features = false

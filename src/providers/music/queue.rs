@@ -99,7 +99,7 @@ impl Song {
         if let Some(url) = self.url.clone() {
             Some(url)
         } else {
-            log::debug!("Lazy fetching video for title");
+            tracing::debug!("Lazy fetching video for title");
             let information = song_to_youtube_video(&self).await.ok()??;
             self.url = Some(information.webpage_url.clone());
             self.thumbnail = information.thumbnail;

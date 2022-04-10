@@ -18,7 +18,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Leave request received for guild {}", guild.id);
+    tracing::debug!("Leave request received for guild {}", guild.id);
 
     let manager = songbird::get(ctx).await.unwrap();
     if let Some(handler) = manager.get(guild.id) {

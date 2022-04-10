@@ -22,7 +22,7 @@ pub fn get_raw_event_handler() -> RichEventHandler {
         .add_event(|ctx, e: &event::ReadyEvent| Box::pin(ready(ctx, &e.ready)))
         .add_event(|_ctx, _: &event::ResumedEvent| {
             Box::pin(async {
-                log::info!("Reconnected to Gateway");
+                tracing::info!("Reconnected to Gateway");
                 Ok(())
             })
         });
@@ -31,7 +31,7 @@ pub fn get_raw_event_handler() -> RichEventHandler {
 }
 
 async fn ready(ctx: &Context, _: &Ready) -> Result<()> {
-    log::info!("Ready");
+    tracing::info!("Ready");
     delete_messages_from_database(&ctx).await?;
     let prefix = std::env::var("BOT_PREFIX").unwrap_or("~!".to_string());
     ctx.set_activity(Activity::listening(format!("{}help", prefix).as_str()))
@@ -44,7 +44,7 @@ pub(crate) struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn resume(&self, _: Context, _: ResumedEvent) {
-        log::info!("Reconnected to gateway")
+        tracing::info!("Reconnected to gateway")
     }
 
     async fn voice_state_update(
@@ -72,10 +72,10 @@ impl EventHandler for Handler {
         }
 
         if let Some(count) = member_count {
-            log::debug!("{} Members in channel", count);
+            tracing::debug!("{} Members in channel", count);
             if let Some(player) = get_music_player_for_guild(&ctx, guild_id).await {
                 let mut player = player.lock().await;
-                log::debug!("Setting leave flag to {}", count == 0);
+                tracing::debug!("Setting leave flag to {}", count == 0);
                 player.set_leave_flag(count == 0);
             }
         }

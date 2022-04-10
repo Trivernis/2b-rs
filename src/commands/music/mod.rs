@@ -126,23 +126,23 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
     let store = data.get::<Store>().unwrap();
     let database = data.get::<DatabaseContainer>().unwrap();
 
-    log::debug!("Querying play input {}", query);
+    tracing::debug!("Querying play input {}", query);
     if let Some(captures) = PLAYLIST_NAME_REGEX.captures(&query) {
-        log::debug!("Query is a saved playlist");
+        tracing::debug!("Query is a saved playlist");
         let pl_name: &str = captures.get(1).unwrap().as_str();
-        log::trace!("Playlist name is {}", pl_name);
+        tracing::trace!("Playlist name is {}", pl_name);
         let playlist_opt = database
             .get_guild_playlist(guild_id.0, pl_name.to_string())
             .await?;
-        log::trace!("Playlist is {:?}", playlist_opt);
+        tracing::trace!("Playlist is {:?}", playlist_opt);
 
         if let Some(playlist) = playlist_opt {
-            log::debug!("Assigning url for saved playlist to query");
+            tracing::debug!("Assigning url for saved playlist to query");
             query = playlist.url;
         }
     }
     if YOUTUBE_URL_REGEX.is_match(&query) {
-        log::debug!("Query is youtube video or playlist");
+        tracing::debug!("Query is youtube video or playlist");
         // try fetching the url as a playlist
         songs = youtube_dl::get_videos_for_playlist(&query)
             .await?
@@ -152,18 +152,18 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
 
         // if no songs were found fetch the song as a video
         if songs.len() == 0 {
-            log::debug!("Query is youtube video");
+            tracing::debug!("Query is youtube video");
             let mut song: Song = get_video_information(&query).await?.into();
             added_one_msg(&ctx, msg, &mut song).await?;
             add_youtube_song_to_database(&store, &database, &mut song).await?;
             songs.push(song);
         } else {
-            log::debug!("Query is playlist with {} songs", songs.len());
+            tracing::debug!("Query is playlist with {} songs", songs.len());
             added_multiple_msg(&ctx, msg, &mut songs).await?;
         }
     } else if SPOTIFY_PLAYLIST_REGEX.is_match(&query) {
         // search for all songs in the playlist and search for them on youtube
-        log::debug!("Query is spotify playlist");
+        tracing::debug!("Query is spotify playlist");
         let tracks = store.spotify_api.get_songs_in_playlist(&query).await?;
 
         let futures: Vec<BoxFuture<Song>> = tracks
@@ -183,7 +183,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_ALBUM_REGEX.is_match(&query) {
         // fetch all songs in the album and search for them on youtube
-        log::debug!("Query is spotify album");
+        tracing::debug!("Query is spotify album");
         let tracks = store.spotify_api.get_songs_in_album(&query).await?;
 
         for track in tracks {
@@ -197,7 +197,7 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         added_multiple_msg(&ctx, msg, &mut songs).await?;
     } else if SPOTIFY_SONG_REGEX.is_match(&query) {
         // fetch the song name and search it on youtube
-        log::debug!("Query is a spotify song");
+        tracing::debug!("Query is a spotify song");
         let track = store.spotify_api.get_track_for_url(&query).await?;
         let mut song = get_youtube_song_for_track(&database, track.clone())
             .await?
@@ -205,12 +205,12 @@ async fn get_songs_for_query(ctx: &Context, msg: &Message, query: &str) -> BotRe
         added_one_msg(ctx, msg, &mut song).await?;
         songs.push(song);
     } else {
-        log::debug!("Query is a youtube search");
+        tracing::debug!("Query is a youtube search");
         let mut song: Song = youtube_dl::search_video_information(query.clone())
             .await?
             .ok_or(BotError::Msg(format!("Noting found for {}", query)))?
             .into();
-        log::trace!("Search result is {:?}", song);
+        tracing::trace!("Search result is {:?}", song);
 
         added_one_msg(&ctx, msg, &mut song).await?;
         songs.push(song);
@@ -291,24 +291,24 @@ pub async fn is_dj(ctx: &Context, guild: GuildId, user: &User) -> BotResult<bool
 
 /// Searches for a matching youtube song for the given track in the local database
 async fn get_youtube_song_for_track(database: &Database, track: Track) -> BotResult<Option<Song>> {
-    log::debug!("Trying to find track in database.");
+    tracing::debug!("Trying to find track in database.");
     if let Some(id) = track.id {
         let entry = database.get_song(&id).await?;
 
         if let Some(song) = entry {
             // check if the video is still available
-            log::trace!("Found entry is {:?}", song);
+            tracing::trace!("Found entry is {:?}", song);
             if let Ok(info) = get_video_information(&song.url).await {
                 return Ok(Some(info.into()));
             } else {
-                log::debug!("Video '{}' is not available. Deleting entry", song.url);
+                tracing::debug!("Video '{}' is not available. Deleting entry", song.url);
                 database.delete_song(song.id).await?;
                 return Ok(None);
             }
         }
         Ok(None)
     } else {
-        log::debug!("Track has no ID");
+        tracing::debug!("Track has no ID");
         Ok(None)
     }
 }

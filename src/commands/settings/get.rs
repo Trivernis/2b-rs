@@ -18,10 +18,10 @@ use crate::utils::context_data::get_database_from_context;
 async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let database = get_database_from_context(ctx).await;
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Displaying guild setting for guild {}", guild.id);
+    tracing::debug!("Displaying guild setting for guild {}", guild.id);
 
     if let Some(key) = args.single::<String>().ok() {
-        log::debug!("Displaying guild setting of '{}'", key);
+        tracing::debug!("Displaying guild setting of '{}'", key);
         let setting = database
             .get_guild_setting::<String>(guild.id.0, key.clone())
             .await?;
@@ -39,7 +39,7 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             }
         }
     } else {
-        log::debug!("Displaying all guild settings");
+        tracing::debug!("Displaying all guild settings");
         let mut kv_pairs = Vec::new();
 
         for key in ALL_SETTINGS {

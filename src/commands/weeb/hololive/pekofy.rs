@@ -43,7 +43,7 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         return Err(CommandError::from("Can't pekofy empty message"));
     }
 
-    log::debug!("Pekofying message '{}'", content);
+    tracing::debug!("Pekofying message '{}'", content);
     let mut alpha_lowercase = content.to_lowercase();
     alpha_lowercase.retain(|c| c.is_alphanumeric());
 
@@ -64,7 +64,7 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
         .http
         .get_message(msg.channel_id.0, reference_message.0)
         .await?;
-    log::debug!("Pekofied message is '{}'", pekofied);
+    tracing::debug!("Pekofied message is '{}'", pekofied);
     message.reply(ctx, pekofied).await?;
 
     Ok(())
@@ -73,7 +73,7 @@ async fn pekofy(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
 /// Pekofies a single line
 fn pekofy_line(mut line: &str) -> String {
     lazy_static::lazy_static! { static ref FORMATTING_REGEX: Regex = Regex::new(r"^(.*?)((<:\w+:\d+>|\W)*)$").unwrap(); }
-    log::debug!("Pekofying line '{}'", line);
+    tracing::debug!("Pekofying line '{}'", line);
     let original = line;
 
     let mut md = "";
@@ -84,7 +84,7 @@ fn pekofy_line(mut line: &str) -> String {
 
     for peko in PEKOS {
         if line.to_lowercase().ends_with(peko) {
-            log::debug!("Peko already found in message. Returning original");
+            tracing::debug!("Peko already found in message. Returning original");
             return original.to_string();
         }
     }
@@ -96,7 +96,7 @@ fn pekofy_line(mut line: &str) -> String {
         .filter(|c| c.is_alphabetic())
         .all(char::is_uppercase)
     {
-        log::debug!("Message is all uppercase. Peko will also be uppercase");
+        tracing::debug!("Message is all uppercase. Peko will also be uppercase");
         peko = peko.to_uppercase();
     }
 

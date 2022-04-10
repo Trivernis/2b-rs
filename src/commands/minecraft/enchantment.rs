@@ -16,7 +16,7 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
     let data = ctx.data.read().await;
     let store = data.get::<Store>().expect("Failed to get store");
     let enchantment_name = args.message().to_lowercase();
-    log::debug!("Searching for enchantment {}", enchantment_name);
+    tracing::debug!("Searching for enchantment {}", enchantment_name);
 
     let enchantments_by_name = store
         .minecraft_data_api
@@ -29,7 +29,7 @@ pub(crate) async fn enchantment(ctx: &Context, msg: &Message, args: Args) -> Com
             enchantment_name
         )))?
         .clone();
-    log::trace!("Enchantment is {:?}", enchantment);
+    tracing::trace!("Enchantment is {:?}", enchantment);
 
     msg.channel_id
         .send_message(ctx, |m| {

@@ -15,21 +15,21 @@ impl SpotifyApi {
             secret: dotenv::var("SPOTIFY_CLIENT_SECRET").expect("Missing Spotify Credentials"),
         };
         let client = Client::new(credentials);
-        log::info!("Spotify API initialized.");
+        tracing::info!("Spotify API initialized.");
 
         Self { client }
     }
 
     /// Searches for a song on spotify
     pub async fn search_for_song(&self, query: &str) -> BotResult<Option<Track>> {
-        log::debug!("Searching for song '{}' on spotify", query);
+        tracing::debug!("Searching for song '{}' on spotify", query);
         let types = vec![ItemType::Track];
         let result = self
             .client
             .search()
             .search(query, types, false, 1, 0, None)
             .await?;
-        log::trace!("Result is {:?}", result);
+        tracing::trace!("Result is {:?}", result);
         let tracks = result
             .data
             .tracks
@@ -40,7 +40,7 @@ impl SpotifyApi {
 
     /// Returns the songs for a playlist
     pub async fn get_songs_in_playlist(&self, url: &str) -> BotResult<Vec<Track>> {
-        log::debug!("Fetching spotify songs from playlist '{}'", url);
+        tracing::debug!("Fetching spotify songs from playlist '{}'", url);
         let id = self.get_id_for_url(url)?;
         let mut playlist_tracks = Vec::new();
         let mut offset = 0;
@@ -53,13 +53,13 @@ impl SpotifyApi {
             playlist_tracks.append(&mut tracks);
             offset += 100;
         }
-        log::debug!(
+        tracing::debug!(
             "{} Songs found in spotify playlist '{}'",
             playlist_tracks.len(),
             url
         );
 
-        log::trace!("Songs are {:?}", playlist_tracks);
+        tracing::trace!("Songs are {:?}", playlist_tracks);
 
         Ok(playlist_tracks)
     }
@@ -71,7 +71,7 @@ impl SpotifyApi {
         limit: usize,
         offset: usize,
     ) -> BotResult<Vec<Track>> {
-        log::trace!(
+        tracing::trace!(
             "Fetching songs from spotify playlist: limit {}, offset {}",
             limit,
             offset
@@ -92,17 +92,17 @@ impl SpotifyApi {
                 PlaylistItemType::Episode(_) => None,
             })
             .collect();
-        log::trace!("Tracks are {:?}", tracks);
+        tracing::trace!("Tracks are {:?}", tracks);
 
         Ok(tracks)
     }
 
     /// Returns all songs for a given album
     pub async fn get_songs_in_album(&self, url: &str) -> BotResult<Vec<Track>> {
-        log::debug!("Fetching songs for spotify album '{}'", url);
+        tracing::debug!("Fetching songs for spotify album '{}'", url);
         let id = self.get_id_for_url(url)?;
         let album = self.client.albums().get_album(&*id, None).await?.data;
-        log::trace!("Album is {:?}", album);
+        tracing::trace!("Album is {:?}", album);
 
         let simple_tracks: Vec<String> = album
             .tracks
@@ -117,17 +117,17 @@ impl SpotifyApi {
             .await?
             .data;
 
-        log::trace!("Tracks are {:?}", tracks);
+        tracing::trace!("Tracks are {:?}", tracks);
 
         Ok(tracks)
     }
 
     /// Returns song entity for a given spotify url
     pub async fn get_track_for_url(&self, url: &str) -> BotResult<Track> {
-        log::debug!("Getting song for {}", url);
+        tracing::debug!("Getting song for {}", url);
         let id = self.get_id_for_url(url)?;
         let track = self.client.tracks().get_track(&*id, None).await?.data;
-        log::trace!("Track info is {:?}", track);
+        tracing::trace!("Track info is {:?}", track);
 
         Ok(track)
     }

@@ -16,17 +16,17 @@ use crate::utils::get_previous_message_or_reply;
 #[aliases("source")]
 #[bucket("sauce_api")]
 async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
-    log::debug!("Got sauce command");
+    tracing::debug!("Got sauce command");
     let source_msg = get_previous_message_or_reply(ctx, msg).await?;
 
     if source_msg.is_none() {
-        log::debug!("No source message provided");
+        tracing::debug!("No source message provided");
         msg.channel_id.say(ctx, "No source message found.").await?;
         return Ok(());
     }
     let source_msg = source_msg.unwrap();
-    log::trace!("Source message is {:?}", source_msg);
-    log::debug!("Getting attachments...");
+    tracing::trace!("Source message is {:?}", source_msg);
+    tracing::debug!("Getting attachments...");
     let mut attachment_urls: Vec<String> = source_msg
         .attachments
         .into_iter()
@@ -34,7 +34,7 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .filter(|url| url::is_image(url) || url::is_video(url))
         .collect();
 
-    log::debug!("Getting embedded images...");
+    tracing::debug!("Getting embedded images...");
     let mut embed_images = source_msg
         .embeds
         .into_iter()
@@ -43,17 +43,17 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .collect::<Vec<String>>();
 
     attachment_urls.append(&mut embed_images);
-    log::trace!("Image urls {:?}", attachment_urls);
+    tracing::trace!("Image urls {:?}", attachment_urls);
 
     if attachment_urls.is_empty() {
-        log::debug!("No images in source image");
+        tracing::debug!("No images in source image");
         msg.channel_id
             .say(ctx, "I could not find any images in the message.")
             .await?;
         return Ok(());
     }
 
-    log::debug!(
+    tracing::debug!(
         "Checking SauceNao for {} attachments",
         attachment_urls.len()
     );
@@ -63,12 +63,12 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
         .sauce_nao
         .check_sauces(&attachment_urls[..])
         .await?;
-    log::trace!("Sources are {:?}", sources);
+    tracing::trace!("Sources are {:?}", sources);
 
-    log::debug!("Creating menu...");
+    tracing::debug!("Creating menu...");
 
     show_sauce_menu(ctx, msg, sources).await?;
-    log::debug!("Menu created");
+    tracing::debug!("Menu created");
 
     Ok(())
 }

@@ -19,7 +19,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 async fn shuffle(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
-    log::debug!("Shuffling queue for guild {}", guild.id);
+    tracing::debug!("Shuffling queue for guild {}", guild.id);
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
         player
     } else {

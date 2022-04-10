@@ -17,7 +17,7 @@ use crate::messages::music::now_playing::create_now_playing_msg;
 async fn current(ctx: &Context, msg: &Message) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
 
-    log::debug!("Displaying current song for queue in {}", guild.id);
+    tracing::debug!("Displaying current song for queue in {}", guild.id);
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {
         player
     } else {

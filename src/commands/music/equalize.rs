@@ -19,7 +19,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[checks(DJ)]
 async fn equalize(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Changing equalizer for {}", guild.id);
+    tracing::debug!("Changing equalizer for {}", guild.id);
     let preset = args.single::<String>().unwrap();
 
     let player = if let Some(player) = get_music_player_for_guild(ctx, guild.id).await {

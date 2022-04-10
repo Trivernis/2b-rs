@@ -34,7 +34,7 @@ pub fn get_item_full_information(name: &str, api: &Api) -> BotResult<ItemFullInf
     let food_by_name = api.foods.foods_by_name()?;
     let blocks_by_name = api.blocks.blocks_by_name()?;
 
-    log::trace!("Item is {:?}", item);
+    tracing::trace!("Item is {:?}", item);
     Ok(ItemFullInformation {
         id: item.name.clone(),
         name: item.display_name.clone(),

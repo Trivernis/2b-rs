@@ -23,12 +23,12 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 
     let guild = msg.guild(&ctx.cache).await.unwrap();
-    log::debug!("Playing song as next song for guild {}", guild.id);
+    tracing::debug!("Playing song as next song for guild {}", guild.id);
 
     let mut player = get_music_player_for_guild(ctx, guild.id).await;
 
     if player.is_none() {
-        log::debug!("Not in a channel. Joining authors channel...");
+        tracing::debug!("Not in a channel. Joining authors channel...");
         let channel_id = get_channel_for_author(&msg.author.id, &guild)?;
         let music_player = MusicPlayer::join(ctx, guild.id, channel_id, msg.channel_id).await?;
         player = Some(music_player);
@@ -40,7 +40,7 @@ async fn play_next(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let (play_first, create_now_playing) = {
         let mut player_lock = player.lock().await;
         songs.reverse();
-        log::debug!("Enqueueing songs as next songs in the queue");
+        tracing::debug!("Enqueueing songs as next songs in the queue");
 
         for song in songs {
             player_lock.queue().add_next(song);
