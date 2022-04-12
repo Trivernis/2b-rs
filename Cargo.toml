@@ -3,7 +3,7 @@ members=["bot-coreutils", "bot-database", "."]
 
 [package]
 name = "tobi-rs"
-version = "0.9.12"
+version = "0.9.13"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 

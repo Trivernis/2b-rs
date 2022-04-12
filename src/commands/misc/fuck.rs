@@ -3,6 +3,7 @@ use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
+use std::time::Duration;
 
 #[command]
 #[description("Fuck this person in particular")]
@@ -14,8 +15,14 @@ use serenity::model::id::UserId;
 async fn fuck(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let person = args.single::<UserId>()?;
     let mut amount = args.single::<usize>().unwrap_or(3);
-    if amount > 10 {
-        amount = 10;
+    if amount > 3 {
+        msg.reply(&ctx.http, "Don't you think that's a bit much?")
+            .await?;
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        amount = 3;
+    } else {
+        msg.reply(&ctx.http, "no").await?;
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
     let mut verbosity = args.single::<usize>().unwrap_or(1);
     if verbosity == 0 {
@@ -28,9 +35,10 @@ async fn fuck(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         4 => "fck",
         _ => "fuck",
     };
+
     for _ in 0..amount {
         msg.channel_id
-            .say(&ctx, format!("{} <@{}>", fuck_word, person))
+            .say(&ctx, format!("{} <@{}>", fuck_word, msg.author.id))
             .await?;
     }
 
