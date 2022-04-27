@@ -2,7 +2,6 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
-use serenity::model::id::UserId;
 use std::time::Duration;
 
 #[command]
@@ -13,7 +12,6 @@ use std::time::Duration;
 #[bucket("general")]
 #[aliases("frick", "fock")]
 async fn fuck(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let person = args.single::<UserId>()?;
     let mut amount = args.single::<usize>().unwrap_or(3);
     if amount > 3 {
         msg.reply(&ctx.http, "Don't you think that's a bit much?")
