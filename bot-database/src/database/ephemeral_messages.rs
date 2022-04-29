@@ -1,56 +1,49 @@
+use sea_orm::ActiveValue::Set;
 use std::time::SystemTime;
 
-use diesel::prelude::*;
-use diesel::{delete, insert_into};
-use tokio_diesel::*;
-
+use crate::entity::ephemeral_messages;
 use crate::error::DatabaseResult;
-use crate::models::*;
-use crate::schema::*;
-use crate::Database;
+use sea_orm::prelude::*;
 
-impl Database {
+impl super::BotDatabase {
     /// Adds a command statistic to the database
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn add_ephemeral_message(
         &self,
         channel_id: u64,
         message_id: u64,
         timeout: SystemTime,
     ) -> DatabaseResult<()> {
-        use ephemeral_messages::dsl;
-        insert_into(dsl::ephemeral_messages)
-            .values(EphemeralMessageInsert {
-                channel_id: channel_id as i64,
-                message_id: message_id as i64,
-                timeout,
-            })
-            .execute_async(&self.pool)
-            .await?;
+        let model = ephemeral_messages::ActiveModel {
+            channel_id: Set(channel_id as i64),
+            message_id: Set(message_id as i64),
+            timeout: Set(DateTimeLocal::from(timeout).into()),
+            ..Default::default()
+        };
+        model.insert(&self.db).await?;
 
         Ok(())
     }
 
     /// Returns a vec of all ephemeral messages
-    pub async fn get_ephemeral_messages(&self) -> DatabaseResult<Vec<EphemeralMessage>> {
-        use ephemeral_messages::dsl;
-        let messages: Vec<EphemeralMessage> = dsl::ephemeral_messages
-            .load_async::<EphemeralMessage>(&self.pool)
-            .await?;
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub async fn get_ephemeral_messages(&self) -> DatabaseResult<Vec<ephemeral_messages::Model>> {
+        let messages = ephemeral_messages::Entity::find().all(&self.db).await?;
 
         Ok(messages)
     }
 
     /// Deletes a single ephemeral message
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn delete_ephemeral_message(
         &self,
         channel_id: i64,
         message_id: i64,
     ) -> DatabaseResult<()> {
-        use ephemeral_messages::dsl;
-        delete(dsl::ephemeral_messages)
-            .filter(dsl::channel_id.eq(channel_id))
-            .filter(dsl::message_id.eq(message_id))
-            .execute_async(&self.pool)
+        ephemeral_messages::Entity::delete_many()
+            .filter(ephemeral_messages::Column::ChannelId.eq(channel_id))
+            .filter(ephemeral_messages::Column::MessageId.eq(message_id))
+            .exec(&self.db)
             .await?;
 
         Ok(())

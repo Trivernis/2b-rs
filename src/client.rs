@@ -24,7 +24,7 @@ use crate::utils::error::{BotError, BotResult};
 
 pub async fn get_client() -> BotResult<Client> {
     let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
-    let database = get_database()?;
+    let database = get_database().await?;
     let client = Client::builder(token)
         .register_rich_interactions_with(get_raw_event_handler())
         .event_handler(Handler)
@@ -107,8 +107,8 @@ async fn after_hook(ctx: &Context, msg: &Message, cmd_name: &str, error: Command
     let database = get_database_from_context(ctx).await;
     let _ = database
         .add_statistic(
-            crate::VERSION,
-            cmd_name,
+            crate::VERSION.to_string(),
+            cmd_name.to_string(),
             SystemTime::now(),
             error_msg.is_none(),
             error_msg,

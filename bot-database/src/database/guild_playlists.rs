@@ -1,65 +1,54 @@
-use diesel::insert_into;
-use diesel::prelude::*;
-use tokio_diesel::*;
-
+use crate::entity::guild_playlists;
 use crate::error::DatabaseResult;
-use crate::models::*;
-use crate::schema::*;
-use crate::Database;
+use sea_orm::prelude::*;
+use sea_orm::ActiveValue::Set;
 
-impl Database {
+impl super::BotDatabase {
     /// Returns a list of all guild playlists
-    pub async fn get_guild_playlists(&self, guild_id: u64) -> DatabaseResult<Vec<GuildPlaylist>> {
-        use guild_playlists::dsl;
-        log::debug!("Retrieving guild playlists for guild {}", guild_id);
-
-        let playlists: Vec<GuildPlaylist> = dsl::guild_playlists
-            .filter(dsl::guild_id.eq(guild_id as i64))
-            .load_async::<GuildPlaylist>(&self.pool)
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub async fn get_guild_playlists(
+        &self,
+        guild_id: u64,
+    ) -> DatabaseResult<Vec<guild_playlists::Model>> {
+        let playlists = guild_playlists::Entity::find()
+            .filter(guild_playlists::Column::GuildId.eq(guild_id))
+            .all(&self.db)
             .await?;
 
         Ok(playlists)
     }
 
     /// Returns a guild playlist by name
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn get_guild_playlist(
         &self,
         guild_id: u64,
         name: String,
-    ) -> DatabaseResult<Option<GuildPlaylist>> {
-        use guild_playlists::dsl;
-        log::debug!("Retriving guild playlist '{}' for guild {}", name, guild_id);
-
-        let playlists: Vec<GuildPlaylist> = dsl::guild_playlists
-            .filter(dsl::guild_id.eq(guild_id as i64))
-            .filter(dsl::name.eq(name))
-            .load_async::<GuildPlaylist>(&self.pool)
+    ) -> DatabaseResult<Option<guild_playlists::Model>> {
+        let playlist = guild_playlists::Entity::find()
+            .filter(guild_playlists::Column::GuildId.eq(guild_id))
+            .filter(guild_playlists::Column::Name.eq(name))
+            .one(&self.db)
             .await?;
 
-        Ok(playlists.into_iter().next())
+        Ok(playlist)
     }
 
     /// Adds a new playlist to the database overwriting the old one
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn add_guild_playlist(
         &self,
         guild_id: u64,
         name: String,
         url: String,
     ) -> DatabaseResult<()> {
-        use guild_playlists::dsl;
-        log::debug!("Inserting guild playlist '{}' for guild {}", name, guild_id);
-
-        insert_into(dsl::guild_playlists)
-            .values(GuildPlaylistInsert {
-                guild_id: guild_id as i64,
-                name: name.clone(),
-                url: url.clone(),
-            })
-            .on_conflict((dsl::guild_id, dsl::name))
-            .do_update()
-            .set(dsl::url.eq(url))
-            .execute_async(&self.pool)
-            .await?;
+        let model = guild_playlists::ActiveModel {
+            guild_id: Set(guild_id as i64),
+            name: Set(name),
+            url: Set(url),
+            ..Default::default()
+        };
+        model.insert(&self.db).await?;
 
         Ok(())
     }

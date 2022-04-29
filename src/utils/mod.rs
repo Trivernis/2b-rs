@@ -1,3 +1,4 @@
+use chrono::{DateTime, FixedOffset, Local};
 use std::env;
 use std::ops::Add;
 use std::sync::Arc;
@@ -49,13 +50,14 @@ pub async fn get_previous_message_or_reply(
     Ok(referenced)
 }
 
-/// Deletes all expired ephemeral messages that are stored in the database
+/// deletes all expired ephemeral messages that are stored in the database
 pub async fn delete_messages_from_database(ctx: &Context) -> BotResult<()> {
     let database = get_database_from_context(ctx).await;
     let messages = database.get_ephemeral_messages().await?;
+    let now: DateTime<FixedOffset> = DateTime::<Local>::from(SystemTime::now()).into();
 
     for message in messages {
-        if message.timeout <= SystemTime::now() {
+        if message.timeout <= now {
             tracing::debug!("Deleting message {:?}", message);
             let _ = ctx
                 .http
@@ -73,9 +75,9 @@ pub async fn delete_messages_from_database(ctx: &Context) -> BotResult<()> {
             );
 
             tokio::spawn(async move {
-                tokio::time::sleep_until(
-                    Instant::now().add(message.timeout.duration_since(SystemTime::now()).unwrap()),
-                )
+                tokio::time::sleep_until(Instant::now().add(std::time::Duration::from_millis(
+                    (message.timeout - now).num_milliseconds() as u64,
+                )))
                 .await;
                 tracing::debug!("Deleting message {:?}", message);
                 let _ = http

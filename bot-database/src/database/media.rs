@@ -1,59 +1,47 @@
-use diesel::insert_into;
-use diesel::prelude::*;
-use tokio_diesel::*;
-
+use crate::entity::media;
 use crate::error::DatabaseResult;
-use crate::models::*;
-use crate::schema::*;
-use crate::Database;
+use sea_orm::prelude::*;
+use sea_orm::ActiveValue::Set;
+use std::fmt::Debug;
 
-impl Database {
+impl super::BotDatabase {
     /// Returns a list of all gifs in the database
-    pub async fn get_all_media(&self) -> DatabaseResult<Vec<Media>> {
-        use media::dsl;
-        log::debug!("Loading all gifs from the database");
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub async fn get_all_media(&self) -> DatabaseResult<Vec<media::Model>> {
+        let entries = media::Entity::find().all(&self.db).await?;
 
-        let gifs: Vec<Media> = dsl::media.load_async::<Media>(&self.pool).await?;
-        Ok(gifs)
+        Ok(entries)
     }
 
     /// Returns a list of gifs by assigned category
-    pub async fn get_media_by_category<S: AsRef<str> + 'static>(
+    #[tracing::instrument(level = "debug", skip(self))]
+    pub async fn get_media_by_category<S: AsRef<str> + 'static + Debug>(
         &self,
         category: S,
-    ) -> DatabaseResult<Vec<Media>> {
-        use media::dsl;
-        log::debug!("Searching for gifs in category '{}'", category.as_ref());
-
-        let gifs: Vec<Media> = dsl::media
-            .filter(dsl::category.eq(category.as_ref()))
-            .load_async::<Media>(&self.pool)
+    ) -> DatabaseResult<Vec<media::Model>> {
+        let entries = media::Entity::find()
+            .filter(media::Column::Category.eq(category.as_ref()))
+            .all(&self.db)
             .await?;
-        Ok(gifs)
+
+        Ok(entries)
     }
 
     /// Adds a gif to the database
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn add_media(
         &self,
-        url: &str,
+        url: String,
         category: Option<String>,
         name: Option<String>,
     ) -> DatabaseResult<()> {
-        use media::dsl;
-        log::debug!(
-            "Inserting gif with url '{}' and name {:?} and category {:?}",
-            url,
-            name,
-            category
-        );
-        insert_into(dsl::media)
-            .values(MediaInsert {
-                url: url.to_string(),
-                name,
-                category,
-            })
-            .execute_async(&self.pool)
-            .await?;
+        let model = media::ActiveModel {
+            url: Set(url),
+            category: Set(category),
+            name: Set(name),
+            ..Default::default()
+        };
+        model.insert(&self.db).await?;
 
         Ok(())
     }

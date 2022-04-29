@@ -3,6 +3,7 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::group;
 use serenity::framework::standard::CommandResult;
 use serenity::model::channel::Message;
+use std::fmt::Debug;
 
 use hololive::amelia::AMELIA_COMMAND;
 use hololive::fubuki::FUBUKI_COMMAND;
@@ -37,7 +38,7 @@ mod theme;
 pub struct Weeb;
 
 /// Posts a random media entry with the given category
-async fn post_random_media<S: AsRef<str> + 'static>(
+async fn post_random_media<S: AsRef<str> + 'static + Debug>(
     ctx: &Context,
     msg: &Message,
     category: S,

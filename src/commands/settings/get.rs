@@ -23,7 +23,7 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if let Some(key) = args.single::<String>().ok() {
         tracing::debug!("Displaying guild setting of '{}'", key);
         let setting = database
-            .get_guild_setting::<String>(guild.id.0, key.clone())
+            .get_guild_setting::<String, _>(guild.id.0, key.clone())
             .await?;
 
         match setting {
@@ -47,7 +47,7 @@ async fn get(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
             {
                 match database
-                    .get_guild_setting::<String>(guild.id.0, key.clone())
+                    .get_guild_setting::<String, _>(guild.id.0, key.clone())
                     .await?
                 {
                     Some(value) => kv_pairs.push(format!("`{}` = `{}`", key, value)),
