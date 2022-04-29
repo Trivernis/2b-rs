@@ -1,50 +1,49 @@
+use crate::entity::statistics;
+use crate::error::DatabaseResult;
+use sea_orm::prelude::*;
+use sea_orm::ActiveValue::Set;
+use sea_orm::{FromQueryResult, QuerySelect};
 use std::time::SystemTime;
 
-use diesel::dsl::count;
-use diesel::insert_into;
-use diesel::prelude::*;
-use tokio_diesel::*;
+#[derive(FromQueryResult)]
+struct CommandCount {
+    count: i64,
+}
 
-use crate::error::DatabaseResult;
-use crate::models::*;
-use crate::schema::*;
-use crate::Database;
-
-impl Database {
+impl super::BotDatabase {
     /// Adds a command statistic to the database
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn add_statistic(
         &self,
-        version: &str,
-        command: &str,
+        version: String,
+        command: String,
         executed_at: SystemTime,
         success: bool,
         error_msg: Option<String>,
     ) -> DatabaseResult<()> {
-        use statistics::dsl;
-        log::trace!("Adding statistic to database");
-        insert_into(dsl::statistics)
-            .values(StatisticInsert {
-                version: version.to_string(),
-                command: command.to_string(),
-                executed_at,
-                success,
-                error_msg,
-            })
-            .execute_async(&self.pool)
-            .await?;
+        let model = statistics::ActiveModel {
+            version: Set(version),
+            command: Set(command),
+            executed_at: Set(DateTimeLocal::from(executed_at).into()),
+            success: Set(success),
+            error_msg: Set(error_msg),
+            ..Default::default()
+        };
+        model.insert(&self.db).await?;
 
         Ok(())
     }
 
     /// Returns the total number of commands executed
+    #[tracing::instrument(level = "debug", skip(self))]
     pub async fn get_total_commands_statistic(&self) -> DatabaseResult<u64> {
-        use statistics::dsl;
-        log::trace!("Querying total number of commands");
-        let total_count: i64 = dsl::statistics
-            .select(count(dsl::id))
-            .first_async::<i64>(&self.pool)
+        let total_count: Option<CommandCount> = statistics::Entity::find()
+            .select_only()
+            .column_as(statistics::Column::Id.count(), "count")
+            .into_model::<CommandCount>()
+            .one(&self.db)
             .await?;
 
-        Ok(total_count as u64)
+        Ok(total_count.unwrap().count as u64)
     }
 }

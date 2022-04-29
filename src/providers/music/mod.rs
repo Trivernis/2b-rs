@@ -73,7 +73,7 @@ pub async fn add_youtube_song_to_database(
 
     if let Some(id) = track.id {
         database
-            .add_song(&id, &artists, &track.name, &track.album.name, &url)
+            .add_song(id, artists, track.name, track.album.name, url)
             .await?;
     }
 

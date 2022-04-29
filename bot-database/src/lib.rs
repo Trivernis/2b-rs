@@ -1,47 +1,31 @@
-#[macro_use]
-extern crate diesel;
-
-#[macro_use]
-extern crate diesel_migrations;
-
-use crate::error::{DatabaseError, DatabaseResult};
-use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, ManageConnection, Pool};
+use crate::error::DatabaseResult;
 use std::env;
 
 pub mod database;
+pub mod entity;
 pub mod error;
 pub mod models;
-pub mod schema;
 
 pub static VERSION: &str = env!("CARGO_PKG_VERSION");
-pub use database::Database;
+pub use database::BotDatabase as Database;
+use migration::MigratorTrait;
+use sea_orm::{ConnectOptions, Database as SeaDatabase, DatabaseConnection};
 
-type PoolConnection = Pool<ConnectionManager<PgConnection>>;
-
-embed_migrations!("../bot-database/migrations");
-
-fn get_connection() -> DatabaseResult<PoolConnection> {
+#[tracing::instrument]
+async fn get_connection() -> DatabaseResult<DatabaseConnection> {
     let database_url = env::var("DATABASE_URL").expect("No DATABASE_URL in path");
-    log::debug!("Establishing database connection...");
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    log::trace!("Connecting...");
-    manager
-        .connect()
-        .map_err(|e| DatabaseError::Msg(format!("{:?}", e)))?;
-    log::trace!("Creating pool...");
-    let pool = Pool::builder().max_size(16).build(manager)?;
-    log::trace!("Getting one connection to run migrations...");
-    let connection = pool.get()?;
-    log::debug!("Running migrations...");
-    embedded_migrations::run(&connection)?;
-    log::debug!("Migrations finished");
-    log::info!("Database connection initialized");
+    tracing::debug!("Establishing database connection...");
+    let opt = ConnectOptions::new(database_url);
+    let db = SeaDatabase::connect(opt).await?;
+    tracing::debug!("Running migrations...");
+    migration::Migrator::up(&db, None).await?;
+    tracing::debug!("Migrations finished");
+    tracing::info!("Database connection initialized");
 
-    Ok(pool)
+    Ok(db)
 }
 
-pub fn get_database() -> DatabaseResult<Database> {
-    let conn = get_connection()?;
+pub async fn get_database() -> DatabaseResult<Database> {
+    let conn = get_connection().await?;
     Ok(Database::new(conn))
 }

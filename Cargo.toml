@@ -1,5 +1,5 @@
 [workspace]
-members=["bot-coreutils", "bot-database", "."]
+members=["bot-coreutils", "bot-database", "bot-database/migration", "."]
 
 [package]
 name = "tobi-rs"

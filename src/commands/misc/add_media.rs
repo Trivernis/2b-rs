@@ -26,7 +26,7 @@ async fn add_media(ctx: &Context, msg: &Message, mut args: Args) -> CommandResul
     let name = args.single_quoted::<String>().ok();
     let database = get_database_from_context(&ctx).await;
 
-    database.add_media(&url, category, name).await?;
+    database.add_media(url, category, name).await?;
     EphemeralMessage::create(&ctx.http, msg.channel_id, SHORT_TIMEOUT, |c| {
         c.reference_message(msg)
             .content("Media entry added to the database.")
