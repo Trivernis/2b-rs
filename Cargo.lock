@@ -774,18 +774,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dashmap"
-version = "5.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3495912c9c1ccf2e18976439f4443f3fee0fd61f424ff99fde6a66b15ecb448f"
-dependencies = [
- "cfg-if 1.0.0",
- "hashbrown 0.12.1",
- "lock_api",
- "parking_lot_core 0.9.3",
-]
-
-[[package]]
 name = "derive_more"
 version = "0.99.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1205,18 +1193,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "hashbrown"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
-
-[[package]]
 name = "hashlink"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7249a3129cbc1ffccd74857f81464a323a152173cdb134e0fd81bc803b29facf"
 dependencies = [
- "hashbrown 0.11.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1405,7 +1387,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6012d540c5baa3589337a98ce73408de9b5a25ec9fc2c6fd6be8f0d39e0ca5a"
 dependencies = [
  "autocfg",
- "hashbrown 0.11.2",
+ "hashbrown",
 ]
 
 [[package]]
@@ -1506,7 +1488,7 @@ source = "git+https://gitlab.com/vicky5124/lavalink-rs/?rev=2487c295#2487c2953c7
 dependencies = [
  "async-trait",
  "async-tungstenite 0.16.1",
- "dashmap 4.0.2",
+ "dashmap",
  "futures",
  "http",
  "parking_lot 0.12.1",
@@ -2931,17 +2913,16 @@ dependencies = [
 
 [[package]]
 name = "serenity-rich-interaction"
-version = "0.3.1"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6180e15ef1dbd442a7eb0deeb209913e1b04d4fdeb110cb8bc7c287d5b3d1cfd"
+checksum = "e9bc8919bb2b46d927f1810a47a030cfa62a720fe6ef33b68bbdbc39394fe001"
 dependencies = [
- "dashmap 5.3.4",
  "futures",
+ "log",
  "serde_json",
  "serenity",
  "thiserror",
  "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -3073,7 +3054,7 @@ dependencies = [
  "async-tungstenite 0.14.0",
  "audiopus",
  "byteorder",
- "dashmap 4.0.2",
+ "dashmap",
  "discortp",
  "flume",
  "futures",
