@@ -52,9 +52,9 @@ checksum = "250f629c0161ad8107cf89319e990051fae62832fd343083bea452d93e2205fd"
 
 [[package]]
 name = "animethemes-rs"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b533eb7d6c73c43695c40e88f3ed40a859f9b47d3c4f0ac00e7ec4576a5f6fa"
+checksum = "1edd824246e9dad7f7954c0ecb926cad6776169e17394d59d21ba0909c97ee88"
 dependencies = [
  "reqwest",
  "serde",
@@ -3520,7 +3520,7 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tobi-rs"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "animethemes-rs",
  "aspotify",
