@@ -55,6 +55,11 @@ fn create_theme_pages(anime_entries: Vec<Anime>, nsfw: bool) -> Vec<Page<'static
             }
         }
     }
+    if pages.is_empty() {
+        let mut message = CreateMessage::default();
+        message.embed(|e| e.description("No themes found!"));
+        pages.push(Page::Static(message));
+    }
 
     pages
 }

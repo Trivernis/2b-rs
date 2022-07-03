@@ -3,7 +3,7 @@ members=["bot-coreutils", "bot-database", "bot-database/migration", "."]
 
 [package]
 name = "tobi-rs"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -38,7 +38,7 @@ trigram = "0.4.4"
 typemap_rev = "0.1.5"
 youtube-metadata = "0.2.0"
 xkcd-search = "0.1.2"
-animethemes-rs = "0.3.0"
+animethemes-rs = "0.4.3"
 build-time = "0.1.1"
 tracing-subscriber = { version = "0.3.11", features = ["env-filter"] }
 tracing = "0.1.34"

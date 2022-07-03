@@ -1,6 +1,6 @@
 use crate::messages::theme::create_theme_menu;
 use animethemes_rs::client::AnimeThemesClient;
-use animethemes_rs::includes;
+use animethemes_rs::includes::{AnimeInclude, SearchIncludes};
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
@@ -20,12 +20,14 @@ async fn theme(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let search_results = client
         .search(
             query,
-            &[includes::ANIME],
-            &[
-                "animethemes",
-                "animethemes.animethemeentries",
-                "animethemes.animethemeentries.videos",
-            ],
+            &["anime"],
+            SearchIncludes {
+                anime: AnimeInclude::default()
+                    .themes()
+                    .themes_entries()
+                    .themes_entries_videos(),
+                ..Default::default()
+            },
         )
         .await?;
     if let Some(anime) = search_results.anime {
