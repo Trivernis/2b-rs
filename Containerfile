@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE} AS build_base
 RUN apk update
 RUN apk add --no-cache --force-overwrite \
     build-base \
-    openssl3-dev \
+    openssl-dev \
     libopusenc-dev \
     libpq-dev \
     curl \
@@ -29,7 +29,7 @@ RUN cp target/release/tobi-rs /tmp/tobi/
 FROM ${BASE_IMAGE} AS runtime-base
 RUN apk update
 RUN apk add --no-cache --force-overwrite \
-    openssl3 \
+    openssl \
     libopusenc \
     libpq \
     python3 \
