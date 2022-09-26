@@ -3,7 +3,9 @@ name: Build Container
 on:
   workflow_dispatch:
   push:
-    branches: [ main, actions ]
+  push:
+    tags:
+      - "v*"
   schedule:
     # daily builds to always include patches in the docker image
     - cron: '0 4 * * *'
