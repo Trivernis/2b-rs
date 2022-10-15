@@ -33,7 +33,7 @@ async fn stats(ctx: &Context, msg: &Message) -> CommandResult {
     let uptime = own_process.run_time();
     let uptime = ChronoDuration::from_std(Duration::from_secs(uptime)).unwrap();
     let total_commands_executed = database.get_total_commands_statistic().await?;
-    let shard_count = ctx.cache.shard_count().await;
+    let shard_count = ctx.cache.shard_count();
 
     let discord_info = format!(
         r#"

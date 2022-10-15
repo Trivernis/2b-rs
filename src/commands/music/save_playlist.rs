@@ -16,7 +16,7 @@ use crate::utils::context_data::get_database_from_context;
 #[bucket("general")]
 #[checks(DJ)]
 async fn save_playlist(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
 
     let name: String = args.single().unwrap();
     let url: &str = args.remains().unwrap();

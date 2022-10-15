@@ -10,13 +10,13 @@ use serenity::framework::standard::{CommandResult, DispatchError};
 use serenity::framework::StandardFramework;
 use serenity::model::channel::Message;
 use serenity::model::id::UserId;
+use serenity::prelude::GatewayIntents;
 use serenity::Client;
-use serenity_rich_interaction::RegisterRichInteractions;
+use serenity_additions::RegisterAdditions;
 use songbird::SerenityInit;
 
 use crate::commands::*;
 use crate::handler::{get_raw_event_handler, Handler};
-use crate::utils;
 use crate::utils::context_data::{
     get_database_from_context, DatabaseContainer, MusicPlayers, Store, StoreData,
 };
@@ -25,8 +25,8 @@ use crate::utils::error::{BotError, BotResult};
 pub async fn get_client() -> BotResult<Client> {
     let token = env::var("BOT_TOKEN").map_err(|_| BotError::MissingToken)?;
     let database = get_database().await?;
-    let client = Client::builder(token)
-        .register_rich_interactions_with(get_raw_event_handler())
+    let client = Client::builder(token, GatewayIntents::all())
+        .register_serenity_additions_with(get_raw_event_handler())
         .event_handler(Handler)
         .framework(get_framework().await)
         .register_songbird()
@@ -34,15 +34,6 @@ pub async fn get_client() -> BotResult<Client> {
         .type_map_insert::<DatabaseContainer>(database)
         .type_map_insert::<MusicPlayers>(HashMap::new())
         .await?;
-    let data = client.data.clone();
-
-    let current_application = client
-        .cache_and_http
-        .http
-        .get_current_application_info()
-        .await?;
-
-    utils::initialize_lavalink(data, current_application).await?;
 
     Ok(client)
 }
@@ -124,7 +115,7 @@ async fn before_hook(ctx: &Context, msg: &Message, _: &str) -> bool {
 }
 
 #[hook]
-async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
+async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError, command_name: &str) {
     match error {
         DispatchError::Ratelimited(info) => {
             if info.is_first_try {
@@ -140,13 +131,19 @@ async fn dispatch_error(ctx: &Context, msg: &Message, error: DispatchError) {
         DispatchError::OnlyForDM => {
             let _ = msg
                 .channel_id
-                .say(&ctx.http, "This command only works via DM")
+                .say(
+                    &ctx.http,
+                    format!("The command {command_name} only works via DM"),
+                )
                 .await;
         }
         DispatchError::OnlyForGuilds => {
             let _ = msg
                 .channel_id
-                .say(&ctx.http, "This command only works on servers")
+                .say(
+                    &ctx.http,
+                    format!("The command {command_name} only works on servers"),
+                )
                 .await;
         }
         DispatchError::NotEnoughArguments { min, given } => {

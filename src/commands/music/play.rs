@@ -22,7 +22,7 @@ use std::sync::Arc;
 async fn play(ctx: &Context, msg: &Message, args: Args) -> CommandResult {
     let query = args.message();
 
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     tracing::debug!("Play request received for guild {}", guild.id);
 
     let mut player = get_music_player_for_guild(ctx, guild.id).await;

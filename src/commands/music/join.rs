@@ -7,8 +7,8 @@ use crate::commands::common::handle_autodelete;
 use crate::commands::music::{get_channel_for_author, get_music_player_for_guild, is_dj};
 use crate::providers::music::player::MusicPlayer;
 use serenity::model::id::ChannelId;
-use serenity_rich_interaction::core::SHORT_TIMEOUT;
-use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
+use serenity_additions::core::SHORT_TIMEOUT;
+use serenity_additions::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]
@@ -16,7 +16,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[usage("")]
 #[bucket("general")]
 async fn join(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     let channel_id = if let Ok(arg) = args.single::<u64>() {
         if is_dj(ctx, guild.id, &msg.author).await? {
             ChannelId(arg)

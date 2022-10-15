@@ -11,7 +11,7 @@ pub async fn run_command_async(command: &str, args: &[&str]) -> io::Result<Strin
     let stdout = String::from_utf8_lossy(&process_output.stdout[..]);
 
     if stderr.len() != 0 {
-        log::debug!("STDERR of command {}: {}", command, stderr);
+        log::trace!("STDERR of command {}: {}", command, stderr);
     }
     log::trace!("Command output is {}", stdout);
 

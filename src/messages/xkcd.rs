@@ -2,8 +2,8 @@ use crate::utils::error::BotResult;
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::id::{ChannelId, UserId};
-use serenity_rich_interaction::core::LONG_TIMEOUT;
-use serenity_rich_interaction::menu::{MenuBuilder, Page};
+use serenity_additions::core::LONG_TIMEOUT;
+use serenity_additions::menu::{MenuBuilder, Page};
 use xkcd_search::Comic;
 
 /// Creates a new xkcd menu

@@ -3,8 +3,8 @@ use animethemes_rs::models::{Anime, ThemeEntry, ThemeType};
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::id::{ChannelId, UserId};
-use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
-use serenity_rich_interaction::menu::{MenuBuilder, Page};
+use serenity_additions::core::EXTRA_LONG_TIMEOUT;
+use serenity_additions::menu::{MenuBuilder, Page};
 
 /// Creates a new Anime Theme Menu
 pub async fn create_theme_menu(

@@ -19,6 +19,7 @@ pub async fn help(
     groups: &[&'static CommandGroup],
     owners: HashSet<UserId>,
 ) -> CommandResult {
+    tracing::debug!("Help");
     let _ = help_commands::with_embeds(ctx, msg, args, help_options, groups, owners).await;
     handle_autodelete(ctx, msg).await?;
     Ok(())

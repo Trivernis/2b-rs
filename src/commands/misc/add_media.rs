@@ -4,8 +4,8 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandResult};
 use serenity::model::channel::Message;
-use serenity_rich_interaction::core::SHORT_TIMEOUT;
-use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
+use serenity_additions::core::SHORT_TIMEOUT;
+use serenity_additions::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[description("Adds media to the database")]

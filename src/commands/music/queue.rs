@@ -16,7 +16,7 @@ use crate::providers::music::queue::Song;
 #[aliases("q")]
 #[bucket("general")]
 async fn queue(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     tracing::trace!("Displaying queue for guild {}", guild.id);
 
     let query = args

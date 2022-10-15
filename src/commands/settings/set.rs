@@ -28,7 +28,7 @@ async fn set(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         return Ok(());
     }
     let database = get_database_from_context(ctx).await;
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
 
     if let Ok(value) = args.single::<String>() {
         database

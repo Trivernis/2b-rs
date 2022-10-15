@@ -1,7 +1,7 @@
 use crate::utils::context_data::get_database_from_context;
 use crate::utils::error::BotResult;
 use serenity::client::Context;
-use serenity_rich_interaction::core::MessageHandle;
+use serenity_additions::core::MessageHandle;
 use std::time::{Duration, SystemTime};
 
 pub mod gifs;

@@ -4,7 +4,7 @@ use serenity::model::channel::GuildChannel;
 use serenity::model::event::ResumedEvent;
 use serenity::model::gateway::{Activity, Ready};
 use serenity::model::guild::Member;
-use serenity::model::id::{ChannelId, GuildId};
+use serenity::model::id::ChannelId;
 use serenity::model::voice::VoiceState;
 use serenity::prelude::*;
 
@@ -12,8 +12,8 @@ use crate::commands::music::get_music_player_for_guild;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::delete_messages_from_database;
 use serenity::model::event;
-use serenity_rich_interaction::events::RichEventHandler;
-use serenity_rich_interaction::Result;
+use serenity_additions::events::RichEventHandler;
+use serenity_additions::Result;
 
 /// Returns the raw event handler built from a rich event handler
 pub fn get_raw_event_handler() -> RichEventHandler {
@@ -34,8 +34,9 @@ async fn ready(ctx: &Context, _: &Ready) -> Result<()> {
     tracing::info!("Ready");
     delete_messages_from_database(&ctx).await?;
     let prefix = std::env::var("BOT_PREFIX").unwrap_or("~!".to_string());
-    ctx.set_activity(Activity::listening(format!("{}help", prefix).as_str()))
+    ctx.set_activity(Activity::listening(format!("{prefix}help").as_str()))
         .await;
+    tracing::info!("Fully initialized. Listening to {prefix}help");
     Ok(())
 }
 
@@ -50,13 +51,12 @@ impl EventHandler for Handler {
     async fn voice_state_update(
         &self,
         ctx: Context,
-        guild_id: Option<GuildId>,
         old_state: Option<VoiceState>,
         new_state: VoiceState,
     ) {
         let mut member_count = None;
 
-        let guild_id = if let Some(gid) = guild_id {
+        let guild_id = if let Some(gid) = new_state.guild_id {
             gid
         } else {
             return;
@@ -81,7 +81,7 @@ impl EventHandler for Handler {
         }
         // handle disconnects
         if let (Some(state), None) = (old_state, new_state.channel_id) {
-            let current_user = ctx.cache.current_user().await;
+            let current_user = ctx.cache.current_user();
 
             if state.user_id == current_user.id {
                 let mut data = ctx.data.write().await;
@@ -101,7 +101,7 @@ impl EventHandler for Handler {
 async fn get_own_channel_member_count(ctx: &Context, channel_id: ChannelId) -> Option<usize> {
     let guild_channel = get_guild_channel(ctx, channel_id).await?;
 
-    let current_user = ctx.cache.current_user().await;
+    let current_user = ctx.cache.current_user();
 
     let members = guild_channel.members(&ctx).await.ok()?;
     let own_channel = members
@@ -119,7 +119,7 @@ async fn get_own_channel_member_count(ctx: &Context, channel_id: ChannelId) -> O
 
 /// Returns the guild channel for a guild ID
 async fn get_guild_channel(ctx: &Context, channel_id: ChannelId) -> Option<GuildChannel> {
-    if let Some(channel) = ctx.cache.channel(channel_id).await {
+    if let Some(channel) = ctx.cache.channel(channel_id) {
         return channel.guild();
     }
     let channel = ctx.http.get_channel(channel_id.0).await.ok()?;

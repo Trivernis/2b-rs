@@ -12,7 +12,6 @@ use bot_database::models::YoutubeSong;
 pub struct MusicQueue {
     inner: VecDeque<Song>,
     current: Option<Song>,
-    pub leave_flag: bool,
 }
 
 impl MusicQueue {
@@ -20,7 +19,6 @@ impl MusicQueue {
         Self {
             inner: VecDeque::new(),
             current: None,
-            leave_flag: false,
         }
     }
 

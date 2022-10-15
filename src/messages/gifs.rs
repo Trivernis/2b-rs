@@ -3,7 +3,7 @@ use bot_database::models::Media;
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::id::{ChannelId, UserId};
-use serenity_rich_interaction::menu::{MenuBuilder, Page};
+use serenity_additions::menu::{MenuBuilder, Page};
 use std::time::Duration;
 
 /// Creates a new gifs embed

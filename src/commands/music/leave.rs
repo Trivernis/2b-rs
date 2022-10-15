@@ -6,8 +6,8 @@ use serenity::model::channel::Message;
 use crate::commands::common::handle_autodelete;
 use crate::commands::music::DJ_CHECK;
 use crate::utils::context_data::MusicPlayers;
-use serenity_rich_interaction::core::SHORT_TIMEOUT;
-use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
+use serenity_additions::core::SHORT_TIMEOUT;
+use serenity_additions::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[only_in(guilds)]
@@ -17,13 +17,13 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[bucket("general")]
 #[checks(DJ)]
 async fn leave(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     tracing::debug!("Leave request received for guild {}", guild.id);
 
     let manager = songbird::get(ctx).await.unwrap();
     if let Some(handler) = manager.get(guild.id) {
         let mut handler_lock = handler.lock().await;
-        let _ = handler_lock.leave().await;
+        handler_lock.leave().await?;
     }
 
     let mut data = ctx.data.write().await;

@@ -5,8 +5,8 @@ use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::{Args, CommandError, CommandResult};
 use serenity::model::channel::Message;
-use serenity_rich_interaction::core::SHORT_TIMEOUT;
-use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
+use serenity_additions::core::SHORT_TIMEOUT;
+use serenity_additions::ephemeral_message::EphemeralMessage;
 
 #[command]
 #[description("Moves a song in the queue from one position to a new one")]
@@ -18,7 +18,7 @@ use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
 #[aliases("mvs", "movesong", "move-song")]
 #[checks(DJ)]
 async fn move_song(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     tracing::debug!("Moving song for guild {}", guild.id);
 
     let pos1 = args.single::<usize>()?;

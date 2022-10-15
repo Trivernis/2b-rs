@@ -12,7 +12,7 @@ use crate::utils::context_data::get_database_from_context;
 #[usage("")]
 #[bucket("general")]
 async fn playlists(ctx: &Context, msg: &Message) -> CommandResult {
-    let guild = msg.guild(&ctx.cache).await.unwrap();
+    let guild = msg.guild(&ctx.cache).unwrap();
     tracing::debug!("Displaying playlists for guild {}", guild.id);
     let database = get_database_from_context(ctx).await;
 

@@ -18,8 +18,6 @@ use youtube_metadata::get_video_information;
 
 use clear_queue::CLEAR_QUEUE_COMMAND;
 use current::CURRENT_COMMAND;
-use equalize::EQUALIZE_COMMAND;
-use equalizer::EQUALIZER_COMMAND;
 use join::JOIN_COMMAND;
 use leave::LEAVE_COMMAND;
 use lyrics::LYRICS_COMMAND;
@@ -43,8 +41,6 @@ use crate::utils::error::{BotError, BotResult};
 
 mod clear_queue;
 mod current;
-mod equalize;
-mod equalizer;
 mod join;
 mod leave;
 mod lyrics;
@@ -75,9 +71,7 @@ mod skip;
     playlists,
     lyrics,
     move_song,
-    remove_song,
-    equalizer,
-    equalize
+    remove_song
 )]
 pub struct Music;
 
@@ -257,7 +251,6 @@ pub async fn check_dj(
 ) -> Result<(), Reason> {
     let guild = msg
         .guild(&ctx.cache)
-        .await
         .ok_or(Reason::Log("Not in a guild".to_string()))?;
 
     if is_dj(ctx, guild.id, &msg.author)

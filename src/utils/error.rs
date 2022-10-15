@@ -1,5 +1,4 @@
-use lavalink_rs::error::LavalinkError;
-use serenity_rich_interaction::Error as SerenityUtilsError;
+use serenity_additions::Error as SerenityUtilsError;
 use thiserror::Error;
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -34,7 +33,7 @@ pub enum BotError {
     CliInject,
 
     #[error("Serenity Utils Error: {0}")]
-    SerenityUtils(#[from] serenity_rich_interaction::Error),
+    SerenityUtils(#[from] serenity_additions::Error),
 
     #[error("Track Error: {0}")]
     TrackError(#[from] songbird::error::TrackError),
@@ -45,8 +44,8 @@ pub enum BotError {
     #[error("YouTube Error: {0}")]
     YoutubeError(#[from] youtube_metadata::error::Error),
 
-    #[error("Lavalink Error: {0}")]
-    LavalinkError(#[from] LavalinkError),
+    #[error("No songbird client for current guild")]
+    MissingSongbirdClient,
 
     #[error("{0}")]
     Msg(String),

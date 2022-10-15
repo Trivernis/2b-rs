@@ -42,14 +42,11 @@ animethemes-rs = "0.4.4"
 build-time = "0.1.1"
 tracing-subscriber = { version = "0.3.11", features = ["env-filter"] }
 tracing = "0.1.34"
-serenity-rich-interaction= "0.3.1"
+serenity-additions = "0.3.2"
 
 [dependencies.tokio]
 version = "1.19.2"
 features = ["macros", "rt-multi-thread"]
 
-[dependencies.lavalink-rs]
-git = "https://gitlab.com/vicky5124/lavalink-rs/"
-rev = "2487c295"
-features=["native", "serenity", "songbird", "tracing-log"]
-default-features = false
+[patch.crates-io]
+serenity-additions = { path = "../serenity-additions" }

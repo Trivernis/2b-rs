@@ -1,26 +1,27 @@
 use crate::messages::music::now_playing::update_now_playing_msg;
-use crate::providers::music::lavalink::Lavalink;
 use crate::providers::music::lyrics::get_lyrics;
 use crate::providers::music::queue::MusicQueue;
 use crate::utils::context_data::MusicPlayers;
 use crate::utils::error::{BotError, BotResult};
-use lavalink_rs::LavalinkClient;
 use serenity::prelude::TypeMap;
 use serenity::{
     client::Context,
     http::Http,
     model::id::{ChannelId, GuildId},
 };
-use serenity_rich_interaction::core::{MessageHandle, SHORT_TIMEOUT};
-use serenity_rich_interaction::ephemeral_message::EphemeralMessage;
+use serenity_additions::core::{MessageHandle, SHORT_TIMEOUT};
+use serenity_additions::ephemeral_message::EphemeralMessage;
+use songbird::tracks::TrackHandle;
 use songbird::Songbird;
 use std::mem;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{Mutex, RwLock};
 
+use super::player_events::register_player_events;
+
 pub struct MusicPlayer {
-    client: Arc<LavalinkClient>,
+    manager: Arc<Songbird>,
     http: Arc<Http>,
     queue: MusicQueue,
     guild_id: GuildId,
@@ -28,19 +29,19 @@ pub struct MusicPlayer {
     msg_channel: ChannelId,
     leave_flag: bool,
     paused: bool,
-    equalizer: [f64; 15],
+    current_track: Option<TrackHandle>,
 }
 
 impl MusicPlayer {
     /// Creates a new music player
     pub fn new(
-        client: Arc<LavalinkClient>,
+        manager: Arc<Songbird>,
         http: Arc<Http>,
         guild_id: GuildId,
         msg_channel: ChannelId,
     ) -> Self {
         Self {
-            client,
+            manager,
             http,
             guild_id,
             queue: MusicQueue::new(),
@@ -48,7 +49,7 @@ impl MusicPlayer {
             now_playing_msg: None,
             leave_flag: false,
             paused: false,
-            equalizer: [0f64; 15],
+            current_track: None,
         }
     }
 
@@ -60,20 +61,12 @@ impl MusicPlayer {
         msg_channel_id: ChannelId,
     ) -> BotResult<Arc<Mutex<MusicPlayer>>> {
         let manager = songbird::get(ctx).await.unwrap();
-        let (handler, connection) = manager.join_gateway(guild_id, voice_channel_id).await;
-        let connection = connection?;
-
-        {
-            let mut handler = handler.lock().await;
-            handler.deafen(true).await?;
-        }
+        let (handler, _) = manager.join(guild_id, voice_channel_id).await;
 
         let player = {
             let mut data = ctx.data.write().await;
-            let client = data.get::<Lavalink>().unwrap();
-            client.create_session_with_songbird(&connection).await?;
             let player = MusicPlayer::new(
-                Arc::clone(client),
+                Arc::clone(&manager),
                 Arc::clone(&ctx.http),
                 guild_id,
                 msg_channel_id,
@@ -83,6 +76,12 @@ impl MusicPlayer {
             players.insert(guild_id.0, Arc::clone(&player));
             player
         };
+
+        {
+            let mut handler = handler.lock().await;
+            handler.deafen(true).await?;
+            register_player_events(player.clone(), &mut handler);
+        }
 
         wait_for_disconnect(
             Arc::clone(&ctx.data),
@@ -101,7 +100,9 @@ impl MusicPlayer {
 
     /// Skips to the next song
     pub async fn skip(&mut self) -> BotResult<()> {
-        self.client.stop(self.guild_id.0).await?;
+        if let Some(track) = self.current_track.take() {
+            track.stop()?;
+        }
 
         Ok(())
     }
@@ -109,7 +110,9 @@ impl MusicPlayer {
     /// Stops playback and leaves the channel
     pub async fn stop(&mut self) -> BotResult<()> {
         self.queue.clear();
-        self.client.stop(self.guild_id.0).await?;
+        if let Some(track) = self.current_track.take() {
+            track.stop()?;
+        }
         Ok(())
     }
 
@@ -128,7 +131,9 @@ impl MusicPlayer {
     pub async fn play_next(&mut self) -> BotResult<()> {
         while !self.try_play_next().await? {}
         if self.paused {
-            self.client.pause(self.guild_id).await?;
+            if let Some(track) = self.current_track.as_ref() {
+                track.pause()?;
+            }
         }
 
         Ok(())
@@ -154,8 +159,8 @@ impl MusicPlayer {
             tracing::debug!("Could not find playable candidate for song.");
             return Ok(false);
         };
-        let query_information = match self.client.auto_search_tracks(url).await {
-            Ok(i) => i,
+        let source = match songbird::ytdl(url).await {
+            Ok(s) => s,
             Err(e) => {
                 tracing::error!("Failed to search for song: {}", e);
                 self.send_error_message(format!(
@@ -168,12 +173,16 @@ impl MusicPlayer {
                 return Ok(false);
             }
         };
-
-        if query_information.tracks.len() == 0 {
-            return Ok(false);
+        let handler_lock = self
+            .manager
+            .get(self.guild_id.0)
+            .ok_or(BotError::MissingSongbirdClient)?;
+        {
+            let mut handler = handler_lock.lock().await;
+            let track_handle = handler.play_source(source);
+            self.current_track = Some(track_handle);
         }
-        let track = query_information.tracks[0].clone();
-        self.client.play(self.guild_id.0, track).start().await?;
+
         self.queue.set_current(next);
 
         Ok(true)
@@ -208,7 +217,13 @@ impl MusicPlayer {
     /// Pauses playback
     pub async fn toggle_paused(&mut self) -> BotResult<()> {
         self.paused = !self.paused;
-        self.client.set_pause(self.guild_id.0, self.paused).await?;
+        if let Some(track) = self.current_track.as_ref() {
+            if self.paused {
+                track.play()?;
+            } else {
+                track.pause()?;
+            }
+        }
 
         Ok(())
     }
@@ -242,37 +257,6 @@ impl MusicPlayer {
 
         Ok(())
     }
-
-    /// Returns the equalizer
-    pub fn get_equalizer(&self) -> &[f64; 15] {
-        &self.equalizer
-    }
-
-    /// Equalizes a specified band
-    pub async fn equalize(&mut self, band: u8, value: f64) -> BotResult<()> {
-        if band > 15 {
-            return Err(BotError::from("Invalid Equalizer band"));
-        }
-        if value < -0.25 || value > 0.25 {
-            return Err(BotError::from("Invalid Equalizer value"));
-        }
-        self.equalizer[band as usize] = value;
-        self.client
-            .equalize_all(self.guild_id, self.equalizer)
-            .await?;
-
-        Ok(())
-    }
-
-    /// Equalizes all bands at the same time
-    pub async fn equalize_all(&mut self, bands: [f64; 15]) -> BotResult<()> {
-        self.equalizer = bands;
-        self.client
-            .equalize_all(self.guild_id, self.equalizer)
-            .await?;
-
-        Ok(())
-    }
 }
 
 /// Stats a tokio coroutine to check for player disconnect conditions
@@ -295,8 +279,11 @@ fn wait_for_disconnect(
                 tracing::debug!("Waiting to leave");
 
                 if leave_in <= 0 {
-                    tracing::debug!("Leaving voice channel");
+                    tracing::info!("Leaving voice channel");
 
+                    if let Some(track) = player_lock.current_track.take() {
+                        let _ = track.stop();
+                    }
                     if let Some(handler) = manager.get(guild_id) {
                         let mut handler_lock = handler.lock().await;
                         let _ = handler_lock.leave().await;

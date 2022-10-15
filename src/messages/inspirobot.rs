@@ -3,10 +3,8 @@ use crate::utils::error::BotResult;
 use serenity::builder::CreateMessage;
 use serenity::client::Context;
 use serenity::model::id::{ChannelId, UserId};
-use serenity_rich_interaction::core::EXTRA_LONG_TIMEOUT;
-use serenity_rich_interaction::menu::{
-    close_menu, display_page, MenuBuilder, Page, CLOSE_MENU_EMOJI,
-};
+use serenity_additions::core::EXTRA_LONG_TIMEOUT;
+use serenity_additions::menu::{close_menu, display_page, MenuBuilder, Page, CLOSE_MENU_EMOJI};
 
 static REFRESH_EMOJI: &str = "🔄";
 
@@ -30,7 +28,7 @@ pub async fn create_inspirobot_menu(
             Box::pin(async {
                 let message = create_inspirobot_page()
                     .await
-                    .map_err(|e| serenity_rich_interaction::Error::Msg(format!("{}", e)))?;
+                    .map_err(|e| serenity_additions::Error::Msg(format!("{}", e)))?;
                 Ok(message)
             })
         }))

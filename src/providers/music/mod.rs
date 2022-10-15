@@ -8,9 +8,9 @@ use responses::VideoInformation;
 use youtube_dl::search_video_information;
 
 pub mod inspirobot;
-pub mod lavalink;
 pub mod lyrics;
 pub mod player;
+pub mod player_events;
 pub mod queue;
 pub mod responses;
 pub mod spotify;

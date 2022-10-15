@@ -10,7 +10,6 @@ use pain::PAIN_COMMAND;
 use party::PARTY_COMMAND;
 use ping::PING_COMMAND;
 use qalc::QALC_COMMAND;
-use reset_lavalink::RESET_LAVALINK_COMMAND;
 use shutdown::SHUTDOWN_COMMAND;
 use stats::STATS_COMMAND;
 use time::TIME_COMMAND;
@@ -28,7 +27,6 @@ mod pain;
 mod party;
 mod ping;
 mod qalc;
-mod reset_lavalink;
 mod shutdown;
 mod stats;
 mod time;
@@ -37,21 +35,7 @@ mod xkcd;
 
 #[group]
 #[commands(
-    ping,
-    stats,
-    shutdown,
-    time,
-    timezones,
-    qalc,
-    about,
-    add_media,
-    media,
-    pain,
-    clear,
-    xkcd,
-    fuck,
-    party,
-    inspirobot,
-    reset_lavalink
+    ping, stats, shutdown, time, timezones, qalc, about, add_media, media, pain, clear, xkcd, fuck,
+    party, inspirobot
 )]
 pub struct Misc;
