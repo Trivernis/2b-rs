@@ -3,7 +3,6 @@ name: Build Container
 on:
   workflow_dispatch:
   push:
-  push:
     tags:
       - "v*"
   schedule:

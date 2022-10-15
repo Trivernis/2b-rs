@@ -1,4 +1,4 @@
-name: Build and Test
+name: Check
 
 on:
   workflow_dispatch:
@@ -31,9 +31,15 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+      
+      
+      - name: Run Rustfmt
+        uses: actions-rust-lang/rustfmt@v1.0.0
 
-      - name: Build
-        run: cargo build --verbose
+      - name: Run Clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}      
 
       - name: Test coreutils
         run: cargo test --verbose --package bot-coreutils
