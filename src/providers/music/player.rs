@@ -219,9 +219,9 @@ impl MusicPlayer {
         self.paused = !self.paused;
         if let Some(track) = self.current_track.as_ref() {
             if self.paused {
-                track.play()?;
-            } else {
                 track.pause()?;
+            } else {
+                track.play()?;
             }
         }
 
@@ -282,6 +282,7 @@ fn wait_for_disconnect(
                     tracing::info!("Leaving voice channel");
 
                     if let Some(track) = player_lock.current_track.take() {
+                        player_lock.queue().clear();
                         let _ = track.stop();
                     }
                     if let Some(handler) = manager.get(guild_id) {

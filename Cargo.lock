@@ -3026,7 +3026,9 @@ dependencies = [
 
 [[package]]
 name = "serenity-additions"
-version = "0.3.2"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57a6c19ae7a6525fbe4fb79508779cf40b1da676a3f2f23085e387e7048e8234"
 dependencies = [
  "dashmap",
  "futures",
