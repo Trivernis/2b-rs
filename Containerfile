@@ -35,6 +35,7 @@ RUN apk add --no-cache --force-overwrite \
     python3 \
     py3-pip \
     qalc \
+    ffmpeg \
     bash
 RUN pip3 install youtube-dl
 RUN rm -rf /var/lib/{cache,log}/ /var/cache
