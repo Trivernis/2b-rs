@@ -1,0 +1,19 @@
+version: 1
+when:
+  - event: [tag]
+    branch:
+      - ${CI_REPO_DEFAULT_BRANCH}
+steps:
+  build:
+    image: woodpeckerci/plugin-docker-buildx
+    secrets: [forgejo_token]
+    settings:
+      dockerfile: Containerfile
+      tag: ${CI_COMMIT_TAG##v}
+      repo: git.trivernis.net/trivernis/2b-rs
+      registry: git.trivernis.net
+      platforms: linux/amd64
+      username: woodpeckerbot
+      password:
+        from_secret: forgejo_token
+    

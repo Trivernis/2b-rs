@@ -1,0 +1,23 @@
+version: 1
+when:
+  - event: [pull_request]
+  - event: push
+    branch:
+      - ${CI_REPO_DEFAULT_BRANCH}
+      - release/*
+      - fix/*
+steps:
+  test:
+    image: rust:alpine
+    commands:
+      - cargo clippy
+      - cargo test --verbose --package bot-coreutils
+      - cargo test --verbose --package bot-database
+      - cargo test --verbose
+
+  build:
+    image: rust:alpine
+    commands:
+      - cargo build
+    when:
+      - event: [pull_request]
