@@ -10,6 +10,7 @@ steps:
   test:
     image: rust:alpine
     commands:
+      - rustup component add clippy --toolchain stable-x86_64-unknown-linux-musl
       - cargo clippy
       - cargo test --verbose --package bot-coreutils
       - cargo test --verbose --package bot-database
