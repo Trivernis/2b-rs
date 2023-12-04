@@ -63,4 +63,4 @@ The required values are:
 
 ## License
 
-It's GPL 3.0
+See LICENSE.md
