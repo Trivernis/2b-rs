@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 
-use sauce_api::{SauceItem, SauceResult};
 use serenity::builder::CreateMessage;
 use serenity::{model::channel::Message, prelude::*};
 
@@ -24,7 +23,7 @@ static SAUCE_MESSAGES: &[&str] = &[
 pub async fn show_sauce_menu(
     ctx: &Context,
     msg: &Message,
-    sources: Vec<SauceResult>,
+    sources: Vec<sauce_api::source::Output>,
 ) -> BotResult<()> {
     let pages: Vec<Page> = sources.into_iter().map(create_sauce_page).collect();
 
@@ -47,7 +46,7 @@ pub async fn show_sauce_menu(
 }
 
 /// Creates a single sauce page
-fn create_sauce_page<'a>(mut result: SauceResult) -> Page<'a> {
+fn create_sauce_page<'a>(mut result: sauce_api::source::Output) -> Page<'a> {
     let mut message = CreateMessage::default();
     let mut description_lines = Vec::new();
     let original = result.original_url;
@@ -65,7 +64,7 @@ fn create_sauce_page<'a>(mut result: SauceResult) -> Page<'a> {
     });
     // display with descending similarity
     result.items.reverse();
-    let items: Vec<(usize, SauceItem)> = result
+    let items: Vec<(usize, sauce_api::source::Item)> = result
         .items
         .into_iter()
         .filter(|i| i.similarity >= MIN_SIMILARITY)

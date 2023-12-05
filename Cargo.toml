@@ -3,7 +3,7 @@ members=["bot-coreutils", "bot-database", "bot-database/migration", "."]
 
 [package]
 name = "tobi-rs"
-version = "0.11.1"
+version = "0.11.2"
 authors = ["trivernis <trivernis@protonmail.com>"]
 edition = "2018"
 
@@ -32,7 +32,7 @@ chrono = "0.4.22"
 sysinfo = "0.26.4"
 reqwest = "0.11.12"
 chrono-tz = "0.6.3"
-sauce-api = "0.9.3"
+sauce-api = "1.0.0"
 rustc_version_runtime = "0.2.1"
 trigram = "0.4.4"
 typemap_rev = "0.2.0"

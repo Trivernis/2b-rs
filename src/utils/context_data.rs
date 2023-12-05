@@ -3,7 +3,8 @@ use std::env;
 use std::sync::Arc;
 
 use bot_database::Database;
-use sauce_api::prelude::SauceNao;
+use sauce_api::source::saucenao::SauceNao;
+use sauce_api::source::Source;
 use serenity::client::Context;
 use serenity::prelude::TypeMapKey;
 use tokio::sync::Mutex;
@@ -16,15 +17,17 @@ pub struct Store;
 pub struct StoreData {
     pub minecraft_data_api: minecraft_data_rs::api::Api,
     pub spotify_api: SpotifyApi,
-    pub sauce_nao: SauceNao<'static>,
+    pub sauce_nao: SauceNao,
 }
 
 impl StoreData {
-    pub fn new() -> StoreData {
-        let mut sauce_nao = SauceNao::new();
-        sauce_nao.set_api_key(
+    pub async fn create() -> StoreData {
+        let sauce_nao = SauceNao::create(
             env::var("SAUCENAO_API_KEY").expect("No SAUCENAO_API_KEY key in environment."),
-        );
+        )
+        .await
+        .unwrap();
+
         Self {
             minecraft_data_api: minecraft_data_rs::api::Api::latest().unwrap(),
             spotify_api: SpotifyApi::new(),

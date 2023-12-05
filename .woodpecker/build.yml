@@ -10,6 +10,13 @@ steps:
   test:
     image: rust:alpine
     commands:
+      - apk add --no-cache --force-overwrite \
+        build-base \
+        openssl-dev \
+        libopusenc-dev \
+        libpq-dev \
+        curl \
+        bash
       - rustup default stable
       - rustup component add clippy --toolchain stable-x86_64-unknown-linux-musl
       - cargo clippy
@@ -20,6 +27,13 @@ steps:
   build:
     image: rust:alpine
     commands:
+      - apk add --no-cache --force-overwrite \
+        build-base \
+        openssl-dev \
+        libopusenc-dev \
+        libpq-dev \
+        curl \
+        bash
       - cargo build
     when:
       - event: [pull_request]

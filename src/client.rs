@@ -30,7 +30,7 @@ pub async fn get_client() -> BotResult<Client> {
         .event_handler(Handler)
         .framework(get_framework().await)
         .register_songbird()
-        .type_map_insert::<Store>(StoreData::new())
+        .type_map_insert::<Store>(StoreData::create().await)
         .type_map_insert::<DatabaseContainer>(database)
         .type_map_insert::<MusicPlayers>(HashMap::new())
         .await?;

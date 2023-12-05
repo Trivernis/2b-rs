@@ -1,4 +1,4 @@
-use sauce_api::Sauce;
+use sauce_api::source::Source;
 use serenity::client::Context;
 use serenity::framework::standard::macros::command;
 use serenity::framework::standard::CommandResult;
@@ -59,15 +59,20 @@ async fn sauce(ctx: &Context, msg: &Message) -> CommandResult {
     );
     let data = ctx.data.read().await;
     let store_data = data.get::<Store>().unwrap();
-    let sources = store_data
-        .sauce_nao
-        .check_sauces(&attachment_urls[..])
-        .await?;
-    tracing::trace!("Sources are {:?}", sources);
+    let mut outputs = Vec::new();
+
+    for attachment in attachment_urls {
+        let output = store_data
+            .sauce_nao
+            .check(&attachment)
+            .await
+            .map_err(|_| "failed to retrieve source")?;
+        tracing::trace!("Output is {:?}", output);
+        outputs.push(output)
+    }
 
     tracing::debug!("Creating menu...");
-
-    show_sauce_menu(ctx, msg, sources).await?;
+    show_sauce_menu(ctx, msg, outputs).await?;
     tracing::debug!("Menu created");
 
     Ok(())

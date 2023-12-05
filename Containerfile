@@ -22,7 +22,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 COPY bot-coreutils ./bot-coreutils
 COPY bot-database ./bot-database
-RUN cargo build --release --verbose
+RUN cargo build --release
 RUN mkdir /tmp/tobi
 RUN cp target/release/tobi-rs /tmp/tobi/
 
@@ -37,7 +37,7 @@ RUN apk add --no-cache --force-overwrite \
     qalc \
     ffmpeg \
     bash
-RUN pip3 install youtube-dl
+RUN pip3 install yt-dlp --break-system-packages
 RUN rm -rf /var/lib/{cache,log}/ /var/cache
 
 FROM runtime-base
