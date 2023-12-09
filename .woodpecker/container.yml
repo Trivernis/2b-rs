@@ -13,7 +13,8 @@ steps:
       repo: git.trivernis.net/trivernis/2b-rs
       registry: git.trivernis.net
       platforms: linux/amd64
-      username: woodpeckerbot
+      username: 
+        from_secret: forgejo_id
       password:
         from_secret: forgejo_token
     
