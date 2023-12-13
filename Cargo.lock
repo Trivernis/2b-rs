@@ -94,9 +94,9 @@ dependencies = [
 
 [[package]]
 name = "animethemes-rs"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1edd824246e9dad7f7954c0ecb926cad6776169e17394d59d21ba0909c97ee88"
+checksum = "55f665e0fba0102cb881e63c98046126641a68f63969cbcb6df38a2ffac1ebfe"
 dependencies = [
  "reqwest",
  "serde",
@@ -4011,7 +4011,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tobi-rs"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "animethemes-rs",
  "aspotify",
